@@ -4383,12 +4383,10 @@ async function renderAdminPanel(){
     `<button class="al-key" id="forceRefreshLbBtn" style="width:100%;margin:6px 0 14px;">🔄 تحديث الترتيب الآن (بدل انتظار ساعة)</button>` +
     zoomManageCard +
     examLinksManageCard +
-    solutionsCard +
     examSolutionsCard +
     adminAccordionHTML('lessons', `${AA_ICONS.lessons} فتح/إغلاق الدروس`, lessonsBody) +
     adminAccordionHTML('trimesters', `${AA_ICONS.exams} فتح/إغلاق الفروض والاختبارات`, trimestersBody) +
     adminAccordionHTML('situations', `${AA_ICONS.situations} فتح/إغلاق وضعيات الاستئناس (المقاطع)`, situationsBody) +
-    adminAccordionHTML('irab', `${AA_ICONS.irab} فتح/إغلاق إعراب الجمل`, irabBody) +
     adminAccordionHTML('aiTeacher', `${AA_ICONS.aiTeacher} المعلّم الذكي — اختبارات وتصحيح آلي`, aiTeacherBody) +
     adminAccordionHTML('dailyExercises', `${AA_ICONS.dailyExercises} تمارين يومية`, dailyExercisesBody) +
     adminAccordionHTML('stats', `${AA_ICONS.stats} إحصائيات كل درس`, statsBody);
@@ -4419,10 +4417,6 @@ async function renderAdminPanel(){
     openExamLinksManagerModal();
   });
 
-  document.getElementById('solutionsBotBtn').addEventListener('click', ()=>{
-    if(window.SoundFX) SoundFX.click();
-    openSolutionsModal();
-  });
 
   document.getElementById('examSolutionsBotBtn').addEventListener('click', ()=>{
     if(window.SoundFX) SoundFX.click();
@@ -4536,7 +4530,8 @@ async function renderAdminPanel(){
       else { alert('تعذّر إرسال الإشعار. تحقق من اتصال Firebase وقواعد Firestore.'); }
     });
   }
-  document.getElementById('toggleIrabBtn').addEventListener('click', async ()=>{
+  const toggleIrabBtnEl = document.getElementById('toggleIrabBtn');
+  if(toggleIrabBtnEl) toggleIrabBtnEl.addEventListener('click', async ()=>{
     const open = Locks.isIrabOpen();
     try{
       await Locks.setIrabOpen(!open);
