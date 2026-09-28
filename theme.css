@@ -1,0 +1,135 @@
+/* =========================================================================================
+   theme.css — ألوان مستوحاة من شعار الأستاذ (ماروني + أسود فحمي + ذهبي)
+   وبطاقات مستطيلة تحت بعضها. يُحمَّل بعد style.css فيتغلّب عليه دون تعديله.
+   للرجوع للتصميم القديم: احذف سطر <link href="theme.css"> من index.html.
+   ========================================================================================= */
+
+:root{
+  --bg-1:#F7F1E6;  --bg-2:#EFE4D3;  --bg-3:#EBDCD0;
+  --paper:#FFFCF6; --paper-soft:#FAF3E8;
+  --ink:#221A1B;             /* أسود دافئ */
+  --ink-soft:#6B5A5B;
+  --sage:#8A3037;            /* كان أخضر، صار ماروني */
+  --sage-deep:#6A1D24;       /* ماروني داكن */
+  --gold-1:#E8CE85; --gold-2:#C9A24B; --gold-3:#A67C2E;
+  --locked:#DDD2C4;
+  --maroon:#7A2229; --maroon-dark:#4E1218; --charcoal:#1B1718;
+}
+
+body{
+  background:
+    radial-gradient(circle at 12% -4%, rgba(201,162,75,0.14), transparent 42%),
+    radial-gradient(circle at 100% 14%, rgba(122,34,41,0.12), transparent 48%),
+    radial-gradient(circle at 50% 100%, rgba(201,162,75,0.10), transparent 58%),
+    linear-gradient(170deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+}
+
+/* ---------- الترويسة ---------- */
+.hero{
+  background:
+    radial-gradient(circle at 20% 0%, rgba(232,206,133,0.30), transparent 55%),
+    linear-gradient(155deg, #FFFCF6 0%, #F6EADB 60%, #EBD8C2 100%);
+  border-color:var(--maroon);
+  box-shadow:0 14px 34px rgba(78,18,24,0.18), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+.hero::before{ border-color:rgba(201,162,75,0.7); }
+.teacher-photo{
+  background:linear-gradient(160deg,#EFE4D3,#E3C9C3);
+  border-color:var(--gold-2);
+  box-shadow:0 0 0 5px rgba(122,34,41,0.20), 0 12px 28px rgba(78,18,24,0.35);
+}
+
+/* =========================================================================================
+   بطاقات مستطيلة تحت بعضها (عمود واحد)
+   ========================================================================================= */
+.home-menu,
+.lesson-grid,
+.ld-tabs,
+.lb-lesson-grid{
+  display:flex; flex-direction:column; grid-template-columns:none; gap:12px;
+}
+
+/* بطاقة القائمة الرئيسية + تبويبات صفحة الدرس: أيقونة على اليمين، والنص بجانبها */
+.home-card{
+  display:grid; grid-template-columns:auto 1fr; grid-template-rows:auto auto;
+  column-gap:14px; row-gap:2px; align-items:center;
+  text-align:right; width:100%;
+  padding:14px 16px; border-radius:16px;
+  background:linear-gradient(160deg, #FFFCF6, #F5EADB);
+  border:1.5px solid rgba(166,124,46,0.55);
+  border-right:6px solid var(--maroon);
+  box-shadow:0 8px 18px rgba(78,18,24,0.10), inset 0 1px 0 rgba(255,255,255,0.75);
+}
+.home-card.c5{ display:grid; flex-direction:initial; align-items:center; }
+.home-card .hc-icon-wrap{
+  grid-row:1 / span 2; grid-column:1; margin:0; flex-shrink:0;
+  width:56px; height:56px; border-radius:14px;
+}
+.home-card .hc-title{ grid-column:2; grid-row:1; align-self:end;  font-size:18px; color:var(--charcoal); }
+.home-card .hc-sub  { grid-column:2; grid-row:2; align-self:start; margin-top:0; max-width:none; color:var(--ink-soft); }
+.home-card:only-child .hc-title{ grid-row:1 / span 2; align-self:center; }
+.home-card .hc-lock-badge, .home-card .hc-badge{ top:8px; left:10px; }
+.home-card::after{               /* سهم صغير يوحي بأن البطاقة قابلة للضغط */
+  content:'‹'; position:absolute; left:14px; top:50%; transform:translateY(-50%);
+  font-size:26px; line-height:1; color:var(--gold-3); opacity:.8; pointer-events:none;
+}
+.home-card .hc-lock-badge, .home-card .hc-badge{ z-index:2; }
+.ld-tab-card.active{
+  background:linear-gradient(160deg, #F6E3A8, #E5C36C);
+  border-color:var(--gold-3); border-right-color:var(--maroon-dark);
+  box-shadow:0 10px 22px rgba(166,124,46,0.30), inset 0 1px 0 rgba(255,255,255,0.7);
+  transform:none;
+}
+.ld-tab-card.active .hc-sub{ color:#4E1218; }
+
+/* أيقونات البطاقات: تدرّجات ذهبية/مارونية بدل الخضراء */
+.home-card.c1 .hc-icon-wrap{ background:linear-gradient(150deg,#F6EADB,#E8CE85); }
+.home-card.c2 .hc-icon-wrap{ background:linear-gradient(150deg,#F1D9D6,#C98A8E); }
+.home-card.c3 .hc-icon-wrap{ background:linear-gradient(150deg,#FBEDC3,#E8CE85); }
+.home-card.c4 .hc-icon-wrap{ background:linear-gradient(150deg,#EFDCCB,#D8AE52); }
+.home-card.c5 .hc-icon-wrap{ background:linear-gradient(150deg,#FBEDC3,#E8CE85); }
+
+/* البطاقة العريضة (الترتيب والنقاط + أزرار الأستاذ) */
+.home-card-wide{
+  background:linear-gradient(160deg, #FFFCF6, #F5EADB);
+  border:1.5px solid rgba(166,124,46,0.55);
+  border-right:6px solid var(--maroon);
+  border-radius:16px;
+}
+.home-card-wide .hc-title{ color:var(--charcoal); }
+
+/* بطاقات الدروس */
+.lesson-card, .lb-lesson-card{
+  flex-direction:row; justify-content:flex-start; text-align:right; gap:12px;
+  min-height:0; padding:14px 16px; border-radius:16px; width:100%;
+  border:1.4px solid rgba(166,124,46,0.6); border-right:6px solid var(--maroon);
+  background:linear-gradient(160deg, #FFFCF6, #F5EADB);
+}
+.lesson-card .num-badge{ position:static; flex-shrink:0; width:32px; height:32px; }
+.lesson-card .lc-title{ font-size:18px; }
+.lesson-card .lb-lock-badge, .lesson-card .lock-badge{ position:static; margin-inline-start:auto; }
+.lb-lesson-card .lb-card-icon{ margin:0; flex-shrink:0; }
+.lb-lesson-card .lb-card-num{ position:static; flex-shrink:0; order:3; margin-inline-start:auto; }
+.lb-lesson-card .lb-card-title{ font-size:15px; order:2; flex:1; }
+.lb-lesson-card .lb-card-icon{ order:1; }
+
+.lesson-row{
+  border-color:rgba(166,124,46,0.6); border-right:6px solid var(--maroon);
+  background:linear-gradient(160deg, #FFFCF6, #F5EADB);
+}
+.screen-frame{ border-color:rgba(122,34,41,0.35); }
+.screen-frame .sf-label{ color:var(--maroon); }
+
+/* تبويبات الأفواج وأزرار الوثائق: من الأخضر إلى الماروني */
+.zoom-tabs{ grid-template-columns:1fr; }
+.zoom-tab-btn.active, .exam-tab.active{
+  background:linear-gradient(135deg, var(--maroon), var(--maroon-dark)); color:#FBEFD2; border-color:var(--gold-3);
+  box-shadow:0 8px 18px rgba(78,18,24,0.30);
+}
+.zoom-doc-btn{
+  color:var(--maroon-dark); background:linear-gradient(150deg,#F6E4E1,#EBC7C5); border-color:rgba(122,34,41,0.35);
+}
+
+/* حاويات ومربعات عامة */
+.zoom-groups-wrap, .exam-panel{ border-color:rgba(166,124,46,0.6); }
+.admin-entry{ border-color:rgba(122,34,41,0.55); color:var(--maroon); }
