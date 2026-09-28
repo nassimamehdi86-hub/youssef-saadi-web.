@@ -2803,10 +2803,10 @@ function createOpenExerciseEngine(lesson, pages, mountEl, opts={}){
     const items = sec.items || [];
     const rowsHtml = items.map((it,i)=>{
       const label = kind==='irab' ? (it.word||'') : (it.term||'');
-      const sub = kind==='irab' ? 'أعرب هذه الكلمة' : (kind==='term' ? 'ما المعنى الذي يفيده هذا الحرف؟' : 'وظّف هذا الحرف في جملة من إنشائك');
+      const sub = sec.prompt || (kind==='irab' ? 'أعرب هذه الكلمة' : (kind==='term' ? 'ما المعنى الذي يفيده هذا الحرف؟' : 'وظّف هذا الحرف في جملة من إنشائك'));
       const inputTag = kind==='irab'
         ? `<textarea class="quiz-textarea" data-ri="${i}" placeholder="اكتب الإعراب هنا"></textarea>`
-        : `<input type="text" class="quiz-text-input" data-ri="${i}" placeholder="${kind==='term'?'اكتب المعنى هنا':'اكتب جملتك هنا'}">`;
+        : `<input type="text" class="quiz-text-input" data-ri="${i}" placeholder="${sec.placeholder || (kind==='term'?'اكتب المعنى هنا':'اكتب جملتك هنا')}">`;
       return `
         <div class="book-item-row" data-ri="${i}">
           <div class="quiz-term-label">${i+1}) ${epTextSpan(label)}</div>
