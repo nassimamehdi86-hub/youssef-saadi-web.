@@ -393,7 +393,7 @@ const Locks = {
   isIrabOpen(){ return !this.data.features || this.data.features.irab !== false; },
 
   async setLesson(id, open){
-    if(!fbReady) return;
+    if(!fbReady || !Admin.authed) return; // ✅ تحقق من PIN أولاً
     this.data.lessons = this.data.lessons || {};
     this.data.lessons[id] = !!open;
     /* وقت فتح الدرس — يُستعمل لعرض آخر درس مفتوح في أعلى قائمة الدروس */
@@ -401,19 +401,19 @@ const Locks = {
     await db.collection('state').doc('locks').set(this.data, {merge:true});
   },
   async setTrimester(t, open){
-    if(!fbReady) return;
+    if(!fbReady || !Admin.authed) return; // ✅ تحقق من PIN أولاً
     this.data.trimesters = this.data.trimesters || {};
     this.data.trimesters[t] = !!open;
     await db.collection('state').doc('locks').set(this.data, {merge:true});
   },
   async setSituation(key, open){
-    if(!fbReady) return;
+    if(!fbReady || !Admin.authed) return; // ✅ تحقق من PIN أولاً
     this.data.situations = this.data.situations || {};
     this.data.situations[key] = !!open;
     await db.collection('state').doc('locks').set(this.data, {merge:true});
   },
   async setIrabOpen(open){
-    if(!fbReady) return;
+    if(!fbReady || !Admin.authed) return; // ✅ تحقق من PIN أولاً
     this.data.features = this.data.features || {};
     this.data.features.irab = !!open;
     await db.collection('state').doc('locks').set(this.data, {merge:true});
@@ -495,7 +495,7 @@ const ZoomLinks = {
   },
 
   async setLinks(lessonId, groups){
-    if(!fbReady) return { ok:false, reason:'no-firebase' };
+    if(!fbReady || !Admin.authed) return { ok:false, reason:'no-firebase' }; // ✅ تحقق من PIN أولاً
     this.data.lessons = this.data.lessons || {};
     const prev = this.data.lessons[lessonId] || {};
     const clean = Object.assign({}, prev);
@@ -557,7 +557,7 @@ const ExamLinks = {
   },
 
   async setItems(t, items){
-    if(!fbReady) return { ok:false, reason:'no-firebase' };
+    if(!fbReady || !Admin.authed) return { ok:false, reason:'no-firebase' }; // ✅ تحقق من PIN أولاً
     const clean = (items||[])
       .map(x=> ({ title:String(x.title||'').trim(), link:String(x.link||'').trim() }))
       .filter(x=> x.link);
