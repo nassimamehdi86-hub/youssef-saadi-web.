@@ -133,3 +133,24 @@ body{
 /* حاويات ومربعات عامة */
 .zoom-groups-wrap, .exam-panel{ border-color:rgba(166,124,46,0.6); }
 .admin-entry{ border-color:rgba(122,34,41,0.55); color:var(--maroon); }
+
+/* =========================================================================================
+   دوائر الوحدات (رقم الدرس): كل وحدة تحتفظ بلون مميَّز، لكن من عائلة ألوان الشعار
+   (ذهبي / ماروني / فحمي / برونزي / وردي داكن / برقوقي) بدل الأزرق والأخضر والبنفسجي.
+   ========================================================================================= */
+.hub .badge.cat-taqweem   { border-color:#A67C2E; box-shadow:6px 6px 0 rgba(166,124,46,0.20); }
+.hub .badge.cat-taqweem b { color:#6B4E14; }
+.hub .badge.cat-muktasabat   { border-color:#3A3233; box-shadow:6px 6px 0 rgba(58,50,51,0.18); }
+.hub .badge.cat-muktasabat b { color:#1B1718; }
+.hub .badge.cat-tawabi   { border-color:#7A2229; box-shadow:6px 6px 0 rgba(122,34,41,0.20); }
+.hub .badge.cat-tawabi b { color:#4E1218; }
+.hub .badge.cat-qawaid   { border-color:#B5545C; box-shadow:6px 6px 0 rgba(181,84,92,0.20); }
+.hub .badge.cat-qawaid b { color:#7F2C33; }
+.hub .badge.cat-jumal   { border-color:#B8672E; box-shadow:6px 6px 0 rgba(184,103,46,0.20); }
+.hub .badge.cat-jumal b { color:#7C4118; }
+.hub .badge.cat-balagha   { border-color:#C9A24B; box-shadow:6px 6px 0 rgba(201,162,75,0.22); }
+.hub .badge.cat-balagha b { color:#6B4E14; }
+.hub .badge.cat-anmat   { border-color:#6B5A5B; box-shadow:6px 6px 0 rgba(107,90,91,0.18); }
+.hub .badge.cat-anmat b { color:#3F3334; }
+.hub .badge.cat-itisaq   { border-color:#8A3B5E; box-shadow:6px 6px 0 rgba(138,59,94,0.20); }
+.hub .badge.cat-itisaq b { color:#5C2340; }
