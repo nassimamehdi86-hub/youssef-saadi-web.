@@ -1638,8 +1638,9 @@ function openLessonDetail(id){
      (الشرح، الخريطة الذهنية، اختبار الفهم، تمارين الدرس) بدل تركها فارغة على الشاشة */
   const ldDef = document.getElementById('ldDef');
 
-  ldDef.style.display = zoomOnly ? 'none' : '';
-  ldDef.innerHTML = lesson.def||'';
+  /* الشرح النصي (def) لا يُعرض إطلاقًا في أي درس — كل محتواه موجود في الخريطة الذهنية */
+  ldDef.style.display = 'none';
+  ldDef.innerHTML = '';
 
   const videos = Array.isArray(lesson.video) ? lesson.video : (lesson.video ? [lesson.video] : []);
   const videoFrame = document.getElementById('ldVideo');
@@ -2943,7 +2944,7 @@ async function ensureMindmapFontsLoaded(){
 function estimateMindmapPrintSizeClass(lesson){
   const branches = lesson.tree || [];
   const totalChildren = branches.reduce((acc,b)=> acc + ((b.children||[]).length), 0);
-  const defLen = (lesson.def||'').replace(/<[^>]*>/g,'').length;
+  const defLen = 0;
   const weight = (branches.length*3) + totalChildren + Math.floor(defLen/55);
   if(weight > 38) return 'pp-ultra-compact';
   if(weight > 22) return 'pp-compact';
@@ -2963,7 +2964,7 @@ function exportMindmapPDF(lesson, btnEl){
         <div class="pp-level">اللغة العربية — السنة الرابعة متوسط</div>
         <div class="pp-lesson-title">🗺️ الخريطة الذهنية: ${lesson.title}</div>
       </div>
-      ${lesson.def ? `<div class="pp-def">${lesson.def}</div>` : ''}
+      
       <div class="pp-branches">
         ${lesson.tree.map(buildMindmapPrintBranchHTML).join('')}
       </div>
