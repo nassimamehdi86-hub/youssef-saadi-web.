@@ -369,13 +369,13 @@ function startVisibilityAwarePolling(refreshFn, intervalMs){
    وثيقة واحدة: state/locks  =>  { lessons: {lessonId: true/false}, trimesters: {t1:bool, t2:bool, t3:bool} }
    ========================================================================================= */
 const Locks = {
-  data:{ lessons:{}, trimesters:{t1:false, t2:false, t3:false}, situations:{}, features:{irab:true} }, ready:false,
+  data:{ lessons:{}, trimesters:{t1:false, t2:false, t3:false}, features:{irab:true} }, ready:false,
 
   async load(){
     if(!fbReady) { this.ready = true; return; }
     try{
       const snap = await db.collection('state').doc('locks').get();
-      if(snap.exists) this.data = Object.assign({lessons:{}, trimesters:{t1:false,t2:false,t3:false}, situations:{}, features:{irab:true}}, snap.data());
+      if(snap.exists) this.data = Object.assign({lessons:{}, trimesters:{t1:false,t2:false,t3:false}, features:{irab:true}}, snap.data());
     }catch(e){
       /* هذا الخطأ يخفي المشكلة الحقيقية غالبًا: عدم سماح قواعد Firestore بقراءة state/locks
          بدون Firebase Auth. لو فشلت هذه القراءة، تبقى كل الدروس تظهر "مقفلة" حتى لو فتحها
@@ -387,7 +387,6 @@ const Locks = {
   },
   isLessonLocked(id){ return !this.data.lessons || this.data.lessons[id] !== true; }, // افتراضيًا مقفل حتى يُفتح صراحة
   isTrimesterOpen(t){ return !!(this.data.trimesters && this.data.trimesters[t]); },
-  isSituationLocked(key){ return !this.data.situations || this.data.situations[key] !== true; }, // افتراضيًا مقفل حتى يُفتح صراحة
   /* قسم "إعراب الجمل": يبقى مفتوحًا افتراضيًا (كما كان الحال قبل إضافة هذا القفل)
      ولا يُغلق إلا إذا أوقفه الأستاذ صراحة من لوحة التحكم */
   isIrabOpen(){ return !this.data.features || this.data.features.irab !== false; },
@@ -404,12 +403,6 @@ const Locks = {
     if(!fbReady || !Admin.authed) return; // ✅ تحقق من PIN أولاً
     this.data.trimesters = this.data.trimesters || {};
     this.data.trimesters[t] = !!open;
-    await db.collection('state').doc('locks').set(this.data, {merge:true});
-  },
-  async setSituation(key, open){
-    if(!fbReady || !Admin.authed) return; // ✅ تحقق من PIN أولاً
-    this.data.situations = this.data.situations || {};
-    this.data.situations[key] = !!open;
     await db.collection('state').doc('locks').set(this.data, {merge:true});
   },
   async setIrabOpen(open){
@@ -429,7 +422,7 @@ const Locks = {
   listen(onChange){
     if(!fbReady) return;
     const refresh = ()=> db.collection('state').doc('locks').get().then(snap=>{
-      if(snap.exists) this.data = Object.assign({lessons:{}, trimesters:{t1:false,t2:false,t3:false}, situations:{}, features:{irab:true}}, snap.data());
+      if(snap.exists) this.data = Object.assign({lessons:{}, trimesters:{t1:false,t2:false,t3:false}, features:{irab:true}}, snap.data());
       if(onChange) onChange();
     }).catch(error=>{
       console.error('تعذّرت قراءة حالة القفل (state/locks) — تحقق من قواعد Firestore:', error);
@@ -1383,7 +1376,7 @@ const Screens = {
   el: {}, // يُملأ عند التحميل بعناصر id لكل شاشة
 
   init(){
-    ['home','lessons','lessonDetail','exams','dailyExercises','irab','situation','leaderboard','chat','admin'].forEach(s=>{
+    ['home','lessons','lessonDetail','exams','dailyExercises','irab','leaderboard','chat','admin'].forEach(s=>{
       this.el[s] = document.getElementById('screen-'+s);
     });
     document.querySelectorAll('[data-nav]').forEach(btn=>{
@@ -1399,7 +1392,6 @@ const Screens = {
 
   show(name){
     if(window.SoundFX) SoundFX.navigate();
-    if(name !== 'situation' && typeof stopStoryNarration === 'function') stopStoryNarration();
     Object.values(this.el).forEach(e=>{ if(e) e.style.display = 'none'; });
     if(this.el[name]) this.el[name].style.display = 'block';
     window.scrollTo({top:0, behavior:'instant'});
@@ -1422,7 +1414,6 @@ const Screens = {
     if(name === 'exams') renderExamsScreen();
     if(name === 'chat') renderChatScreen();
     if(name === 'irab') renderIrabScreen();
-    if(name === 'situation') renderSituationScreen();
     if(name === 'leaderboard') renderLeaderboardScreen();
   },
 
@@ -3106,226 +3097,6 @@ function renderMindmap(lesson, wrap){
   }).join('');
 }
 
-/* ---------- شاشة الوضعية الإدماجية ---------- */
-let situationRendered = false;
-function renderSituationScreen(){
-  const s = window.SITUATION;
-  if(!s) return;
-  document.getElementById('situationDef').innerHTML = s.def || '';
-  renderMindmap(s, document.getElementById('situationMindmap'));
-  if(!situationRendered){
-    document.getElementById('situationMindmapPdfBtn').onclick = ()=>
-      exportMindmapPDF(s, document.getElementById('situationMindmapPdfBtn'));
-    situationRendered = true;
-  }
-  Locks.load().then(renderSituationPracticeTabs);
-}
-
-/* ---------- تبويبات «وضعيات للاستئناس» حسب المقاطع الثمانية (يتحكم بفتحها/إغلاقها الأستاذ/المشرف) ---------- */
-let situPracticeActiveKey = null;
-let situActiveStoryId = null;
-function renderSituationPracticeTabs(){
-  const data = window.SITU_PRACTICE;
-  const tabsWrap = document.getElementById('situPracticeTabs');
-  if(!data || !data.length || !tabsWrap) return;
-
-  if(!situPracticeActiveKey) situPracticeActiveKey = data[0].key;
-
-  tabsWrap.innerHTML = data.map(seg => {
-    const locked = Locks.isSituationLocked(seg.key);
-    return `
-    <button type="button" class="situ-tab ${seg.key === situPracticeActiveKey ? 'active' : ''} ${locked ? 'is-locked' : ''}" data-key="${seg.key}">
-      <span class="situ-tab-num">${String(seg.num).padStart(2,'0')}</span>
-      <span class="situ-tab-icon">${seg.icon}</span>
-      <span class="situ-tab-label">${seg.title}</span>
-      <span class="situ-tab-lock">${locked ? '🔒' : '🔓'}</span>
-    </button>`;
-  }).join('');
-
-  tabsWrap.querySelectorAll('.situ-tab').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      if(situPracticeActiveKey === btn.getAttribute('data-key')){ renderSituationPracticePanel(); return; }
-      situPracticeActiveKey = btn.getAttribute('data-key');
-      situActiveStoryId = null;
-      tabsWrap.querySelectorAll('.situ-tab').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      btn.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
-      renderSituationPracticePanel();
-    });
-  });
-
-  renderSituationPracticePanel();
-}
-
-function renderSituationPracticePanel(){
-  const data = window.SITU_PRACTICE;
-  const panel = document.getElementById('situPracticePanel');
-  if(!data || !data.length || !panel) return;
-  stopStoryNarration();
-  const seg = data.find(x => x.key === situPracticeActiveKey) || data[0];
-
-  if(Locks.isSituationLocked(seg.key)){
-    situActiveStoryId = null;
-    panel.innerHTML = `
-      <div class="exam-panel">
-        <span class="lock-icon">🔒</span>
-        سيُفتح هذا المقطع «${seg.title}» من قبل الأستاذ أو المشرف في الوقت المناسب
-      </div>`;
-    return;
-  }
-
-  /* مقاطع من نوع "قصص للقراءة" (عناوين تُفتح كل واحدة على حدة) */
-  if(seg.stories && seg.stories.length){
-    if(situActiveStoryId){
-      const story = seg.stories.find(s => s.id === situActiveStoryId);
-      if(story){ renderStoryReader(seg, story); return; }
-    }
-    renderStoryTitlesList(seg);
-    return;
-  }
-
-  situActiveStoryId = null;
-  panel.innerHTML = `
-    <div class="situ-panel c-${seg.color || 'blue'}">
-      <div class="situ-panel-head">
-        <span class="situ-panel-icon"><span class="icon-glyph">${seg.icon}</span></span>
-        <span class="situ-panel-title">المقطع ${seg.num}: ${seg.title}</span>
-      </div>
-      ${(seg.situations||[]).map(sit => `
-        <div class="situ-card">
-          <div class="situ-card-title">${sit.title}</div>
-          <div class="situ-block">
-            <span class="situ-block-label">🔹 السياق</span>
-            <p class="situ-block-text">${sit.context}</p>
-          </div>
-          <div class="situ-block">
-            <span class="situ-block-label">🔹 السند</span>
-            <p class="situ-block-text">${sit.support}</p>
-          </div>
-          <div class="situ-block">
-            <span class="situ-block-label">🔹 التعليمة</span>
-            <p class="situ-block-text">${sit.instruction}</p>
-          </div>
-          ${sit.pattern ? `<div class="situ-pattern">🧭 النمط المقترح: <b>${sit.pattern}</b></div>` : ''}
-        </div>`).join('')}
-    </div>`;
-}
-
-/* ---------- قائمة عناوين القصص داخل مقطع (يُضغط على العنوان لفتح القصة كاملة) ---------- */
-function renderStoryTitlesList(seg){
-  const panel = document.getElementById('situPracticePanel');
-  panel.innerHTML = `
-    <div class="situ-panel c-${seg.color || 'blue'}">
-      <div class="situ-panel-head">
-        <span class="situ-panel-icon"><span class="icon-glyph">${seg.icon}</span></span>
-        <span class="situ-panel-title">المقطع ${seg.num}: ${seg.title}</span>
-      </div>
-      <div class="story-hint">📖 اضغط على عنوان الوضعية لقراءتها كاملة</div>
-      <div class="story-list">
-        ${seg.stories.map(st => `
-          <div class="story-list-item" data-story="${st.id}">
-            <span class="story-list-icon"><span class="icon-glyph">${st.icon}</span></span>
-            <span class="story-list-title">${st.title}</span>
-            <span class="story-list-arrow">‹</span>
-          </div>`).join('')}
-      </div>
-    </div>`;
-  panel.querySelectorAll('.story-list-item').forEach(item=>{
-    item.addEventListener('click', ()=>{
-      situActiveStoryId = item.getAttribute('data-story');
-      renderSituationPracticePanel();
-    });
-  });
-}
-
-/* ---------- قارئ القصة الكاملة (بشكلها التام) + زر الاستماع بصوت حنون ---------- */
-function renderStoryReader(seg, story){
-  const panel = document.getElementById('situPracticePanel');
-  const bodyHtml = story.blocks.map(b=>{
-    if(b.type === 'quote') return `<div class="story-quote">${b.text}</div>`;
-    if(b.type === 'moral') return `<div class="story-moral"><span class="story-moral-badge">🖊️ العبرة</span><p>${b.text}</p></div>`;
-    if(b.type === 'scene') return `<div class="story-scene"><span class="story-scene-icon">${b.icon}</span><span class="story-scene-caption">${b.caption||''}</span></div>`;
-    return `<p class="story-p">${b.text}</p>`;
-  }).join('');
-
-  panel.innerHTML = `
-    <div class="situ-panel c-${seg.color || 'blue'}">
-      <button type="button" class="story-back-btn" id="storyBackBtn">‹ رجوع إلى عناوين المقطع</button>
-      <div class="story-reader">
-        <div class="story-reader-head">
-          <span class="story-reader-icon"><span class="icon-glyph">${story.icon}</span></span>
-          <h3 class="story-reader-title">${story.title}</h3>
-        </div>
-        <button type="button" class="story-listen-btn" id="storyListenBtn">🔊 استمع إلى الوضعية</button>
-        <div class="story-body" id="storyBody">${bodyHtml}</div>
-      </div>
-    </div>`;
-
-  document.getElementById('storyBackBtn').addEventListener('click', ()=>{
-    situActiveStoryId = null;
-    renderSituationPracticePanel();
-  });
-
-  document.getElementById('storyListenBtn').addEventListener('click', (e)=>{
-    if(storyNarrationActive){ stopStoryNarration(); return; }
-    startStoryNarration(story, e.currentTarget);
-  });
-}
-
-/* ---------- الاستماع للقصة بصوت حنون: قراءة متأنية، فقرة فقرة، مع وقفات هادئة ---------- */
-let storyNarrationActive = false;
-let storyNarrationQueue = [];
-let storyNarrationIdx = 0;
-
-function pickArabicVoice(){
-  if(!('speechSynthesis' in window)) return null;
-  const voices = window.speechSynthesis.getVoices() || [];
-  return voices.find(v => /^ar/i.test(v.lang)) || null;
-}
-
-function startStoryNarration(story, btnEl){
-  if(!('speechSynthesis' in window)){
-    alert('عذرًا، متصفحك لا يدعم خاصية الاستماع الصوتي.');
-    return;
-  }
-  window.speechSynthesis.cancel();
-  storyNarrationQueue = story.blocks
-    .map(b => (b.speech || b.caption || b.text || '').replace(/<[^>]+>/g, ''))
-    .filter(t => t && t.trim());
-  storyNarrationIdx = 0;
-  storyNarrationActive = true;
-  if(btnEl){ btnEl.textContent = '⏹ إيقاف الاستماع'; btnEl.classList.add('is-playing'); }
-  speakNextBlock(btnEl);
-}
-
-function speakNextBlock(btnEl){
-  if(!storyNarrationActive) return;
-  if(storyNarrationIdx >= storyNarrationQueue.length){
-    stopStoryNarration();
-    return;
-  }
-  const text = storyNarrationQueue[storyNarrationIdx++];
-  const utter = new SpeechSynthesisUtterance(text);
-  const voice = pickArabicVoice();
-  if(voice) utter.voice = voice;
-  utter.lang = voice ? voice.lang : 'ar-SA';
-  utter.rate = 0.82;   /* قراءة متأنية ليسهل الفهم */
-  utter.pitch = 1.08;  /* نبرة أكثر دفئًا وحنوًا */
-  utter.volume = 1;
-  utter.onend = ()=>{ setTimeout(()=> speakNextBlock(btnEl), 380); /* وقفة هادئة بين الفقرات */ };
-  utter.onerror = ()=> stopStoryNarration();
-  window.speechSynthesis.speak(utter);
-}
-
-function stopStoryNarration(){
-  storyNarrationActive = false;
-  storyNarrationQueue = [];
-  storyNarrationIdx = 0;
-  if('speechSynthesis' in window) window.speechSynthesis.cancel();
-  const btn = document.getElementById('storyListenBtn');
-  if(btn){ btn.textContent = '🔊 استمع إلى الوضعية'; btn.classList.remove('is-playing'); }
-}
-
 /* ---------- شاشة الفروض والاختبارات ---------- */
 function renderExamsScreen(){
   Promise.all([Locks.load(), ExamLinks.load()]).then(()=>{
@@ -3725,11 +3496,6 @@ const AA_ICONS = {
     <path d="M18 21 L38 21 M18 27 L38 27 M18 33 L31 33" stroke="#8A6A2A" stroke-width="1.4" opacity="0.6"/>
     <path d="M19 47 C29 40 39 32 49 20 L54 25 C44 37 34 45 24 52 Z" fill="url(#hcWood)" stroke="#241708" stroke-width="1"/>
     <path d="M49 20 L54 25 L57 22 C58.5 20.5 58.5 18.5 57 17 C55.5 15.5 53.5 15.5 52 17 Z" fill="url(#hcGoldMetal)" stroke="#7A5216" stroke-width="1"/>`, AA_BG_GOLD),
-  /* 📝 فتح/إغلاق وضعيات الاستئناس — نفس قطعتي الأحجية */
-  situations: aaIcon(`
-    <path d="M12 12 h16 c0,-3.5 2.8,-6 6,-6 c3.2,0 6,2.5 6,6 h4 v16 c3.5,0 6,2.8 6,6 c0,3.2 -2.5,6 -6,6 v14 h-16 c0,3.5 -2.8,6 -6,6 c-3.2,0 -6,-2.5 -6,-6 h-10 v-16 c-3.5,0 -6,-2.8 -6,-6 c0,-3.2 2.5,-6 6,-6 v-14 Z" fill="url(#hcGoldMetal)" stroke="#7A5216" stroke-width="1.2" stroke-linejoin="round" transform="translate(-4,2) scale(0.86)"/>
-    <path d="M30 30 h16 c0,-3.5 2.8,-6 6,-6 c3.2,0 6,2.5 6,6 h4 v16 c3.5,0 6,2.8 6,6 c0,3.2 -2.5,6 -6,6 v14 h-16 c0,3.5 -2.8,6 -6,6 c-3.2,0 -6,-2.5 -6,-6 h-10 v-16 c-3.5,0 -6,-2.8 -6,-6 c0,-3.2 2.5,-6 6,-6 v-14 Z" fill="url(#hcSageGem)" stroke="#2E4A34" stroke-width="1.2" stroke-linejoin="round" transform="translate(-16,-16) scale(0.56)"/>
-    <circle cx="34" cy="34" r="5.5" fill="url(#hcGoldMedallion)" stroke="#7A5216" stroke-width="1"/>`, AA_BG_GREEN),
   /* ✍️ فتح/إغلاق إعراب الجمل — نفس قلم الشاشة الرئيسية */
   irab: aaIcon(`
     <path d="M12 50 C22 40 34 28 46 15 L51 20 C39 32 27 44 17 54 Z" fill="url(#hcWood)" stroke="#241708" stroke-width="1"/>
@@ -4271,17 +4037,6 @@ async function renderAdminPanel(){
       </div>
     </div>`;
 
-  let situationsBody = `<div class="lesson-list">`;
-  (window.SITU_PRACTICE || []).forEach(seg=>{
-    const open = !Locks.isSituationLocked(seg.key);
-    situationsBody += `<div class="lesson-row">
-      <div class="lr-num"><span class="lr-num-text">${String(seg.num).padStart(2,'0')}</span></div>
-      <div class="lr-text"><div class="lr-title">${seg.icon} ${seg.title}</div></div>
-      <button class="al-key" style="width:auto;padding:6px 14px" data-toggle-situation="${seg.key}">${open?'🔓 مفتوح — اضغط للإغلاق':'🔒 مغلق — اضغط للفتح'}</button>
-    </div>`;
-  });
-  situationsBody += `</div>`;
-
   const irabOpen = Locks.isIrabOpen();
   const irabBody = `<div class="lesson-list">
     <div class="lesson-row"><div class="lr-text"><div class="lr-title">✍️ إعراب الجمل (101 جملة وجملة)</div></div>
@@ -4386,7 +4141,6 @@ async function renderAdminPanel(){
     examSolutionsCard +
     adminAccordionHTML('lessons', `${AA_ICONS.lessons} فتح/إغلاق الدروس`, lessonsBody) +
     adminAccordionHTML('trimesters', `${AA_ICONS.exams} فتح/إغلاق الفروض والاختبارات`, trimestersBody) +
-    adminAccordionHTML('situations', `${AA_ICONS.situations} فتح/إغلاق وضعيات الاستئناس (المقاطع)`, situationsBody) +
     adminAccordionHTML('aiTeacher', `${AA_ICONS.aiTeacher} المعلّم الذكي — اختبارات وتصحيح آلي`, aiTeacherBody) +
     adminAccordionHTML('dailyExercises', `${AA_ICONS.dailyExercises} تمارين يومية`, dailyExercisesBody) +
     adminAccordionHTML('stats', `${AA_ICONS.stats} إحصائيات كل درس`, statsBody);
@@ -4543,19 +4297,6 @@ async function renderAdminPanel(){
     updateIrabHomeCardLock();
     renderAdminPanel();
   });
-  wrap.querySelectorAll('[data-toggle-situation]').forEach(b=> b.addEventListener('click', async ()=>{
-    const k = b.getAttribute('data-toggle-situation');
-    const open = !Locks.isSituationLocked(k);
-    try{
-      await Locks.setSituation(k, !open);
-    }catch(error){
-      console.error('فشل تحديث حالة قفل المقطع (تحقق من قواعد Firestore لمجموعة state):', error);
-      if(typeof showFbPermissionNotice === 'function') showFbPermissionNotice('locks');
-      alert('تعذّر حفظ حالة المقطع في قاعدة البيانات. راجع التنبيه الظاهر أعلى الصفحة.');
-    }
-    renderAdminPanel();
-  }));
-
   const statsMount = document.getElementById('adminStatsMount');
   for(const l of window.LESSONS){
     if(l.locked==='pending') continue;
@@ -5073,7 +4814,6 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 
   Locks.listen(()=>{
     if(document.getElementById('screen-lessons').style.display !== 'none') renderLessonsScreen();
-    if(document.getElementById('screen-situation').style.display !== 'none') renderSituationPracticeTabs();
     if(document.getElementById('screen-irab').style.display !== 'none') renderIrabScreen();
     if(document.getElementById('screen-exams').style.display !== 'none') renderExamsScreen();
     if(document.getElementById('screen-leaderboard').style.display !== 'none') renderLeaderboardScreen();
