@@ -76,3 +76,47 @@ body{ background:var(--m-bg); color:var(--ink); }
 .listen-wrap{ padding:14px; }
 .video-frame{ border-radius:16px; overflow:hidden; border:0; }
 .hub-def:empty{ display:none; }
+
+
+/* =========================================================================================
+   نوافذ صفحة الدرس (تمارين / زوم / اختبار / خريطة): عنوان فقط بخط واضح وكبير،
+   ولكل نافذة لون خفيف مستوحى من ألوان الشعار (ماروني، فحمي، ذهبي، أحمر الغار).
+   النافذة المفتوحة تمتلئ بلونها الكامل.
+   ========================================================================================= */
+.ld-tab-card{ padding:16px 16px; min-height:78px; }
+.ld-tab-card .hc-sub{ display:none !important; }
+.ld-tab-card .hc-title{
+  grid-row:1 / span 2 !important; align-self:center !important;
+  font-family:'Cairo','IBM Plex Sans Arabic',sans-serif !important;
+  font-size:22px !important; font-weight:800 !important; line-height:1.35; letter-spacing:0;
+}
+.home-card.ld-tab-card .hc-icon-wrap{ width:58px; height:58px; font-size:28px; background:rgba(255,255,255,.65) !important; box-shadow:0 2px 6px rgba(0,0,0,.08); }
+
+.home-card.ld-tab-card{
+  --t1:#8A2830; --t2:#5A161C; --l1:#FAE9E9; --l2:#F1D2D3; --tx:#5A161C; --on:#fff;
+  background:linear-gradient(160deg,var(--l1),var(--l2));
+  border:1.5px solid var(--t1); border-right:7px solid var(--t1);
+  box-shadow:0 6px 14px -8px rgba(0,0,0,.35);
+}
+.home-card.ld-tab-card .hc-title{ color:var(--tx); }
+.home-card.ld-tab-card::after{ color:var(--t1); opacity:.7; }
+
+/* ماروني الشعار — تمارين الدرس */
+.home-card.ld-tab-card.c1{ --t1:#8A2830; --t2:#5A161C; --l1:#FAE9E9; --l2:#F1D2D3; --tx:#5A161C; }
+/* فحمي الشعار — حصص الزوم */
+.home-card.ld-tab-card.c2{ --t1:#3A3234; --t2:#1B1718; --l1:#EEEAEA; --l2:#D9D2D3; --tx:#1B1718; }
+/* ذهبي الشعار — اختبار الفهم */
+.home-card.ld-tab-card.c3{ --t1:#D9B24E; --t2:#A97E26; --l1:#FCF3D6; --l2:#F3DE9F; --tx:#5A4310; }
+/* أحمر الغار — الخريطة الذهنية */
+.home-card.ld-tab-card.c4{ --t1:#B4472F; --t2:#7A2515; --l1:#FCE8DF; --l2:#F4CDB9; --tx:#6A1F10; }
+
+/* النافذة المفتوحة: لون كامل */
+.home-card.ld-tab-card.active{
+  background:linear-gradient(135deg,var(--t1),var(--t2));
+  border-color:var(--t2); border-right-color:var(--t2);
+  box-shadow:0 14px 26px -12px rgba(0,0,0,.55);
+}
+.home-card.ld-tab-card.active .hc-title{ color:#fff; }
+.home-card.ld-tab-card.c3.active .hc-title{ color:#3E2D08; }
+.home-card.ld-tab-card.active::after{ color:#fff; opacity:.9; }
+.home-card.ld-tab-card.c3.active::after{ color:#3E2D08; }

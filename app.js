@@ -1714,7 +1714,7 @@ function setupLdTabs(panels, defaultKey){
   tabsBar.style.display = '';
   tabsBar.innerHTML = panels.map(p=>
     `<div class="home-card ld-tab-card ${p.cls||'c1'} ${p.key===activeKey?'active':''}" role="button" tabindex="0" data-ld-tab="${p.key}">
-      <div class="hc-icon-wrap">${p.icon||''}</div><div class="hc-title">${p.title}</div><div class="hc-sub">${p.sub||''}</div>
+      <div class="hc-icon-wrap">${p.icon||''}</div><div class="hc-title">${p.title}</div>
     </div>`
   ).join('');
 
