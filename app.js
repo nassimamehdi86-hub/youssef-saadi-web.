@@ -1685,9 +1685,24 @@ function openLessonDetail(id){
 /* يبني شريط التبويبات أعلى صفحة الدرس ويربط النقر بإظهار/إخفاء النافذة المطابقة فقط.
    panels: مصفوفة {key,label,el} للأقسام المتاحة فعليًا لهذا الدرس (قسم واحد فقط = بلا تبويبات،
    تُعرض نافذته مباشرة). defaultKey: مفتاح التبويب المفتوح افتراضيًا عند دخول الدرس. */
+/* نوافذ الدرس تُعاد إلى مكانها الأصلي (قبل ldLeaderboardSection) قبل كل إعادة بناء للتبويبات،
+   لأنها تُنقل أثناء العرض لتصبح تحت البطاقة المضغوطة مباشرة */
+const LD_PANEL_IDS = ['ldExercisesSection','ldZoomSection','ldQuizSection','ldMindmapSection'];
+function restoreLdPanels(){
+  const anchor = document.getElementById('ldLeaderboardSection');
+  if(!anchor || !anchor.parentNode) return;
+  LD_PANEL_IDS.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) anchor.parentNode.insertBefore(el, anchor);
+  });
+}
+
 function setupLdTabs(panels, defaultKey){
   const tabsBar = document.getElementById('ldTabs');
   if(!tabsBar) return;
+
+  /* إعادة النوافذ لمكانها الأصلي قبل تفريغ شريط التبويبات (حتى لا تُحذف مع innerHTML) */
+  restoreLdPanels();
 
   /* إخفاء كل النوافذ غير المتاحة لهذا الدرس بشكل نهائي (ليست مجرد تبويب غير نشط) */
   document.querySelectorAll('.ld-tab-panel').forEach(el=>{
@@ -1704,12 +1719,21 @@ function setupLdTabs(panels, defaultKey){
   const activeKey = panels.some(p=>p.key===defaultKey) ? defaultKey : panels[0].key;
   tabsBar.style.display = '';
   tabsBar.innerHTML = panels.map(p=>
-    `<div class="home-card ld-tab-card ${p.cls||'c1'} ${p.key===activeKey?'active':''}" role="button" tabindex="0" data-ld-tab="${p.key}">
+    `<div class="home-card ld-tab-card ${p.cls||'c1'}" role="button" tabindex="0" data-ld-tab="${p.key}">
       <div class="hc-icon-wrap">${p.icon||''}</div><div class="hc-title">${p.title}</div>
     </div>`
   ).join('');
 
-  function activate(key){
+  /* كل نافذة تُوضع مباشرة بعد بطاقتها: عند الضغط يظهر المحتوى تحت البطاقة المضغوطة لا أسفل كل البطاقات */
+  panels.forEach(p=>{
+    const card = tabsBar.querySelector(`.ld-tab-card[data-ld-tab="${p.key}"]`);
+    const el = document.getElementById(p.el);
+    if(card && el) card.insertAdjacentElement('afterend', el);
+  });
+
+  let currentKey = null;
+  function activate(key, scroll){
+    currentKey = key;
     panels.forEach(p=>{
       const el = document.getElementById(p.el);
       if(el) el.style.display = (p.key===key) ? '' : 'none';
@@ -1717,16 +1741,24 @@ function setupLdTabs(panels, defaultKey){
     tabsBar.querySelectorAll('.ld-tab-card').forEach(btn=>{
       btn.classList.toggle('active', btn.getAttribute('data-ld-tab')===key);
     });
+    if(scroll && key){
+      const card = tabsBar.querySelector(`.ld-tab-card[data-ld-tab="${key}"]`);
+      if(card) setTimeout(()=>card.scrollIntoView({behavior:'smooth', block:'start'}), 30);
+    }
   }
 
   tabsBar.querySelectorAll('.ld-tab-card').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
+    const handler = ()=>{
       if(window.SoundFX) SoundFX.click();
-      activate(btn.getAttribute('data-ld-tab'));
-    });
+      const key = btn.getAttribute('data-ld-tab');
+      /* الضغط مجددًا على البطاقة المفتوحة يطويها */
+      activate(key===currentKey ? null : key, key!==currentKey);
+    };
+    btn.addEventListener('click', handler);
+    btn.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); handler(); } });
   });
 
-  activate(activeKey);
+  activate(activeKey, false);
 }
 
 /* =========================================================================================
@@ -4072,7 +4104,6 @@ async function renderAdminPanel(){
       </div>
       <div>
         <div class="hc-title">إدارة حصص الزوم</div>
-        <div class="hc-sub">أضف/حدّث روابط تسجيلات كل درس للأفواج الأربعة — تظهر فورًا للتلاميذ</div>
       </div>
     </div>`;
 
@@ -4091,7 +4122,6 @@ async function renderAdminPanel(){
       </div>
       <div>
         <div class="hc-title">إدارة روابط الفروض والاختبارات</div>
-        <div class="hc-sub">أضف/حدّث روابط الفصول الثلاثة — رابط واحد موحّد لكل التلاميذ</div>
       </div>
     </div>`;
 
@@ -4109,7 +4139,6 @@ async function renderAdminPanel(){
       </div>
       <div>
         <div class="hc-title">حلول التلاميذ للواجب المنزلي المقدم في حصة الزوم</div>
-        <div class="hc-sub">إحصائيات من أرسل حلاً لكل درس/فوج، وزر لفتح ملفات الحلول على تيليجرام</div>
       </div>
     </div>`;
 
@@ -4127,7 +4156,6 @@ async function renderAdminPanel(){
       </div>
       <div>
         <div class="hc-title">حلول التلاميذ للفروض والاختبارات</div>
-        <div class="hc-sub">إحصائيات من أرسل حلاً لكل فصل، وزر لفتح ملفات الحلول على تيليجرام</div>
       </div>
     </div>`;
 

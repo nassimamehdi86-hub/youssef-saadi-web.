@@ -151,3 +151,7 @@ body{ background:var(--m-bg); color:var(--ink); }
 .wisdom-below-hero .wisdom-text{ text-align:center; }
 .wisdom-below-hero .wisdom-content{ justify-content:center; }
 .wisdom-indicator{ display:none !important; }
+
+/* نوافذ الدرس تظهر تحت بطاقتها مباشرة (داخل شريط التبويبات) */
+#ldTabs > .ld-tab-panel{ width:100%; margin:0 0 6px; box-sizing:border-box; }
+#ldTabs > .ld-tab-panel .zoom-groups-wrap{ margin:0; }
