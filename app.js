@@ -1683,10 +1683,10 @@ function openLessonDetail(id){
      يعرض تسجيلات الزوم فقط بلا تبويبات (قسم وحيد)، ودروس المكتسبات القبلية بلا تبويب زوم.
      التبويب الافتراضي المفتوح هو "تمارين الدرس" لأنه الأولوية (أكبر عدد من التلاميذ لا يُنجزونه). */
   const allTabs = [
-    { key:'exercises', icon:'📝', title:'تمارين الدرس',   sub:'الواجب المنزلي',   cls:'c1', el:'ldExercisesSection', show: !zoomOnly },
     { key:'zoom',      icon:'🎥', title:'حصص الزوم',      sub:'تسجيلات الحصص',  cls:'c2', el:'ldZoomSection',      show: showZoom },
+    { key:'mindmap',   icon:'🗺️', title:'الخريطة الذهنية', sub:'لخّص الدرس',       cls:'c4', el:'ldMindmapSection',   show: !zoomOnly },
     { key:'quiz',      icon:'🧠', title:'اختبار الفهم',   sub:'اختبر نفسك',       cls:'c3', el:'ldQuizSection',      show: !zoomOnly },
-    { key:'mindmap',   icon:'🗺️', title:'الخريطة الذهنية', sub:'لخّص الدرس',       cls:'c4', el:'ldMindmapSection',   show: !zoomOnly }
+    { key:'exercises', icon:'📝', title:'تمارين الدرس',   sub:'الواجب المنزلي',   cls:'c1', el:'ldExercisesSection', show: !zoomOnly }
   ];
   setupLdTabs(allTabs.filter(t=>t.show), 'exercises');
 }
