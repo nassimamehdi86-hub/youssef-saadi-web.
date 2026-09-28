@@ -79,18 +79,15 @@ body{ background:var(--m-bg); color:var(--ink); }
 
 
 /* =========================================================================================
-   نوافذ صفحة الدرس (تمارين / زوم / اختبار / خريطة): عنوان فقط بخط واضح وكبير،
+   نوافذ صفحة الدرس (تمارين / زوم / اختبار / خريطة): عنوان فقط (بدون سطر شرح) بنفس حجم وخط البطاقات الأصلية،
    ولكل نافذة لون خفيف مستوحى من ألوان الشعار (ماروني، فحمي، ذهبي، أحمر الغار).
    النافذة المفتوحة تمتلئ بلونها الكامل.
    ========================================================================================= */
-.ld-tab-card{ padding:16px 16px; min-height:78px; }
 .ld-tab-card .hc-sub{ display:none !important; }
 .ld-tab-card .hc-title{
   grid-row:1 / span 2 !important; align-self:center !important;
-  font-family:'Cairo','IBM Plex Sans Arabic',sans-serif !important;
-  font-size:22px !important; font-weight:800 !important; line-height:1.35; letter-spacing:0;
 }
-.home-card.ld-tab-card .hc-icon-wrap{ width:58px; height:58px; font-size:28px; background:rgba(255,255,255,.65) !important; box-shadow:0 2px 6px rgba(0,0,0,.08); }
+.home-card.ld-tab-card .hc-icon-wrap{ background:rgba(255,255,255,.65) !important; box-shadow:0 2px 6px rgba(0,0,0,.08); }
 
 .home-card.ld-tab-card{
   --t1:#8A2830; --t2:#5A161C; --l1:#FAE9E9; --l2:#F1D2D3; --tx:#5A161C; --on:#fff;
@@ -120,3 +117,7 @@ body{ background:var(--m-bg); color:var(--ink); }
 .home-card.ld-tab-card.c3.active .hc-title{ color:#3E2D08; }
 .home-card.ld-tab-card.active::after{ color:#fff; opacity:.9; }
 .home-card.ld-tab-card.c3.active::after{ color:#3E2D08; }
+
+
+/* القائمة الرئيسية: بلا سطر شرح تحت العناوين — العنوان في وسط البطاقة بجانب الأيقونة */
+.home-menu .home-card .hc-title{ grid-row:1 / span 2; align-self:center; }
