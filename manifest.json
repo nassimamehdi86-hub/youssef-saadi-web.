@@ -1,0 +1,16 @@
+{
+  "name": "منصة الأستاذ يوسف سعدي",
+  "short_name": "يوسف سعدي",
+  "description": "منصة اللغة العربية للسنة الرابعة متوسط",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F7F2E4",
+  "theme_color": "#F7F2E4",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

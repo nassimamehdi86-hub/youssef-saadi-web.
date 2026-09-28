@@ -1,0 +1,2445 @@
+  :root{
+    /* ===== لوحة ألوان فاتحة ومريحة بصريًا ===== */
+    --bg-1:        #F7F2E4;   /* عاجي دافئ */
+    --bg-2:        #EFE7D2;
+    --bg-3:        #E4EFE6;   /* أخضر فاتح جدًا يميل للعاجي */
+    --paper:       #FFFDF7;   /* أبيض دافئ لسطح البطاقات */
+    --paper-soft:  #FBF7EC;
+    --ink:         #22352B;   /* أخضر كحلي داكن — نص أساسي */
+    --ink-soft:    #5B6E62;
+    --sage:        #6E8F73;   /* أخضر مريّح للتفاصيل */
+    --sage-deep:   #3F6350;
+    --gold-1:      #E7C878;   /* ذهبي فاتح */
+    --gold-2:      #C79A3D;   /* ذهبي أساسي */
+    --gold-3:      #A97F2A;   /* ذهبي داكن للحدود */
+    --locked:      #DCD4BE;
+    --card-cream:  var(--ink); /* توافقًا مع الأنماط القديمة أدناه */
+  }
+  
+  /* =========================================================================================
+     نافذة ترتيب الدرس (Leaderboard Popup)
+     ========================================================================================= */
+  .leaderboard-overlay{
+    position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6);
+    z-index:9998; display:flex; align-items:center; justify-content:center;
+    animation:fadeIn 0.3s ease-in;
+  }
+  
+  .leaderboard-popup{
+    background:#F7F2E4; border-radius:16px; width:90%; max-width:600px;
+    max-height:80vh; overflow-y:auto; padding:20px; position:relative;
+    box-shadow:0 10px 40px rgba(0,0,0,0.3); animation:slideUp 0.3s ease-out;
+  }
+  
+  .leaderboard-header{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;
+    border-bottom:3px solid var(--sage-deep); padding-bottom:12px;
+  }
+  
+  .leaderboard-title{
+    font-size:18px; font-weight:800; color:var(--ink); text-align:right;
+  }
+  
+  .leaderboard-close{
+    background:none; border:none; font-size:24px; cursor:pointer;
+    color:var(--ink-soft); padding:0; width:32px; height:32px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  
+  .leaderboard-close:hover{ color:var(--ink); }
+  
+  .leaderboard-list{
+    display:flex; flex-direction:column; gap:12px;
+  }
+  
+  .leaderboard-item{
+    display:flex; align-items:center; gap:12px; padding:14px;
+    background:white; border-radius:12px; border-right:4px solid var(--sage-deep);
+  }
+  
+  .leaderboard-rank{
+    font-size:20px; font-weight:800; color:var(--sage-deep);
+    min-width:35px; text-align:center;
+  }
+  
+  .leaderboard-rank.first{ color:#FFD700; font-size:26px; }
+  .leaderboard-rank.second{ color:#C0C0C0; font-size:24px; }
+  .leaderboard-rank.third{ color:#CD7F32; font-size:22px; }
+  
+  .leaderboard-info{
+    flex:1; text-align:right;
+  }
+  
+  .leaderboard-name{
+    font-size:14px; font-weight:700; color:var(--ink);
+    margin-bottom:4px;
+  }
+  
+  .leaderboard-score{
+    font-size:12px; color:var(--ink-soft);
+  }
+  
+  .leaderboard-percent{
+    font-size:16px; font-weight:800; color:white;
+    min-width:60px; text-align:center;
+    padding:6px 12px; background:var(--sage-deep); border-radius:8px;
+  }
+  
+  .leaderboard-empty{
+    text-align:center; padding:40px 20px; color:var(--ink-soft);
+    font-size:14px;
+  }
+  
+  @keyframes fadeIn{
+    from{ opacity:0; }
+    to{ opacity:1; }
+  }
+  
+  @keyframes slideUp{
+    from{ opacity:0; transform:translateY(20px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    font-family:'Cairo', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 12% -4%, rgba(199,154,61,0.10), transparent 42%),
+      radial-gradient(circle at 100% 14%, rgba(110,143,115,0.14), transparent 48%),
+      radial-gradient(circle at 50% 100%, rgba(199,154,61,0.08), transparent 58%),
+      linear-gradient(170deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%);
+    padding:0 0 60px;
+  }
+  .wrap{ max-width:860px; margin:0 auto; padding:0 16px; position:relative; z-index:1; }
+
+  /* ============ صورة الأستاذ كخلفية شفافة (Watermark) ============ */
+  .teacher-watermark{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    display:flex; align-items:flex-end; justify-content:center;
+    overflow:hidden;
+  }
+  .teacher-watermark img,
+  .teacher-watermark .tw-placeholder{
+    width:min(78vw, 460px); height:auto; opacity:.07; filter:grayscale(.3);
+    -webkit-mask-image:linear-gradient(to top, rgba(0,0,0,1) 35%, rgba(0,0,0,0) 92%);
+            mask-image:linear-gradient(to top, rgba(0,0,0,1) 35%, rgba(0,0,0,0) 92%);
+  }
+  .tw-placeholder{ display:flex; align-items:flex-end; justify-content:center; height:70vh; }
+  .tw-placeholder svg{ width:100%; height:100%; }
+
+  /* ============ زخرفة هندسية إسلامية (SVG) قابلة لإعادة الاستخدام ============ */
+  .islamic-pattern{
+    position:absolute; inset:0; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cg fill='none' stroke='%23A97F2A' stroke-width='1'%3E%3Cpath d='M42 2 L54 14 L66 2 L82 18 L70 30 L82 42 L66 54 L54 42 L42 54 L30 42 L18 54 L2 42 L14 30 L2 18 L18 2 L30 14 Z'/%3E%3Ccircle cx='42' cy='28' r='9'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:84px 84px;
+    opacity:.10;
+  }
+  .islamic-pattern.on-gold{ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cg fill='none' stroke='%233F6350' stroke-width='1'%3E%3Cpath d='M42 2 L54 14 L66 2 L82 18 L70 30 L82 42 L66 54 L54 42 L42 54 L30 42 L18 54 L2 42 L14 30 L2 18 L18 2 L30 14 Z'/%3E%3Ccircle cx='42' cy='28' r='9'/%3E%3C/g%3E%3C/svg%3E"); opacity:.09; }
+
+  /* ============ الترويسة ============ */
+  .hero{
+    position:relative; margin:18px 0 26px; border-radius:22px; overflow:hidden;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(231,200,120,0.28), transparent 55%),
+      linear-gradient(155deg, #FFFDF7 0%, #F7EFD9 60%, #F0E6C8 100%);
+    border:1.5px solid var(--gold-3);
+    box-shadow: 0 14px 34px rgba(169,127,42,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+    padding:26px 20px 22px;
+  }
+  /* إطار مذهّب داخلي + زوايا زخرفية */
+  .hero::before{
+    content:''; position:absolute; inset:9px; border:1px solid rgba(169,127,42,0.5); border-radius:16px; pointer-events:none;
+  }
+  .corner{ position:absolute; width:34px; height:34px; opacity:.85; }
+  .corner svg{ width:100%; height:100%; }
+  .corner.tl{ top:6px; right:6px; transform:scaleX(-1); }
+  .corner.tr{ top:6px; left:6px; }
+  .corner.bl{ bottom:6px; right:6px; transform:scale(-1,-1); }
+  .corner.br{ bottom:6px; left:6px; transform:scaleY(-1); }
+
+  /* ============ زر دخول الأستاذ/المشرف (مُنحنٍ وغير لافت) ============ */
+  /* ملاحظة: الحاوية الأب (الشريط العلوي الثابت الذي يضم الجرس وهذا الزر معًا) هي التي
+     تتكفّل بالـ position:fixed و z-index:1000 لكليهما دفعة واحدة، حتى يبقيا قابلين للنقر
+     دائمًا فوق كل النوافذ المنبثقة. هذا العنصر نفسه يبقى relative ليصطفّ بجانب الجرس
+     عبر display:flex بدل أن يفرض إحداثيات خاصة به تتجاهل ترتيب flex وتتسبب بتداخل الأيقونتين. */
+  .admin-entry{
+    position:relative; width:30px; height:30px; border-radius:50%;
+    background:rgba(255,253,247,0.55); border:1.2px solid rgba(169,127,42,0.55);
+    box-shadow:0 3px 8px rgba(169,127,42,0.18);
+    display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--gold-3);
+    cursor:pointer; opacity:.65; transition:opacity .2s ease;
+  }
+  .admin-entry:hover{ opacity:.95; }
+
+  .hero-content{ position:relative; z-index:2; text-align:center; }
+  .lantern-row{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2px; }
+  .lantern{ width:30px; height:44px; opacity:.9; }
+
+  .teacher-photo{
+    width:min(240px, 64vw); aspect-ratio:1/1; border-radius:26px; margin:4px auto 16px; position:relative;
+    background: linear-gradient(160deg, #EFE7D2, #E4EFE6);
+    border:4px solid var(--gold-2);
+    box-shadow:0 0 0 5px rgba(199,154,61,0.18), 0 12px 28px rgba(169,127,42,0.32);
+    display:flex; align-items:center; justify-content:center; font-size:34px; color:var(--sage-deep);
+    overflow:hidden;
+    transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+    animation:teacherPhotoIntro .7s cubic-bezier(.34,1.56,.64,1) both,
+              teacherPhotoGlow 3.4s ease-in-out .7s infinite;
+  }
+  .teacher-photo:hover{ transform:scale(1.04); }
+  .teacher-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+  /* ظهور الصورة بحركة تكبير ناعمة عند تحميل الصفحة */
+  @keyframes teacherPhotoIntro{
+    from{ transform:scale(0.8); opacity:0; }
+    to{ transform:scale(1); opacity:1; }
+  }
+  /* هالة ذهبية ناعمة "تتنفّس" حول الصورة لتبرزها كعنصر أساسي في الصفحة */
+  @keyframes teacherPhotoGlow{
+    0%, 100%{
+      box-shadow:0 0 0 4px rgba(199,154,61,0.16), 0 8px 18px rgba(169,127,42,0.18),
+                 0 0 16px 4px rgba(216,174,82,0.35);
+    }
+    50%{
+      box-shadow:0 0 0 5px rgba(199,154,61,0.24), 0 8px 24px rgba(169,127,42,0.26),
+                 0 0 30px 10px rgba(216,174,82,0.6);
+    }
+  }
+
+  .platform-name{
+    font-family:'Rakkas', serif; font-size:25px; line-height:1.5;
+    background:linear-gradient(135deg, var(--gold-3), var(--sage-deep) 55%, var(--gold-3));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    margin:0 0 6px;
+    letter-spacing:.5px;
+  }
+  .teacher-name{
+    font-family:'Aref Ruqaa', serif; font-weight:700; font-size:17px; color:var(--ink);
+    margin:2px 0 10px;
+  }
+  .teacher-name b{ color:var(--gold-3); }
+
+  .level-pill{
+    display:inline-block; font-weight:800; font-size:12.5px; color:#FFFDF7;
+    background:linear-gradient(135deg, var(--sage-deep), var(--sage));
+    border:1px solid var(--gold-3); border-radius:999px; padding:7px 20px;
+    box-shadow:0 4px 10px rgba(63,99,80,0.25);
+  }
+  .tagline{
+    margin-top:12px; font-family:'Aref Ruqaa', serif; font-size:13px; color:var(--gold-3); opacity:.9; letter-spacing:1px;
+  }
+
+  /* ============ رسالة الترحيب بالتلميذ ============ */
+  .welcome-bar{
+    display:flex; align-items:center; gap:12px; border-radius:18px; padding:14px 18px;
+    background:linear-gradient(120deg, #FBEDC3, #F3ECD5 60%, #E7C878);
+    border:1.4px solid var(--gold-3); box-shadow:0 8px 18px rgba(169,127,42,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+    margin:18px 0 22px;
+  }
+  .welcome-bar .wb-avatar{
+    flex-shrink:0; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:19px; background:linear-gradient(150deg,#FFFDF7,#E4EFE6); border:1.3px solid var(--gold-3);
+  }
+  .welcome-bar .wb-text{ flex:1; }
+  .welcome-bar .wb-greet{ font-size:11.5px; color:var(--ink-soft); font-weight:700; }
+  .welcome-bar .wb-name{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:18px; color:var(--ink); margin-top:2px; }
+  .welcome-bar .wb-name b{ color:var(--gold-3); }
+  .welcome-bar .wb-emoji{ flex-shrink:0; font-size:22px; }
+
+  /* ============ الشخصية التحفيزية (موسكوت) ============ */
+  .mascot{ width:100%; height:100%; display:block; }
+  .wb-mascot-wrap{
+    flex-shrink:0; width:52px; height:52px; border-radius:50%;
+    background:linear-gradient(150deg,#FFFDF7,#E4EFE6); border:1.3px solid var(--gold-3);
+    display:flex; align-items:center; justify-content:center; padding:6px;
+  }
+  .streak-pill{
+    display:inline-flex; align-items:center; gap:6px; margin-top:8px; font-size:11px; font-weight:800;
+    color:#9C5A2A; background:rgba(255,255,255,0.5); border:1.2px solid rgba(199,122,42,0.35);
+    border-radius:999px; padding:5px 13px;
+  }
+
+  /* ============ ملصقات (Stickers) عائمة زخرفية — الآن شارات إنجاز حقيقية ============ */
+  .sticker-row{ display:flex; justify-content:center; gap:14px; margin:4px 0 22px; flex-wrap:wrap; }
+  .sticker{
+    width:64px; height:64px; border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:linear-gradient(150deg,#EFEADA,#E7E1CC); border:1.4px solid rgba(169,127,42,0.3);
+    box-shadow:0 4px 10px rgba(169,127,42,0.06); gap:2px; position:relative; filter:grayscale(.6); opacity:.65; transition:.2s;
+  }
+  .sticker.active{
+    background:linear-gradient(150deg,#FFFDF7,#F3ECD5); border-color:var(--gold-3);
+    box-shadow:0 6px 14px rgba(169,127,42,0.18); filter:none; opacity:1;
+  }
+  .sticker .st-emoji{ font-size:22px; }
+  .sticker .st-label{ font-size:8.5px; font-weight:800; color:var(--ink-soft); }
+  .sticker .st-count{
+    position:absolute; top:-6px; left:-6px; background:var(--gold-2); color:#33260A; font-size:9px; font-weight:800;
+    border-radius:50%; width:19px; height:19px; display:flex; align-items:center; justify-content:center; border:1.2px solid #FFFDF7;
+  }
+
+  /* ============ شارات الإنجاز (Achievement Badges) ============ */
+  .badge-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:22px; }
+  .achv-badge{
+    text-align:center; border-radius:16px; padding:12px 4px 10px;
+    background:linear-gradient(150deg,#FFFDF7,#F3ECD5); border:1.4px solid var(--gold-3);
+    box-shadow:0 6px 14px rgba(169,127,42,0.10);
+  }
+  .achv-badge.locked{ filter:grayscale(.7) opacity(.55); background:linear-gradient(150deg,#EFEADA,#E7E1CC); }
+  .achv-badge .ab-icon{
+    width:42px; height:42px; margin:0 auto 6px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:20px; background:linear-gradient(150deg,#FBEDC3,#D8AE52); border:1.2px solid var(--gold-3);
+  }
+  .achv-badge.locked .ab-icon{ background:var(--locked); }
+  .achv-badge .ab-label{ font-size:9px; font-weight:800; color:var(--ink-soft); line-height:1.5; }
+
+  /* ============ معاينة: نافذة دخول الأستاذ/المشرف (رقم سري) ============ */
+  .admin-login-mock{
+    max-width:280px; margin:0 auto; border-radius:20px; padding:22px 18px 18px; text-align:center;
+    background:linear-gradient(160deg, #FFFDF7, #F3ECD5);
+    border:1.6px solid var(--gold-3); box-shadow:0 12px 26px rgba(169,127,42,0.16);
+  }
+  
+  .admin-login-mock .al-title{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:16px; color:var(--ink); margin-bottom:4px; }
+  .admin-login-mock .al-sub{ font-size:11px; color:var(--ink-soft); margin-bottom:14px; }
+  .al-pin-dots{ display:flex; justify-content:center; gap:10px; margin-bottom:16px; }
+  .al-pin-dots span{ width:13px; height:13px; border-radius:50%; border:1.4px solid var(--gold-3); background:#FFFDF7; }
+  .al-pin-dots span.filled{ background:var(--gold-2); }
+  .al-keypad{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .al-key{
+    padding:10px 0; border-radius:11px; font-weight:800; font-size:14px; color:var(--ink);
+    background:rgba(255,255,255,0.6); border:1.2px solid rgba(169,127,42,0.3);
+  }
+
+  /* ============ إحصائيات الدرس (لوحة تحكم الأستاذ) ============ */
+  .stat-card{
+    border-radius:20px; padding:18px 16px 16px; margin-bottom:14px;
+    background:linear-gradient(150deg, #FFFDF7, #F7F1DF);
+    border:1.5px solid var(--gold-3); box-shadow:0 8px 18px rgba(169,127,42,0.10);
+  }
+  .stat-card .sc-head{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .stat-card .sc-num{
+    flex-shrink:0; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg, var(--gold-1), var(--gold-2)); color:#33260A; font-weight:800; font-size:12.5px;
+    border:1px solid var(--gold-3);
+  }
+  .stat-card .sc-title{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:16.5px; color:var(--ink); }
+  .stat-row{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:14px; }
+  .stat-box{
+    text-align:center; border-radius:14px; padding:11px 6px; background:rgba(255,255,255,0.55);
+    border:1.2px solid rgba(169,127,42,0.25);
+  }
+  .stat-box .sb-value{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:19px; color:var(--gold-3); }
+  .stat-box .sb-label{ font-size:9.5px; color:var(--ink-soft); font-weight:700; margin-top:3px; line-height:1.5; }
+  .progress-track{
+    height:11px; border-radius:999px; background:rgba(169,127,42,0.15); overflow:hidden; position:relative; margin-bottom:8px;
+  }
+  .progress-fill{
+    height:100%; border-radius:999px; background:linear-gradient(90deg, var(--sage), var(--sage-deep));
+  }
+  .progress-label{ display:flex; justify-content:space-between; font-size:10.5px; font-weight:700; color:var(--ink-soft); }
+  .progress-label b{ color:var(--sage-deep); }
+  .stat-mini-list{ margin-top:12px; display:flex; flex-direction:column; gap:7px; }
+  .stat-mini-row{ display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:700; color:var(--ink-soft); }
+  .stat-mini-row .badge-good{ color:var(--sage-deep); background:rgba(110,143,115,0.15); border-radius:999px; padding:2px 10px; }
+  .stat-mini-row .badge-warn{ color:#9C5A2A; background:rgba(199,122,42,0.15); border-radius:999px; padding:2px 10px; }
+
+  /* ============ بطاقة النتيجة النهائية + رسالة تحفيزية ============ */
+  .result-card{
+    text-align:center; border-radius:22px; padding:26px 20px 22px; margin-bottom:16px;
+    border:1.6px solid var(--gold-3); box-shadow:0 12px 26px rgba(169,127,42,0.14);
+    position:relative; overflow:hidden;
+  }
+  .result-card.excellent{ background:linear-gradient(160deg, #FBEDC3, #E7C878 70%, #D8AE52); }
+  .result-card.good{ background:linear-gradient(160deg, #EAF3EC, #D3E7D8 70%, #BBDAC3); }
+  .result-card.retry{ background:linear-gradient(160deg, #FBF7EC, #F0E6D6 70%, #E4D6BC); }
+
+  .result-gauge{
+    width:118px; height:118px; border-radius:50%; margin:0 auto 14px; position:relative;
+    display:flex; align-items:center; justify-content:center;
+    background:conic-gradient(var(--sage-deep) calc(var(--pct) * 1%), rgba(255,255,255,0.55) 0);
+  }
+  .result-gauge::before{
+    content:''; position:absolute; inset:9px; border-radius:50%; background:#FFFDF7;
+  }
+  .result-gauge .rg-pct{ position:relative; z-index:2; font-family:'Aref Ruqaa', serif; font-weight:700; font-size:25px; color:var(--ink); }
+  .result-card.retry .result-gauge{ background:conic-gradient(var(--gold-3) calc(var(--pct) * 1%), rgba(255,255,255,0.6) 0); }
+
+  .result-emoji{ font-size:30px; margin-bottom:6px; }
+  .result-title{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:19px; color:var(--ink); margin-bottom:6px; }
+  .result-msg{ font-size:12.5px; color:var(--ink-soft); font-weight:700; line-height:2; max-width:280px; margin:0 auto; }
+  .result-msg b{ color:var(--sage-deep); }
+  .result-card.retry .result-msg b{ color:var(--gold-3); }
+  .rank-pill{
+    display:inline-block; margin-top:12px; font-size:11px; font-weight:800; color:var(--ink);
+    background:rgba(255,255,255,0.65); border:1.2px solid rgba(169,127,42,0.35); border-radius:999px; padding:6px 16px;
+  }
+
+  /* ============ قائمة الترتيب (Leaderboard) — بالنسبة المئوية ============ */
+  .lb-note{
+    text-align:center; font-size:11px; font-weight:700; color:var(--ink-soft); margin-bottom:12px;
+  }
+  .lb-note b{ color:var(--gold-3); }
+  .lb-list{ display:flex; flex-direction:column; gap:9px; }
+  .lb-row{
+    display:flex; align-items:center; gap:12px; border-radius:14px; padding:10px 14px;
+    background:linear-gradient(150deg, #FFFDF7, #F7F1DF); border:1.3px solid var(--gold-3);
+  }
+  .lb-row .lb-rank{
+    flex-shrink:0; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:12px; background:rgba(169,127,42,0.12); color:var(--ink-soft);
+  }
+  .lb-row.top1 .lb-rank{ background:linear-gradient(135deg,#FBEDC3,#D8AE52); color:#3A2A0A; }
+  .lb-row.top2 .lb-rank{ background:linear-gradient(135deg,#EAF0EC,#C9DFCE); color:var(--sage-deep); }
+  .lb-row.top3 .lb-rank{ background:linear-gradient(135deg,#F3E3CE,#D8AE52); color:#3A2A0A; }
+  .lb-row .lb-name{ flex:1; font-weight:800; font-size:13px; color:var(--ink); }
+  .lb-row .lb-pct{
+    flex-shrink:0; font-family:'Aref Ruqaa', serif; font-weight:700; font-size:15.5px; color:var(--sage-deep);
+    background:rgba(110,143,115,0.12); border-radius:999px; padding:3px 13px;
+  }
+
+  /* ============ تنبيه "محاولة واحدة فقط" لتمارين الدرس ============ */
+  .one-attempt-warn{
+    display:flex; align-items:center; gap:12px; border-radius:16px; padding:13px 16px; margin-bottom:16px;
+    background:linear-gradient(120deg, #FDEBE0, #F7DCC5); border:1.4px solid #C97A3D;
+  }
+  .one-attempt-warn .oaw-icon{ flex-shrink:0; font-size:24px; }
+  .one-attempt-warn .oaw-title{ font-weight:800; font-size:13px; color:#7A3F14; }
+  .one-attempt-warn .oaw-sub{ font-size:10.5px; color:#8A5626; font-weight:600; margin-top:2px; line-height:1.7; }
+
+  /* ============ شبكة القائمة الرئيسية (بطاقات كبيرة) ============ */
+  .home-menu{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:0 0 28px; }
+  .home-card{
+    position:relative; border-radius:20px; padding:22px 14px 18px; text-align:center; cursor:pointer;
+    background:linear-gradient(160deg, #FFFDF7, #F3ECD5);
+    border:1.6px solid rgba(169,127,42,0.35);
+    box-shadow:0 10px 22px rgba(169,127,42,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
+    transition:.15s;
+  }
+  .home-card:active{ transform:translateY(2px); }
+
+  /* ===== إطار الأيقونة: عمق ثلاثي الأبعاد + زخرفة أرابيسك ذهبية ===== */
+  .home-card .hc-icon-wrap{
+    position:relative; overflow:hidden;
+    width:62px; height:62px; margin:0 auto 12px; border-radius:17px; display:flex; align-items:center; justify-content:center;
+    font-size:27px; border:1.4px solid rgba(122,82,22,0.55);
+    box-shadow:
+      0 7px 14px rgba(122,82,22,0.32),
+      0 2px 3px rgba(80,52,10,0.28),
+      inset 0 2px 2px rgba(255,255,255,0.85),
+      inset 0 -4px 6px rgba(90,58,12,0.38);
+  }
+  /* نسيج الأرابيسك الذهبي داخل إطار الأيقونة */
+  .home-card .hc-icon-wrap::before{
+    content:""; position:absolute; inset:0; opacity:0.55; mix-blend-mode:multiply; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cg fill='none' stroke='%23A9772A' stroke-width='0.7' opacity='0.65'%3E%3Cpath d='M11 1 L21 11 L11 21 L1 11 Z'/%3E%3Cpath d='M11 1 L11 21 M1 11 L21 11'/%3E%3Ccircle cx='11' cy='11' r='3.4'/%3E%3Cpath d='M4.5 4.5 L7.5 7.5 M17.5 4.5 L14.5 7.5 M4.5 17.5 L7.5 14.5 M17.5 17.5 L14.5 14.5'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:15px 15px;
+  }
+  /* بريق علوي لإيهام العمق */
+  .home-card .hc-icon-wrap::after{
+    content:""; position:absolute; top:0; left:0; right:0; height:46%; border-radius:17px 17px 50% 50%/17px 17px 60% 60%;
+    background:linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0));
+    pointer-events:none;
+  }
+  .home-card .hc-svg-icon{ position:relative; z-index:1; width:74%; height:74%; filter:drop-shadow(0 3px 3px rgba(60,38,8,0.45)) drop-shadow(0 1px 0 rgba(255,255,255,0.5)); }
+
+  .home-card.c1 .hc-icon-wrap{ background:linear-gradient(150deg,#F3ECD5,#E7C878); }
+  .home-card.c2 .hc-icon-wrap{ background:linear-gradient(150deg,#E4EFE6,#C9DFCE); }
+  .home-card.c3 .hc-icon-wrap{ background:linear-gradient(150deg,#FBEDC3,#E7C878); }
+  .home-card.c4 .hc-icon-wrap{ background:linear-gradient(150deg,#F0E6D6,#D8AE52); }
+  .home-card.c5 .hc-icon-wrap{ background:linear-gradient(150deg,#FBEDC3,#E7C878); }
+  .home-card.c5{ display:flex; flex-direction:column; align-items:center; }
+  .home-card.c5 .hc-sub{ max-width:340px; }
+  .home-card .hc-title{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:18px; color:var(--ink); }
+  .home-card .hc-sub{ font-size:11px; color:var(--ink-soft); margin-top:5px; font-weight:600; line-height:1.7; }
+  .hc-lock-badge{
+    position:absolute; top:8px; left:8px; background:rgba(120,60,40,0.92); color:#fff;
+    font-size:9.5px; font-weight:800; padding:3px 8px; border-radius:20px; letter-spacing:.2px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.2);
+  }
+  .home-card .hc-badge{
+    position:absolute; top:10px; left:10px; background:var(--gold-3); color:#FFFDF7; font-size:9.5px; font-weight:800;
+    border-radius:999px; padding:3px 9px;
+  }
+
+  /* ============ بطاقة عريضة: الترتيب والنقاط أسفل القائمة الرئيسية ============ */
+  .home-card-wide{
+    display:flex; align-items:center; gap:14px; border-radius:20px; padding:16px 18px;
+    background:linear-gradient(160deg, #FFFDF7, #F3ECD5);
+    border:1.6px solid rgba(169,127,42,0.35);
+    box-shadow:0 10px 22px rgba(169,127,42,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
+    transition:.15s; text-align:right;
+  }
+  .home-card-wide:active{ transform:translateY(2px); }
+  .home-card-wide .hc-icon-wrap{
+    position:relative; overflow:hidden;
+    flex-shrink:0; width:54px; height:54px; border-radius:15px; display:flex; align-items:center; justify-content:center;
+    font-size:24px; border:1.4px solid rgba(122,82,22,0.55);
+    background:linear-gradient(150deg,#FBEDC3,#E7C878);
+    box-shadow:
+      0 7px 14px rgba(122,82,22,0.32),
+      0 2px 3px rgba(80,52,10,0.28),
+      inset 0 2px 2px rgba(255,255,255,0.85),
+      inset 0 -4px 6px rgba(90,58,12,0.38);
+  }
+  .home-card-wide .hc-icon-wrap::before{
+    content:""; position:absolute; inset:0; opacity:0.55; mix-blend-mode:multiply; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cg fill='none' stroke='%23A9772A' stroke-width='0.7' opacity='0.65'%3E%3Cpath d='M11 1 L21 11 L11 21 L1 11 Z'/%3E%3Cpath d='M11 1 L11 21 M1 11 L21 11'/%3E%3Ccircle cx='11' cy='11' r='3.4'/%3E%3Cpath d='M4.5 4.5 L7.5 7.5 M17.5 4.5 L14.5 7.5 M4.5 17.5 L7.5 14.5 M17.5 17.5 L14.5 14.5'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:15px 15px;
+  }
+  .home-card-wide .hc-icon-wrap::after{
+    content:""; position:absolute; top:0; left:0; right:0; height:46%;
+    background:linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0));
+    pointer-events:none;
+  }
+  .home-card-wide .hc-icon-wrap{ text-shadow:0 2px 2px rgba(60,38,8,0.4); }
+  .home-card-wide .hc-svg-icon{ position:relative; z-index:1; width:74%; height:74%; filter:drop-shadow(0 3px 3px rgba(60,38,8,0.45)) drop-shadow(0 1px 0 rgba(255,255,255,0.5)); }
+  .home-card-wide .hc-title{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:17px; color:var(--ink); }
+  .home-card-wide .hc-sub{ font-size:11px; color:var(--ink-soft); margin-top:3px; font-weight:600; line-height:1.6; }
+
+  /* ============ شاشة فرعية: قائمة الدروس عمودية ============ */
+  .screen-frame{
+    border:1.6px dashed rgba(169,127,42,0.4); border-radius:22px; padding:16px 14px 20px; margin:8px 0 32px;
+    background:rgba(255,255,255,0.35);
+  }
+  .screen-frame .sf-label{
+    text-align:center; font-size:11px; font-weight:800; color:var(--gold-3); letter-spacing:.5px;
+    margin-bottom:14px; text-transform:uppercase;
+  }
+  .lesson-list{ display:flex; flex-direction:column; gap:11px; }
+  .lesson-row{
+    position:relative; display:flex; align-items:center; gap:13px; border-radius:16px; padding:13px 16px;
+    border:1.3px solid var(--gold-3); overflow:hidden;
+    box-shadow:0 6px 14px rgba(169,127,42,0.08), inset 0 1px 0 rgba(255,255,255,0.7);
+    background:
+      linear-gradient(150deg, #FFFDF7, #F7F1DF),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Cg fill='none' stroke='%23A97F2A' stroke-width='0.7' opacity='0.5'%3E%3Cpath d='M13 1 L25 13 L13 25 L1 13 Z'/%3E%3Ccircle cx='13' cy='13' r='3.2'/%3E%3C/g%3E%3C/svg%3E");
+    background-blend-mode:normal, multiply;
+    background-size:auto, 26px 26px;
+  }
+  .lesson-row .lr-num{
+    position:relative; overflow:hidden;
+    flex-shrink:0; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(150deg,#FBEDC3,#E7C878); color:#33260A; font-weight:800; font-size:13px;
+    border:1.3px solid rgba(122,82,22,0.55); z-index:2;
+    box-shadow:
+      0 4px 8px rgba(122,82,22,0.28),
+      0 1px 2px rgba(80,52,10,0.22),
+      inset 0 1.5px 1.5px rgba(255,255,255,0.8),
+      inset 0 -3px 4px rgba(90,58,12,0.35);
+  }
+  .lesson-row .lr-num::before{
+    content:""; position:absolute; inset:0; opacity:0.5; mix-blend-mode:multiply; pointer-events:none; border-radius:50%;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cg fill='none' stroke='%23A9772A' stroke-width='0.7' opacity='0.65'%3E%3Cpath d='M11 1 L21 11 L11 21 L1 11 Z'/%3E%3Cpath d='M11 1 L11 21 M1 11 L21 11'/%3E%3Ccircle cx='11' cy='11' r='3.4'/%3E%3Cpath d='M4.5 4.5 L7.5 7.5 M17.5 4.5 L14.5 7.5 M4.5 17.5 L7.5 14.5 M17.5 17.5 L14.5 14.5'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:12px 12px;
+  }
+  .lesson-row .lr-num::after{
+    content:""; position:absolute; top:0; left:0; right:0; height:46%; border-radius:50%;
+    background:linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0)); pointer-events:none;
+  }
+  .lesson-row .lr-num .lr-num-text{ position:relative; z-index:1; }
+
+  /* =========================================================================================
+     أيقونات ميدالية ذهبية موحّدة (إطار مجسّم + نسيج أرابيسك) لبقية صفحات التطبيق:
+     نوافذ الدخول، بطاقات إعراب الجمل، صندوق تيليجرام، عناوين لوحة الترتيب، قارئ القصص، إلخ.
+     ========================================================================================= */
+  .al-icon, .il-icon, .zoom-telegram-icon, .story-reader-icon,
+  .lb-section-icon, .story-list-icon, .situ-panel-icon,
+  .lb-card-icon, .lb-card-num, .lb-main-icon, .ld-leaderboard-icon{
+    position:relative; overflow:hidden; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    border:1.3px solid rgba(122,82,22,0.55); background:linear-gradient(150deg,#FBEDC3,#E7C878);
+    box-shadow:
+      0 5px 10px rgba(122,82,22,0.28),
+      0 1.5px 2.5px rgba(80,52,10,0.24),
+      inset 0 1.5px 2px rgba(255,255,255,0.8),
+      inset 0 -3px 5px rgba(90,58,12,0.35);
+  }
+  .al-icon::before, .il-icon::before, .zoom-telegram-icon::before, .story-reader-icon::before,
+  .lb-section-icon::before, .story-list-icon::before, .situ-panel-icon::before,
+  .lb-card-icon::before, .lb-card-num::before, .lb-main-icon::before, .ld-leaderboard-icon::before{
+    content:""; position:absolute; inset:0; opacity:0.5; mix-blend-mode:multiply; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cg fill='none' stroke='%23A9772A' stroke-width='0.7' opacity='0.65'%3E%3Cpath d='M11 1 L21 11 L11 21 L1 11 Z'/%3E%3Cpath d='M11 1 L11 21 M1 11 L21 11'/%3E%3Ccircle cx='11' cy='11' r='3.4'/%3E%3Cpath d='M4.5 4.5 L7.5 7.5 M17.5 4.5 L14.5 7.5 M4.5 17.5 L7.5 14.5 M17.5 17.5 L14.5 14.5'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  .al-icon::after, .il-icon::after, .zoom-telegram-icon::after, .story-reader-icon::after,
+  .lb-section-icon::after, .story-list-icon::after, .situ-panel-icon::after,
+  .lb-card-icon::after, .lb-card-num::after, .lb-main-icon::after, .ld-leaderboard-icon::after{
+    content:""; position:absolute; top:0; left:0; right:0; height:46%;
+    background:linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0)); pointer-events:none;
+  }
+  .al-icon .icon-glyph, .il-icon .icon-glyph, .zoom-telegram-icon .icon-glyph, .story-reader-icon .icon-glyph,
+  .lb-section-icon .icon-glyph, .story-list-icon .icon-glyph, .situ-panel-icon .icon-glyph,
+  .lb-card-icon .icon-glyph, .lb-card-num .icon-glyph, .lb-main-icon .icon-glyph, .ld-leaderboard-icon .icon-glyph{
+    position:relative; z-index:1; filter:drop-shadow(0 2px 2px rgba(60,38,8,0.35));
+  }
+
+  /* أحجام وتموضع كل أيقونة بحسب مكانها الخاص */
+  .al-icon{ width:66px; height:66px; border-radius:20px; font-size:32px; margin:0 auto 12px; }
+  .al-icon::before{ background-size:16px 16px; }
+  .il-icon{ width:54px; height:54px; border-radius:15px; font-size:26px; margin-left:2px; }
+  .il-icon::before{ background-size:13px 13px; }
+  .zoom-telegram-icon{ width:64px; height:64px; border-radius:50%; font-size:30px; margin:0 auto 14px; }
+  .zoom-telegram-icon::before{ background-size:16px 16px; }
+  .story-reader-icon{ width:56px; height:56px; border-radius:50%; font-size:26px; }
+  .story-reader-icon::before{ background-size:14px 14px; }
+  .lb-section-icon{ width:32px; height:32px; border-radius:10px; font-size:16px; }
+  .lb-section-icon::before{ background-size:10px 10px; }
+  .lb-main-icon{ width:60px; height:60px; border-radius:19px; font-size:28px; margin:0 auto 10px; }
+  .lb-main-icon::before{ background-size:15px 15px; }
+  .ld-leaderboard-icon{ width:56px; height:56px; border-radius:18px; font-size:26px; margin:0 auto 9px; }
+  .ld-leaderboard-icon::before{ background-size:14px 14px; }
+  .story-list-icon{ width:32px; height:32px; border-radius:50%; font-size:15px; }
+  .story-list-icon::before{ background-size:10px 10px; }
+  .situ-panel-icon{ width:32px; height:32px; border-radius:10px; font-size:16px; }
+  .situ-panel-icon::before{ background-size:10px 10px; }
+  .lb-lesson-card .lb-card-icon{ width:52px; height:52px; border-radius:16px; font-size:24px; margin:0 auto; }
+  .lb-lesson-card .lb-card-icon::before{ background-size:13px 13px; }
+  .lb-lesson-card .lb-card-num{
+    position:absolute; top:8px; right:8px; width:auto; min-width:26px; height:22px; padding:0 7px; border-radius:11px; font-size:10.5px;
+    color:#33260A; font-weight:800; border-width:1px;
+  }
+  .lb-lesson-card .lb-card-num::before{ background-size:8px 8px; opacity:0.4; }
+
+  .lesson-row .lr-text{ flex:1; position:relative; z-index:2; }
+  .lesson-row .lr-title{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:17px; color:var(--ink); }
+  .lesson-row .lr-new-badge{ display:inline-block; margin-right:8px; padding:1px 8px; border-radius:999px; background:#C0392B; color:#fff; font-family:inherit; font-size:10px; font-weight:800; vertical-align:middle; }
+  .lesson-row .lr-sub{ font-size:10.5px; color:var(--ink-soft); margin-top:3px; font-weight:600; }
+  .lesson-row .lr-status{ flex-shrink:0; font-size:18px; position:relative; z-index:2; }
+  .lesson-row.locked{ background:linear-gradient(150deg, #EFEADA, #E7E1CC); filter:saturate(.75); }
+  .lesson-row.locked .lr-title, .lesson-row.locked .lr-sub{ color:rgba(34,53,43,0.55); }
+  .lesson-row.locked .lr-num{ background:var(--locked); color:rgba(34,53,43,0.55); border-color:rgba(169,127,42,0.3); box-shadow:none; }
+  .lesson-row.locked .lr-num::before, .lesson-row.locked .lr-num::after{ opacity:0.15; }
+  .lesson-row.placeholder{ border-style:dashed; background:rgba(255,255,255,0.4); }
+
+  /* ============ تبويبات فرعية داخل شاشة الدروس (حسب تصنيف الفهرس) ============ */
+  .cat-tabs{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .cat-tab{
+    flex:1; min-width:96px; text-align:center; padding:11px 6px; border-radius:13px; font-weight:800; font-size:11.5px;
+    border:1.4px solid rgba(169,127,42,0.4); color:var(--ink-soft); background:rgba(255,255,255,0.5); cursor:pointer;
+  }
+  .cat-tab.active{ background:linear-gradient(135deg, var(--gold-1), var(--gold-2)); color:#33260A; border-color:var(--gold-3); }
+
+  /* ============ قوائم منسدلة (Accordions) للوحدات الرئيسية في قائمة الدروس ============
+     بنفس طراز بطاقات لوحة الأستاذ/المشرف (admin-accordion): بطاقة كريمية دافئة كاملة
+     بإطار ذهبي وظل عميق، وأيقونة مجسّمة مربعة، وشارة عدّاد دائرية داكنة. */
+  .lesson-accordion{
+    border-radius:20px; overflow:hidden; margin-bottom:14px;
+    background:linear-gradient(160deg, #FFFDF7, #F3ECD5);
+    border:1.6px solid rgba(169,127,42,0.35);
+    box-shadow:0 10px 22px rgba(169,127,42,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .lesson-accordion:first-child{ margin-top:0; }
+
+  .group-header{
+    display:flex; align-items:center; gap:12px; padding:14px 18px; margin:0;
+    border:none; background:transparent; border-radius:0;
+  }
+  .accordion-toggle{
+    cursor:pointer; user-select:none; transition:background .15s ease;
+  }
+  .accordion-toggle:active{ background:rgba(169,127,42,0.08) !important; }
+  .accordion-toggle:hover{ background:rgba(169,127,42,0.05); }
+
+  /* أيقونة مجسّمة مربعة بنفس طراز أيقونات لوحة الأستاذ (aa-icon-wrap) */
+  .group-header .gh-icon{
+    font-size:24px; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+    width:54px; height:54px; flex-shrink:0; border-radius:15px; position:relative; overflow:hidden;
+    background:linear-gradient(160deg, #FBEDC3, #E7C878 60%, #D8AE52);
+    border:1.4px solid rgba(122,82,22,0.55);
+    box-shadow:
+      0 7px 14px rgba(122,82,22,0.32),
+      0 2px 3px rgba(80,52,10,0.28),
+      inset 0 2px 2px rgba(255,255,255,0.85),
+      inset 0 -4px 6px rgba(90,58,12,0.38);
+  }
+  .group-header .gh-icon::before{
+    content:""; position:absolute; inset:0; opacity:0.55; mix-blend-mode:multiply; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cg fill='none' stroke='%23A9772A' stroke-width='0.7' opacity='0.65'%3E%3Cpath d='M11 1 L21 11 L11 21 L1 11 Z'/%3E%3Cpath d='M11 1 L11 21 M1 11 L21 11'/%3E%3Ccircle cx='11' cy='11' r='3.4'/%3E%3Cpath d='M4.5 4.5 L7.5 7.5 M17.5 4.5 L14.5 7.5 M4.5 17.5 L7.5 14.5 M17.5 17.5 L14.5 14.5'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:15px 15px;
+  }
+  .group-header .gh-icon::after{
+    content:""; position:absolute; top:0; left:0; right:0; height:46%;
+    background:linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0)); pointer-events:none;
+  }
+  .group-header .gh-icon span{ position:relative; z-index:1; filter:drop-shadow(0 2px 2px rgba(60,38,8,0.35)); }
+
+  .group-header .gh-title{
+    font-family:'Aref Ruqaa', serif; font-weight:700; font-size:17px; color:var(--ink);
+  }
+  /* شارة عدّاد دائرية داكنة، بنفس طراز شارات لوحة الأستاذ (aa-badge) */
+  .group-header .gh-count{
+    margin-inline-start:auto; flex-shrink:0;
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:26px; height:26px; padding:0 8px; border-radius:999px;
+    background:#33260A; color:#F3ECD5; font-size:12px; font-weight:800; font-family:'Cairo',sans-serif;
+  }
+  .accordion-arrow{
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:14px; color:var(--gold-3); transition:transform .3s ease; flex-shrink:0;
+  }
+
+  .accordion-content{
+    overflow:hidden; transition:max-height 0.3s ease, opacity 0.3s ease;
+    padding:0 18px 18px;
+  }
+
+  .accordion-content.active{
+    display:block !important;
+  }
+
+  /* ============ شريط التبويبات الرئيسي (قديم — لم يعد مستخدَمًا في الشاشة الرئيسية) ============ */
+  .main-tabs{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin:0 0 24px;
+  }
+  .main-tab{
+    position:relative; text-align:center; padding:16px 6px 13px; border-radius:16px; font-weight:800; font-size:12.5px;
+    cursor:pointer; color:var(--ink-soft); background:linear-gradient(160deg, #FFFDF7, #F3ECD5);
+    border:1.6px solid rgba(169,127,42,0.35);
+    box-shadow:0 6px 14px rgba(169,127,42,0.08), inset 0 1px 0 rgba(255,255,255,0.7);
+    transition:.18s; display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .main-tab .mt-icon{ font-size:22px; line-height:1; }
+  .main-tab .mt-label{ line-height:1.4; }
+  .main-tab.active{
+    background:linear-gradient(160deg, #FBEDC3, #E7C878 60%, #D8AE52);
+    color:#3A2A0A; border-color:var(--gold-3);
+    box-shadow:0 10px 22px rgba(169,127,42,0.32), inset 0 1px 0 rgba(255,255,255,0.5);
+    transform:translateY(-2px);
+  }
+  .main-tab.active::after{
+    content:''; position:absolute; inset:4px; border:1px solid rgba(255,255,255,0.55); border-radius:12px; pointer-events:none;
+  }
+
+  /* ============ عنوان قسم ============ */
+  .section-title{
+    display:flex; align-items:center; gap:10px; margin:6px 0 14px; color:var(--gold-3);
+  }
+  .section-title .line{ flex:1; height:1px; background:linear-gradient(90deg, rgba(169,127,42,0.5), transparent); }
+  .section-title span{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:16.5px; white-space:nowrap; }
+
+  /* ============ بطاقة "ترتيب تلاميذ هذا الدرس" — آخر عنصر في صفحة الدرس ============ */
+  .ld-leaderboard-card{
+    display:flex; flex-direction:column; align-items:center; text-align:center; cursor:pointer;
+    margin:28px 0 6px; padding:20px 16px 18px; border-radius:17px;
+    background:linear-gradient(150deg, #FFFDF7, #F7F1DF 55%, #F0E8D2);
+    border:1.3px solid var(--gold-3);
+    box-shadow:0 6px 14px rgba(169,127,42,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
+    transition:transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .ld-leaderboard-card:hover{ border-color:var(--gold); box-shadow:0 8px 18px rgba(169,127,42,0.18); }
+  .ld-leaderboard-card:active{ transform:translateY(3px); }
+  .ld-leaderboard-title{
+    font-family:'Aref Ruqaa', serif; font-weight:700; font-size:14.5px; color:var(--ink);
+  }
+
+  /* ============ لوحة تحكم الأستاذ — أقسام قابلة للطي (Accordion) ============
+     بنفس طراز البطاقات العريضة الكريمية (إدارة حصص الزوم/الفروض/الحلول) لتوحيد
+     شكل كل أقسام اللوحة: خلفية كريمية دافئة + إطار ذهبي رفيع + أيقونة مجسّمة كبيرة. */
+  .admin-accordion{
+    border-radius:20px; overflow:hidden; margin-bottom:14px;
+    background:linear-gradient(160deg, #FFFDF7, #F3ECD5);
+    border:1.6px solid rgba(169,127,42,0.35);
+    box-shadow:0 10px 22px rgba(169,127,42,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .admin-accordion-header{
+    width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:14px 18px; background:transparent;
+    border:none; cursor:pointer; text-align:right; font-family:'Cairo',sans-serif;
+    -webkit-tap-highlight-color:transparent; transition:background .15s ease;
+  }
+  .admin-accordion-header:active{ background:rgba(169,127,42,0.08); }
+  .admin-accordion-header .aa-title{
+    display:flex; align-items:center; gap:10px; font-family:'Aref Ruqaa', serif; font-weight:700;
+    font-size:17px; color:var(--ink);
+  }
+  .admin-accordion-header .aa-badge{
+    background:#33260A; color:#F3ECD5; border-radius:999px; font-size:11px; font-weight:800;
+    padding:2px 9px; font-family:'Cairo',sans-serif;
+  }
+  .admin-accordion-header .aa-chevron{
+    font-size:14px; color:var(--gold-3); transition:transform .3s ease; flex-shrink:0;
+  }
+  .admin-accordion-header[aria-expanded="true"] .aa-chevron{ transform:rotate(180deg); }
+  /* فاصل رفيع بين العنوان والمحتوى عند الفتح، بنفس روح البطاقات */
+  .admin-accordion-body-wrap.open{ border-top:1px solid rgba(169,127,42,0.22); }
+
+  /* أيقونة مجسّمة كبيرة بنفس طراز أيقونات البطاقات العريضة (إدارة حصص الزوم وغيرها) */
+  .aa-icon-wrap{
+    position:relative; overflow:hidden; flex-shrink:0;
+    width:54px; height:54px; border-radius:15px; display:flex; align-items:center; justify-content:center;
+    border:1.4px solid rgba(122,82,22,0.55);
+    box-shadow:
+      0 7px 14px rgba(122,82,22,0.32),
+      0 2px 3px rgba(80,52,10,0.28),
+      inset 0 2px 2px rgba(255,255,255,0.85),
+      inset 0 -4px 6px rgba(90,58,12,0.38);
+  }
+  .aa-icon-wrap::before{
+    content:""; position:absolute; inset:0; opacity:0.55; mix-blend-mode:multiply; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cg fill='none' stroke='%23A9772A' stroke-width='0.7' opacity='0.65'%3E%3Cpath d='M11 1 L21 11 L11 21 L1 11 Z'/%3E%3Cpath d='M11 1 L11 21 M1 11 L21 11'/%3E%3Ccircle cx='11' cy='11' r='3.4'/%3E%3Cpath d='M4.5 4.5 L7.5 7.5 M17.5 4.5 L14.5 7.5 M4.5 17.5 L7.5 14.5 M17.5 17.5 L14.5 14.5'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:15px 15px;
+  }
+  .aa-icon-wrap::after{
+    content:""; position:absolute; top:0; left:0; right:0; height:46%;
+    background:linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0)); pointer-events:none;
+  }
+  .aa-svg-icon{ position:relative; z-index:1; width:74%; height:74%; filter:drop-shadow(0 3px 3px rgba(60,38,8,0.45)) drop-shadow(0 1px 0 rgba(255,255,255,0.5)); }
+  .admin-accordion-body-wrap{
+    display:grid; grid-template-rows:0fr; transition:grid-template-rows .32s ease;
+  }
+  .admin-accordion-body-wrap.open{ grid-template-rows:1fr; }
+  .admin-accordion-body-inner{ overflow:hidden; min-height:0; padding:4px 18px 18px; }
+
+  /* ============ أقسام شاشة "الترتيب والنقاط" (لوحة الشرف / الفروض والاختبارات / الدروس) ============ */
+  .lb-section{ margin-bottom:30px; }
+  .lb-section:last-child{ margin-bottom:8px; }
+  .lb-section-title{
+    display:flex; align-items:center; gap:8px; font-family:'Aref Ruqaa', serif;
+    font-weight:700; font-size:17px; color:var(--ink); margin-bottom:6px;
+    border-bottom:2px solid var(--gold-3); padding-bottom:8px;
+  }
+
+  /* ============ بطاقة "نتائجك الإجمالية" (نقاطك/ترتيبك/عدد التلاميذ) — أعلى شاشة الترتيب ============ */
+  .lb-mystats-section{ margin-bottom:24px; }
+  .lb-mystats-row{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+  .lb-mystat-card{
+    text-align:center; padding:16px 6px 14px; border-radius:15px;
+    background:linear-gradient(150deg, #FFFDF7, #F7F1DF 55%, #F0E8D2);
+    border:1.3px solid var(--gold-3);
+    box-shadow:0 5px 12px rgba(169,127,42,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .lb-mystat-value{
+    font-family:'Aref Ruqaa', serif; font-weight:800; font-size:26px; color:var(--sage-deep);
+    margin-bottom:4px; line-height:1;
+  }
+  .lb-mystat-label{ font-size:11px; font-weight:700; color:var(--ink-soft); }
+
+  /* ============ ثلاث بطاقات كبيرة بأيقونة عربية موشّاة لأقسام الترتيب الرئيسية ============ */
+  .lb-main-grid{ display:flex; flex-direction:column; gap:12px; margin-bottom:26px; }
+  .lb-main-card{
+    position:relative; cursor:pointer; text-align:center; padding:20px 16px 18px; border-radius:17px;
+    background:linear-gradient(150deg, #FFFDF7, #F7F1DF 55%, #F0E8D2);
+    border:1.3px solid var(--gold-3);
+    box-shadow:0 6px 14px rgba(169,127,42,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
+    transition:transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .lb-main-card:hover{ border-color:var(--gold); box-shadow:0 8px 18px rgba(169,127,42,0.18); }
+  .lb-main-card:active{ transform:translateY(3px); }
+  .lb-main-title{
+    font-family:'Aref Ruqaa', serif; font-weight:700; font-size:16.5px; color:var(--ink); margin-bottom:5px;
+  }
+  .lb-main-desc{ font-size:11.5px; color:var(--ink-soft); line-height:1.55; max-width:320px; margin:0 auto; }
+  
+
+  /* ============ لوحة الشرف العامة وترتيب الفروض والاختبارات (صفوف مجمّعة) ============ */
+  .lb-hall-list{ display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+  .lb-hall-item{
+    display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:13px;
+    background:linear-gradient(150deg, #FFFDF7, #F7F1DF 55%, #F0E8D2);
+    border:1.3px solid var(--gold-3);
+    box-shadow:0 4px 10px rgba(169,127,42,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .lb-hall-rank{
+    min-width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:15px; color:#33260A; border-radius:50%;
+    background:linear-gradient(135deg, var(--gold-1), var(--gold-2)); border:1px solid var(--gold-3);
+  }
+  .lb-hall-rank.first, .lb-hall-rank.second, .lb-hall-rank.third{
+    background:transparent; border:none; font-size:24px;
+  }
+  .lb-hall-info{ flex:1; text-align:right; min-width:0; }
+  .lb-hall-name{ font-weight:700; font-size:14px; color:var(--ink); margin-bottom:3px; }
+  .lb-hall-meta{ font-size:11.5px; color:var(--ink-soft); }
+  .lb-hall-badge{
+    font-weight:800; font-size:13.5px; color:#33260A; white-space:nowrap;
+    padding:6px 12px; border-radius:9px;
+    background:linear-gradient(135deg, var(--gold-1), var(--gold-2)); border:1px solid var(--gold-3);
+  }
+
+  /* ============ شبكة بطاقات "الترتيب والنقاط" (اختيار الدرس) ============ */
+  .lb-lesson-grid{
+    display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; margin-top:16px;
+  }
+  @media (min-width:480px){ .lb-lesson-grid{ grid-template-columns:repeat(3, 1fr); } }
+  .lb-lesson-card{
+    position:relative; border-radius:17px; padding:20px 10px 15px; min-height:118px; cursor:pointer;
+    background:linear-gradient(150deg, #FFFDF7, #F7F1DF 55%, #F0E8D2);
+    border:1.3px solid var(--gold-3);
+    box-shadow:0 6px 14px rgba(169,127,42,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    gap:8px; transition:transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .lb-lesson-card:hover{ border-color:var(--gold); box-shadow:0 8px 18px rgba(169,127,42,0.18); }
+  .lb-lesson-card:active{ transform:translateY(3px); }
+  .lb-lesson-card .lb-card-title{
+    font-family:'Aref Ruqaa', serif; font-weight:700; font-size:13px; color:var(--ink);
+    line-height:1.4;
+  }
+
+  /* ============ شبكة بطاقات الدروس ============ */
+  .lesson-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:30px; }
+  .lesson-card{
+    position:relative; border-radius:18px; padding:20px 14px 18px; min-height:148px;
+    overflow:hidden; cursor:pointer;
+    background:linear-gradient(150deg, #FFFDF7, #F7F1DF 55%, #F0E8D2);
+    border:1.3px solid var(--gold-3);
+    box-shadow:0 8px 18px rgba(169,127,42,0.10), inset 0 1px 0 rgba(255,255,255,0.7);
+    display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
+    transition:transform .15s ease;
+  }
+  .lesson-card:active{ transform:translateY(3px); }
+  .lesson-card .num-badge{
+    position:absolute; top:9px; right:9px; width:26px; height:26px; border-radius:50%;
+    background:linear-gradient(135deg, var(--gold-1), var(--gold-2)); color:#33260A;
+    font-weight:800; font-size:11.5px; display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--gold-3); z-index:2;
+  }
+  .lesson-card .lc-title{
+    font-family:'Aref Ruqaa', serif; font-weight:700; font-size:19px; color:var(--ink); position:relative; z-index:2; line-height:1.4;
+    text-shadow:0 1px 0 rgba(255,255,255,0.6);
+  }
+  .lesson-card .lc-sub{
+    font-size:10.5px; color:var(--ink-soft); margin-top:6px; position:relative; z-index:2; font-weight:600; line-height:1.6;
+  }
+
+  /* حالة القفل */
+  .lesson-card.locked{
+    background:linear-gradient(150deg, #EFEADA, #E7E1CC 55%, #DFD8C2);
+    filter:saturate(.7);
+  }
+  .lesson-card.locked .lc-title, .lesson-card.locked .lc-sub{ color:rgba(34,53,43,0.55); }
+  .lesson-card.locked .num-badge{
+    background:var(--locked); color:rgba(34,53,43,0.55); border-color:rgba(169,127,42,0.3);
+  }
+  .lock-badge{
+    position:absolute; bottom:10px; display:flex; align-items:center; gap:5px; z-index:2;
+    background:rgba(255,255,255,0.6); border:1px solid rgba(169,127,42,0.3); border-radius:999px;
+    padding:4px 11px; font-size:10px; font-weight:800; color:var(--gold-3);
+  }
+  .lesson-card.locked .lock-badge{ color:var(--ink-soft); }
+
+  .placeholder-card{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    border:1.5px dashed rgba(169,127,42,0.45); background:rgba(255,255,255,0.4);
+    color:var(--ink-soft); font-weight:700; font-size:12.5px; text-align:center;
+  }
+
+  /* ============ بطاقة الفروض والاختبارات ============ */
+  .exam-tabs{ display:flex; gap:10px; margin-bottom:16px; }
+  .exam-tab{
+    flex:1; text-align:center; padding:16px 6px 13px; border-radius:16px; font-weight:800; font-size:12.5px;
+    border:1.6px solid rgba(169,127,42,0.35); color:var(--ink); background:linear-gradient(160deg, #FFFDF7, #F3ECD5); cursor:pointer;
+    box-shadow:0 6px 14px rgba(169,127,42,0.08), inset 0 1px 0 rgba(255,255,255,0.7);
+    position:relative; transition:.18s;
+  }
+  .exam-tab .et-icon{ font-size:20px; display:block; margin-bottom:5px; }
+  .exam-tab.active{
+    background:linear-gradient(160deg, #FBEDC3, #E7C878 60%, #D8AE52); color:#3A2A0A;
+    border-color:var(--gold-3); box-shadow:0 10px 22px rgba(169,127,42,0.32), inset 0 1px 0 rgba(255,255,255,0.5);
+    transform:translateY(-2px);
+  }
+  .exam-tab.active::after{ content:''; position:absolute; inset:4px; border:1px solid rgba(255,255,255,0.55); border-radius:12px; pointer-events:none; }
+  .exam-tab .lock-mini{ display:block; margin-top:4px; font-size:10px; opacity:.8; }
+
+  .exam-panel{
+    border:1.3px solid var(--gold-3); border-radius:18px; padding:26px 18px; text-align:center;
+    background:linear-gradient(160deg, rgba(255,255,255,0.55), rgba(255,255,255,0.25));
+    color:var(--ink-soft); font-weight:700; font-size:13px; line-height:1.9;
+  }
+  .exam-panel .lock-icon{ font-size:30px; display:block; margin-bottom:8px; }
+
+  /* ============ تبويبات «وضعيات للاستئناس» حسب المقاطع الثمانية ============ */
+  .situ-tabs-scroll{
+    overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; margin:0 -2px 16px;
+    padding:2px 2px 8px; scrollbar-width:thin;
+  }
+  .situ-tabs-scroll::-webkit-scrollbar{ height:5px; }
+  .situ-tabs-scroll::-webkit-scrollbar-thumb{ background:var(--gold-3); border-radius:999px; }
+  .situ-tabs{ display:flex; gap:9px; width:max-content; }
+  .situ-tab{
+    flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:2px;
+    min-width:84px; padding:10px 12px 9px; border-radius:15px; cursor:pointer;
+    font-family:'Cairo', sans-serif; font-weight:800; font-size:11px; color:var(--ink-soft);
+    border:1.6px solid rgba(169,127,42,0.35); background:linear-gradient(160deg, #FFFDF7, #F3ECD5);
+    box-shadow:0 6px 14px rgba(169,127,42,0.08), inset 0 1px 0 rgba(255,255,255,0.7);
+    transition:.18s; -webkit-tap-highlight-color:transparent;
+  }
+  .situ-tab-num{
+    font-family:'Aref Ruqaa', serif; font-size:10px; font-weight:700; color:var(--gold-3);
+    background:rgba(169,127,42,0.12); border-radius:999px; padding:0 7px; line-height:1.6;
+  }
+  .situ-tab-icon{ font-size:19px; margin:2px 0 1px; }
+  .situ-tab-label{ white-space:nowrap; }
+  .situ-tab-lock{ font-size:9.5px; margin-top:2px; opacity:.8; }
+  .situ-tab.active{
+    background:linear-gradient(160deg, #FBEDC3, #E7C878 60%, #D8AE52); color:#3A2A0A;
+    border-color:var(--gold-3); box-shadow:0 10px 22px rgba(169,127,42,0.32), inset 0 1px 0 rgba(255,255,255,0.5);
+    transform:translateY(-2px);
+  }
+  .situ-tab.active .situ-tab-num{ background:rgba(51,38,10,0.15); color:#3A2A0A; }
+  .situ-tab.is-locked{ opacity:.72; }
+  .situ-tab.is-locked.active{ opacity:1; }
+
+  .situ-panel{
+    border:1.6px solid var(--gold-3); border-radius:18px; padding:16px 15px 18px;
+    background:linear-gradient(160deg, rgba(255,255,255,0.6), rgba(255,255,255,0.28));
+    box-shadow:0 8px 18px rgba(169,127,42,0.10);
+    animation:situFade .25s ease;
+  }
+  @keyframes situFade{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+  .situ-panel-head{
+    display:flex; align-items:center; gap:9px; margin-bottom:14px; padding-bottom:10px;
+    border-bottom:2px solid rgba(169,127,42,0.3);
+  }
+  
+  .situ-panel-title{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:16.5px; color:var(--ink); }
+
+  .situ-card{
+    background:var(--paper); border:2px solid rgba(169,127,42,0.4); border-radius:14px;
+    padding:13px 14px 14px; margin-bottom:12px;
+  }
+  .situ-card:last-child{ margin-bottom:0; }
+  .situ-card-title{
+    font-weight:800; font-size:12.5px; color:#fff; background:var(--gold-3);
+    display:inline-block; padding:3px 12px; border-radius:999px; margin-bottom:10px;
+  }
+  .situ-block{ margin-bottom:9px; }
+  .situ-block:last-of-type{ margin-bottom:0; }
+  .situ-block-label{ font-weight:800; font-size:11px; color:var(--gold-3); display:block; margin-bottom:3px; }
+  .situ-block-text{ font-size:12px; font-weight:600; line-height:1.9; color:var(--ink); margin:0; }
+  .situ-pattern{
+    margin-top:11px; padding-top:9px; border-top:1.3px dashed rgba(169,127,42,0.35);
+    font-size:11.5px; font-weight:700; color:var(--ink-soft);
+  }
+  .situ-pattern b{ color:var(--gold-3); }
+
+  /* ============ قائمة عناوين «القصص للقراءة» داخل المقطع ============ */
+  .story-hint{ font-size:11.5px; font-weight:700; color:var(--ink-soft); margin-bottom:12px; text-align:center; }
+  .story-list{ display:flex; flex-direction:column; gap:10px; }
+  .story-list-item{
+    display:flex; align-items:center; gap:11px; padding:14px 15px; border-radius:14px; cursor:pointer;
+    background:linear-gradient(150deg, #FFFDF7, #F3ECD5); border:1.6px solid rgba(169,127,42,0.4);
+    box-shadow:0 6px 14px rgba(169,127,42,0.08); transition:.18s; -webkit-tap-highlight-color:transparent;
+  }
+  .story-list-item:active{ transform:scale(0.98); }
+  
+  .story-list-title{ flex:1; font-family:'Aref Ruqaa', serif; font-weight:700; font-size:15.5px; color:var(--ink); }
+  .story-list-arrow{ font-size:18px; color:var(--gold-3); font-weight:800; }
+
+  /* ============ قارئ القصة الكاملة — شكل صفحة كتاب دافئة ============ */
+  .story-back-btn{
+    display:inline-block; margin-bottom:14px; padding:6px 16px; border-radius:999px; cursor:pointer;
+    background:rgba(169,127,42,0.12); border:1.3px solid var(--gold-3); color:var(--gold-3);
+    font-weight:800; font-size:12px; font-family:'Cairo', sans-serif;
+  }
+  .story-reader{
+    background:linear-gradient(170deg, #FFFEFA, #FBF6E8); border:1.8px solid var(--gold-3); border-radius:18px;
+    padding:20px 18px 24px; box-shadow:0 10px 24px rgba(169,127,42,0.14), inset 0 1px 0 rgba(255,255,255,0.8);
+  }
+  .story-reader-head{ display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; margin-bottom:14px; }
+  
+  .story-reader-title{ margin:0; font-family:'Aref Ruqaa', serif; font-weight:700; font-size:22px; color:var(--ink); }
+
+  .story-listen-btn{
+    display:block; width:100%; margin-bottom:18px; padding:11px 14px; border-radius:14px; cursor:pointer;
+    background:linear-gradient(135deg, var(--gold-1), var(--gold-2)); border:1.4px solid var(--gold-3);
+    color:#33260A; font-weight:800; font-size:13px; font-family:'Cairo', sans-serif;
+    box-shadow:0 8px 18px rgba(169,127,42,0.22), inset 0 1px 0 rgba(255,255,255,0.55);
+    transition:.18s;
+  }
+  .story-listen-btn.is-playing{
+    background:linear-gradient(135deg, #F0DDB0, #D8AE52); animation:storyPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes storyPulse{ 0%,100%{ box-shadow:0 8px 18px rgba(169,127,42,0.22); } 50%{ box-shadow:0 8px 26px rgba(169,127,42,0.4); } }
+
+  .story-body{ font-family:'Cairo', sans-serif; }
+  .story-p{
+    font-size:13.5px; font-weight:600; line-height:2.15; color:var(--ink); margin:0 0 14px;
+    text-align:justify;
+  }
+  .story-quote{
+    position:relative; margin:0 6px 16px; padding:12px 18px; border-radius:14px;
+    background:rgba(169,127,42,0.08); border-right:4px solid var(--gold-3);
+    font-family:'Cairo', sans-serif; font-size:14.5px; font-weight:700; color:#7A5A1E; line-height:2.1;
+  }
+  .story-scene{
+    display:flex; flex-direction:column; align-items:center; gap:6px; margin:8px 0 20px;
+  }
+  .story-scene-icon{
+    width:64px; height:64px; display:flex; align-items:center; justify-content:center; font-size:32px;
+    border-radius:50%; background:linear-gradient(160deg, #FFFDF7, #F3ECD5); border:2px solid var(--gold-3);
+    box-shadow:0 8px 18px rgba(169,127,42,0.18);
+  }
+  .story-scene-caption{ font-size:11px; font-weight:700; color:var(--ink-soft); }
+  .story-moral{
+    margin-top:6px; padding:16px 16px 14px; border-radius:16px; text-align:center;
+    background:linear-gradient(160deg, #FBEDC3, #E7C878); border:1.6px solid var(--gold-3);
+    box-shadow:0 10px 22px rgba(169,127,42,0.24), inset 0 1px 0 rgba(255,255,255,0.5);
+  }
+  .story-moral-badge{
+    display:inline-block; margin-bottom:8px; padding:2px 14px; border-radius:999px; font-size:11px;
+    font-weight:800; background:#33260A; color:#F3ECD5;
+  }
+  .story-moral p{ margin:0; font-family:'Cairo', sans-serif; font-weight:700; font-size:14px; color:#33260A; line-height:2; }
+
+  /* ============ زر الانطلاق البارز + الشرح بدون إطار (اختبار الفهم / تمارين الدرس) ============ */
+  .lesson-cta-btn{
+    display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
+    font-family:'Aref Ruqaa', serif; font-weight:700; font-size:19px; color:#33260A;
+    background:linear-gradient(135deg, var(--gold-1), var(--gold-2)); border:1.6px solid var(--gold-3);
+    border-radius:18px; padding:16px 20px; box-shadow:0 10px 22px rgba(169,127,42,0.28), inset 0 1px 0 rgba(255,255,255,0.55);
+    cursor:pointer; transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .lesson-cta-btn:hover{ transform:translateY(-2px); box-shadow:0 14px 26px rgba(169,127,42,0.34); }
+  .lesson-cta-btn:active{ transform:translateY(1px); }
+  .lesson-cta-note{
+    margin:10px 4px 0; padding:0; border:none; background:none;
+    font-family:'Cairo', sans-serif; font-weight:300; font-size:12.5px; line-height:1.9;
+    color:var(--ink-soft); text-align:center;
+  }
+
+  /* ============ بطاقة إعراب الجمل — إعراب 100 جملة ============ */
+  .irab-launch{
+    display:flex; align-items:center; gap:14px; border-radius:20px; padding:18px 18px 16px;
+    background:linear-gradient(150deg, #FBEDC3, #E7C878 55%, #D8AE52);
+    border:1.6px solid var(--gold-3); box-shadow:0 12px 26px rgba(169,127,42,0.25), inset 0 1px 0 rgba(255,255,255,0.5);
+    cursor:pointer; margin-bottom:14px;
+  }
+  
+  .irab-launch .il-title{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:18px; color:#3A2A0A; }
+  .irab-launch .il-sub{ font-size:11.5px; color:#4E3A10; margin-top:4px; font-weight:600; line-height:1.7; }
+  .irab-note{
+    border:1.3px solid var(--gold-3); border-radius:16px; padding:14px 16px; background:rgba(255,255,255,0.5);
+    font-size:12px; line-height:2; color:var(--ink-soft); font-weight:600;
+  }
+  .irab-note b{ color:var(--gold-3); }
+
+  /* ============ زر تثبيت التطبيق (معاينة) ============ */
+  .install-row{ display:flex; justify-content:center; margin:26px 0 6px; }
+  .install-btn{
+    display:inline-flex; align-items:center; gap:8px; font-weight:800; font-size:12.5px; color:#33260A;
+    background:linear-gradient(135deg, var(--gold-1), var(--gold-2)); border:1.3px solid var(--gold-3);
+    border-radius:999px; padding:10px 20px; box-shadow:0 8px 18px rgba(169,127,42,0.2);
+  }
+
+  footer{ text-align:center; font-size:11px; color:var(--ink-soft); opacity:.7; margin-top:34px; }
+
+  .note{
+    margin:24px 0; padding:14px 16px; border:1.3px dashed rgba(169,127,42,0.4); border-radius:14px;
+    background:rgba(255,255,255,0.45); font-size:12px; line-height:2; color:var(--ink-soft);
+  }
+  .note b{ color:var(--gold-3); }
+
+/* =========================================================================================
+   إضافات خاصة بالتطبيق الفعّال (اختبار الفهم، إعراب الجمل، النوافذ المنبثقة، شاشة الدرس)
+   ========================================================================================= */
+*{ box-sizing:border-box; }
+
+.hub{ text-align:center; margin:10px auto 8px; }
+.hub .badge{
+  display:inline-block; position:relative; overflow:hidden; background:var(--paper); border:3px solid var(--gold-3); border-radius:50%;
+  width:170px; height:170px; padding-top:38px; box-shadow:6px 6px 0 rgba(169,127,42,0.12); transform:rotate(-2deg);
+}
+.hub .badge::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cg fill='none' stroke='%23A97F2A' stroke-width='1'%3E%3Cpath d='M42 2 L54 14 L66 2 L82 18 L70 30 L82 42 L66 54 L54 42 L42 54 L30 42 L18 54 L2 42 L14 30 L2 18 L18 2 L30 14 Z'/%3E%3Ccircle cx='42' cy='28' r='9'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:46px 46px; opacity:.16;
+}
+.hub .badge b, .hub .badge span{ position:relative; z-index:1; }
+.hub .badge b{
+  display:block; font-family:'Aref Ruqaa', serif; font-weight:800; font-size:23px; color:var(--ink);
+  letter-spacing:.2px; text-shadow:0 1px 0 rgba(255,255,255,0.55);
+}
+.hub .badge span{ display:block; font-size:11px; color:var(--ink-soft); margin-top:8px; padding:0 16px; line-height:1.6; }
+
+/* ============ ألوان دائرة الدرس حسب وحدته — لتمييز كل وحدة بلمحة ============ */
+.hub .badge.cat-taqweem{ border-color:#A97F2A; box-shadow:6px 6px 0 rgba(169,127,42,0.18); }
+.hub .badge.cat-taqweem b{ color:#7A5216; }
+
+.hub .badge.cat-muktasabat{ border-color:#1B8A7A; box-shadow:6px 6px 0 rgba(27,138,122,0.18); }
+.hub .badge.cat-muktasabat b{ color:#12594E; }
+
+.hub .badge.cat-tawabi{ border-color:#2F7D4F; box-shadow:6px 6px 0 rgba(47,125,79,0.18); }
+.hub .badge.cat-tawabi b{ color:#1E5C38; }
+
+.hub .badge.cat-qawaid{ border-color:#2E6DA4; box-shadow:6px 6px 0 rgba(46,109,164,0.18); }
+.hub .badge.cat-qawaid b{ color:#1F4E77; }
+
+.hub .badge.cat-jumal{ border-color:#C97A2B; box-shadow:6px 6px 0 rgba(201,122,43,0.18); }
+.hub .badge.cat-jumal b{ color:#95591C; }
+
+.hub .badge.cat-balagha{ border-color:#B23B3B; box-shadow:6px 6px 0 rgba(178,59,59,0.18); }
+.hub .badge.cat-balagha b{ color:#8A2C2C; }
+
+.hub .badge.cat-anmat{ border-color:#4A5568; box-shadow:6px 6px 0 rgba(74,85,104,0.18); }
+.hub .badge.cat-anmat b{ color:#333D4D; }
+
+.hub .badge.cat-itisaq{ border-color:#9B4F96; box-shadow:6px 6px 0 rgba(155,79,150,0.18); }
+.hub .badge.cat-itisaq b{ color:#733E70; }
+.hub-def{
+  max-width:520px; margin:14px auto 0; text-align:center; font-size:14px; line-height:2; color:var(--ink);
+  background:var(--paper); border:2px solid var(--gold-3); border-radius:14px; padding:14px 18px;
+}
+
+.listen-wrap{ background:var(--paper); border:1.6px solid var(--gold-3); border-radius:16px; padding:16px; margin:24px 0; }
+.listen-title{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:17px; margin-bottom:10px; color:var(--ink); }
+.video-frame{ position:relative; width:100%; padding-top:56.25%; border-radius:12px; overflow:hidden; background:#000; }
+.video-frame iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+
+.mm-title{ text-align:center; font-family:'Aref Ruqaa', serif; font-weight:700; font-size:19px; margin:30px 0 12px; color:var(--ink); }
+
+/* ============ صف عنوان الخريطة الذهنية + زر تحميل PDF ============ */
+.mm-title-row{
+  display:flex; align-items:center; justify-content:center; gap:10px; margin:30px 0 12px; flex-wrap:wrap;
+}
+.mm-title-row .mm-title{ margin:0; }
+.mm-pdf-btn{
+  display:inline-flex; align-items:center; gap:6px; font-family:'Cairo',sans-serif; font-weight:800;
+  font-size:11.5px; color:#33260A; background:linear-gradient(135deg, var(--gold-1), var(--gold-2));
+  border:1.3px solid var(--gold-3); border-radius:999px; padding:6px 14px;
+  box-shadow:0 4px 10px rgba(169,127,42,0.22); cursor:pointer;
+}
+.mm-pdf-btn:active{ transform:translateY(1px); }
+
+/* اختبار الفهم */
+.quiz-progress{ text-align:center; font-size:11.5px; font-weight:800; color:var(--gold-3); margin-bottom:10px; }
+.quiz-card{ background:var(--paper); border:1.6px solid var(--gold-3); border-radius:16px; padding:18px 16px; }
+.quiz-q{ font-weight:800; font-size:15px; color:var(--ink); line-height:1.9; margin-bottom:12px; }
+.quiz-opts{ display:flex; flex-direction:column; gap:8px; }
+.mcq-btn{
+  text-align:right; padding:11px 14px; border-radius:11px; border:1.4px solid rgba(169,127,42,0.35);
+  background:var(--bg-1); font-family:'Cairo'; font-weight:700; font-size:13.5px; color:var(--ink); cursor:pointer;
+}
+.mcq-btn.correct{ border-color:var(--sage-deep); background:rgba(110,143,115,0.25); }
+.mcq-btn.wrong{ border-color:#C94848; background:rgba(201,72,72,0.15); }
+.mcq-btn:disabled{ cursor:default; }
+.quiz-explain{ margin-top:12px; font-size:12.5px; line-height:1.9; color:var(--ink-soft); border-top:1.4px dashed rgba(169,127,42,0.3); padding-top:10px; }
+.quiz-next-btn, .quiz-retry-btn{
+  display:inline-block; margin-top:14px; border:none; border-radius:11px; padding:11px 22px; font-family:'Cairo';
+  font-weight:800; font-size:13px; cursor:pointer; background:linear-gradient(135deg,var(--gold-1),var(--gold-2)); color:#33260A;
+}
+
+/* تمارين الدرس — أسئلة مفتوحة (أكمل الفراغ، الإعراب، المعنى، الجملة الإنشائية، الاستخراج) */
+.quiz-fill-sentence{ font-weight:700; font-size:15px; color:var(--ink); line-height:2; margin-bottom:14px; }
+.quiz-fill-sentence .blank{ display:inline-block; min-width:64px; border-bottom:2px dotted var(--gold-3); margin:0 4px; }
+.quiz-term-label{
+  font-family:'Aref Ruqaa', serif; font-size:17px; background:var(--gold-2); color:#fff;
+  display:inline-block; padding:3px 16px; border-radius:8px; margin-bottom:10px;
+}
+.quiz-text-input, .quiz-textarea{
+  width:100%; padding:10px 12px; border:1.4px solid rgba(169,127,42,0.35); border-radius:11px;
+  font-family:'Cairo'; font-size:14px; background:var(--bg-1); color:var(--ink);
+}
+.quiz-textarea{ min-height:56px; resize:vertical; }
+.quiz-text-input:focus, .quiz-textarea:focus{ outline:2px solid var(--gold-2); border-color:var(--gold-2); }
+.quiz-check-btn{
+  display:inline-block; margin-top:12px; border:none; border-radius:11px; padding:10px 20px; font-family:'Cairo';
+  font-weight:800; font-size:13px; cursor:pointer; background:var(--sage-deep); color:#fff;
+}
+.quiz-model-answer{
+  font-size:12.5px; color:var(--ink-soft); margin-top:8px; background:rgba(110,143,115,0.15);
+  padding:8px 10px; border-radius:8px; border:1px dashed var(--gold-3);
+}
+.extract-source{
+  background:var(--paper); border-inline-start:4px solid var(--gold-2); padding:12px 14px;
+  font-size:13.5px; line-height:2.1; border-radius:8px; margin-bottom:14px; color:var(--ink);
+}
+.extract-table{ width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:10px; }
+.extract-table th{ background:var(--gold-2); color:#fff; padding:7px 5px; font-weight:800; }
+.extract-table td{ border:1px solid rgba(169,127,42,0.3); padding:5px; background:var(--paper); }
+.extract-table input{ width:100%; border:none; text-align:center; font-family:'Cairo'; font-size:12.5px; background:transparent; outline:none; color:var(--ink); }
+.extract-row-remove{ background:rgba(201,72,72,0.15); color:#C94848; border:none; width:24px;height:24px; border-radius:50%; cursor:pointer; font-weight:800; flex:none; }
+.extract-add-btn{
+  background:var(--sage); color:#fff; padding:8px 16px; border:none; border-radius:9px;
+  font-family:'Cairo'; font-weight:800; font-size:12.5px; cursor:pointer; margin-inline-end:8px;
+}
+.quiz-answer-row{ display:flex; gap:8px; align-items:flex-start; }
+.quiz-answer-row .quiz-text-input, .quiz-answer-row .quiz-textarea{ flex:1; }
+
+/* تمارين الكتاب — تمرين كامل في صفحة واحدة (كما في ورقة التمرين الأصلية) */
+.book-header-card{ background:var(--paper); border:1.6px solid var(--gold-3); border-radius:16px; padding:16px 16px 12px; margin-bottom:14px; }
+.book-exercise-title{ font-family:'Aref Ruqaa', serif; font-size:18px; font-weight:800; color:var(--gold-3); text-align:center; margin-bottom:4px; }
+.book-exercise-instr{ font-size:12.5px; font-weight:700; color:var(--ink-soft); text-align:center; margin-bottom:0; }
+.book-sub-instr{ font-size:12.5px; font-weight:800; color:var(--ink-soft); margin:14px 0 8px; border-top:1.4px dashed rgba(169,127,42,0.3); padding-top:10px; }
+.passage-block{
+  font-weight:700; font-size:15px; color:var(--ink); line-height:2.6; margin-bottom:14px; text-align:justify;
+}
+.inline-blank-input{
+  display:inline-block; min-width:60px; max-width:100%; border:none; border-bottom:2px dotted var(--gold-3);
+  background:transparent; font-family:'Cairo'; font-size:14px; font-weight:800; text-align:center; color:var(--ink);
+  margin:0 3px; padding:2px 4px; outline:none;
+}
+.inline-blank-input.inline-blank-textarea{
+  display:block; width:100%; min-width:100%; max-width:100%; min-height:90px; resize:vertical;
+  border:1.6px dotted var(--gold-3); border-radius:10px; text-align:right; line-height:1.9;
+  margin:8px 0 0; padding:10px 12px; font-size:14.5px;
+}
+.inline-blank-input:focus{ border-bottom-style:solid; border-bottom-color:var(--gold-2); }
+.inline-blank-input.correct{ border-bottom-style:solid; border-bottom-color:var(--sage-deep); color:var(--sage-deep); }
+.inline-blank-input.wrong{ border-bottom-style:solid; border-bottom-color:#C94848; color:#C94848; }
+.book-item-row{ margin-bottom:16px; padding-bottom:14px; border-bottom:1.4px dashed rgba(169,127,42,0.25); }
+.book-item-row:last-child{ border-bottom:none; margin-bottom:0; padding-bottom:0; }
+.book-item-sentence{ font-weight:700; font-size:14px; color:var(--ink); line-height:2.1; }
+.book-item-feedback{ font-size:12px; line-height:1.8; margin-top:6px; }
+.quiz-mic-btn{
+  flex:none; width:38px; height:38px; border-radius:50%; border:1.6px solid var(--gold-3);
+  background:var(--paper); color:var(--gold-3); font-size:15px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+}
+.quiz-mic-btn.listening{ background:var(--gold-2); color:#fff; animation:quizMicPulse 1s infinite; }
+.quiz-mic-btn:disabled{ opacity:.4; cursor:not-allowed; }
+@keyframes quizMicPulse{ 0%{ box-shadow:0 0 0 0 rgba(199,154,61,.5); } 100%{ box-shadow:0 0 0 9px rgba(199,154,61,0); } }
+
+/* أزرار عامة صغيرة */
+.back-btn{
+  display:inline-flex; align-items:center; gap:5px; background:var(--paper); border:1.4px solid var(--gold-3);
+  border-radius:999px; padding:8px 16px; font-family:'Cairo'; font-weight:800; font-size:12.5px; color:var(--ink); cursor:pointer;
+}
+.lesson-topbar{ margin:14px 0 6px; }
+
+/* نوافذ منبثقة (تسجيل الدخول / الأستاذ) */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(34,53,43,0.55); z-index:300; display:none;
+  align-items:center; justify-content:center; padding:16px;
+}
+.modal-overlay.show{ display:flex; }
+.modal-close{
+  position:absolute; top:10px; left:10px; width:28px; height:28px; border-radius:50%; border:none;
+  color:#fff; font-weight:800; cursor:pointer;
+}
+
+/* شاشات إعراب الجمل (مقتبسة من محرك الاختبار الشامل السابق) */
+.exam-full-card{ background:var(--paper); border:2px solid var(--gold-3); border-radius:18px; padding:20px 16px; margin-bottom:14px; }
+.efc-tag{ display:inline-block; background:#D8C6F0; color:var(--ink); font-weight:800; font-size:11px; border-radius:999px; padding:3px 12px; margin-bottom:10px; }
+.efc-question{ font-size:16px; line-height:2.2; color:var(--ink); text-align:center; font-weight:700; }
+.efc-heard{ display:none; margin-top:12px; font-size:12px; color:var(--ink-soft); text-align:center; }
+.efc-heard.show{ display:block; }
+.efc-verdict{ display:none; margin-top:10px; text-align:center; font-weight:800; font-size:14px; border-radius:10px; padding:8px; }
+.efc-verdict.show{ display:block; }
+.efc-verdict.ok{ background:rgba(110,143,115,0.25); color:var(--sage-deep); }
+.efc-verdict.no{ background:rgba(201,72,72,0.15); color:#9C2F47; }
+.efc-answer{ display:none; margin-top:12px; background:rgba(110,143,115,0.18); border:1.4px solid var(--sage-deep); border-radius:12px; padding:10px 14px; font-size:13px; text-align:center; }
+.efc-answer.show{ display:block; }
+.efc-no-mic{ text-align:center; font-size:12px; font-weight:700; color:#9C2F47; background:rgba(201,72,72,0.1); border:1.4px dashed #C94848; border-radius:12px; padding:12px; }
+.efc-no-mic.show{ display:block; }
+.efc-mic-btn{
+  display:block; width:100%; border:none; border-radius:12px; padding:13px; font-family:'Cairo'; font-weight:800;
+  font-size:14px; cursor:pointer; background:linear-gradient(135deg,#5eb4a0,#3d8c7a); color:#08201a;
+}
+.efc-mic-btn.recording{ background:linear-gradient(135deg,#e05252,#a92f2f); color:#fff; }
+.exam-full-nav{ text-align:center; margin-top:12px; }
+.efc-next-btn{
+  display:none; border:1.4px solid var(--gold-3); background:var(--paper); border-radius:999px; padding:9px 22px;
+  font-family:'Cairo'; font-weight:800; font-size:12.5px; cursor:pointer; color:var(--ink);
+}
+.efc-next-btn.show{ display:inline-block; }
+.irab-progress{ text-align:center; font-size:11.5px; font-weight:800; color:var(--gold-3); margin-bottom:10px; }
+
+/* =========================================================================================
+   تنسيق الخريطة الذهنية (Mind Map) — مقتبس من التصميم الأصلي للدروس
+   ========================================================================================= */
+.mm-wrap{ margin:10px 0 8px; }
+.mm-branch{ background:var(--paper); border:2px solid var(--gold-3); border-radius:14px; margin-bottom:12px; overflow:hidden; }
+.mm-branch summary{
+  list-style:none; cursor:pointer; padding:12px 15px; display:flex; align-items:center; justify-content:space-between;
+  gap:8px; font-family:'Cairo'; font-weight:800; font-size:13.5px; color:var(--ink);
+}
+.mm-branch summary::-webkit-details-marker{ display:none; }
+.mm-branch .chev{ font-size:11px; transition:transform .2s; flex-shrink:0; }
+.mm-branch:not([open]) .chev{ transform:rotate(-90deg); }
+
+.mm-branch.c-blue summary{ background:#D7E8F5; } .mm-branch.c-blue{ border-color:#2F6FB0; }
+.mm-branch.c-green summary{ background:#DCF0DA; } .mm-branch.c-green{ border-color:#2E8B57; }
+.mm-branch.c-purple summary{ background:#E9DFF5; } .mm-branch.c-purple{ border-color:#6E4FA3; }
+.mm-branch.c-orange summary{ background:#FBE3CE; } .mm-branch.c-orange{ border-color:#D6483F; }
+.mm-branch.c-gold summary{ background:linear-gradient(135deg,#FBEDC3,#E7C878); } .mm-branch.c-gold{ border-color:#A97F2A; }
+.mm-branch.c-teal summary{ background:#CDEFE8; } .mm-branch.c-teal{ border-color:#1D8C7A; }
+.mm-branch.c-brown summary{ background:#EAD9C4; } .mm-branch.c-brown{ border-color:#8B5A2B; }
+
+.mm-branch-body{ padding:13px 15px 16px; }
+.mm-rule{
+  position:relative; font-size:13px; font-weight:700; line-height:2; padding:11px 13px; border-radius:4px 16px 16px 16px;
+  margin-bottom:9px; border:2px solid rgba(169,127,42,0.4); background:rgba(255,255,255,0.6); color:var(--ink);
+}
+.mm-example{
+  font-size:12px; font-weight:600; line-height:1.9; padding:9px 13px; border-radius:16px 4px 16px 16px;
+  border:1.6px dashed var(--ink-soft); background:rgba(255,255,255,0.4); color:var(--ink-soft);
+}
+.mm-children{ display:flex; flex-direction:column; gap:9px; margin-top:11px; padding-right:16px; border-right:2.5px dashed rgba(169,127,42,0.35); }
+.mm-leaf{ background:rgba(255,255,255,0.55); border:2px solid rgba(169,127,42,0.35); border-radius:12px; padding:10px 13px; }
+.mm-leaf-title{ font-weight:800; font-size:11.5px; margin-bottom:5px; display:inline-block; padding:2px 10px; border-radius:999px; background:var(--gold-3); color:#fff; }
+.mm-leaf-rule{ font-size:11.8px; font-weight:700; line-height:1.9; color:var(--ink); margin-top:3px; }
+.mm-leaf-example{ font-size:11px; font-weight:600; margin-top:6px; border-top:1.3px dashed rgba(169,127,42,0.3); padding-top:5px; color:var(--ink-soft); }
+
+/* ========================= أنماط الأمثال والحكم (Wisdom Banner) ========================= */
+.wisdom-banner{
+  background:linear-gradient(135deg, rgba(169,127,42,0.18), rgba(231,200,120,0.12));
+  border:1.5px solid var(--gold-3);
+  border-radius:16px;
+  padding:18px 20px;
+  margin:12px 0;
+  box-shadow:0 6px 16px rgba(169,127,42,0.16), inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.wisdom-content{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  font-family:'Aref Ruqaa', serif;
+  direction:rtl;
+}
+.wisdom-icon{
+  font-size:24px;
+  opacity:0.9;
+  filter:drop-shadow(0 0 6px rgba(216,174,82,0.6));
+}
+.wisdom-text-wrap{
+  flex:1;
+  overflow:hidden;
+}
+.wisdom-text{
+  font-size:19px;
+  font-weight:800;
+  color:var(--gold-3);
+  line-height:1.65;
+  letter-spacing:0.3px;
+  text-shadow:0 1px 0 rgba(255,255,255,0.65), 0 0 14px rgba(216,174,82,0.25);
+  transition:opacity .38s ease, transform .38s ease;
+  opacity:1;
+  transform:translateY(0);
+}
+/* حركة الاختفاء قبل تبديل النص، والظهور من جديد بعد التبديل (Fade + Slide) */
+.wisdom-text.wisdom-fade{
+  opacity:0;
+  transform:translateY(-8px);
+}
+.wisdom-indicator{
+  font-size:11.5px;
+  font-weight:800;
+  color:var(--gold-2);
+  opacity:0.85;
+  white-space:nowrap;
+  padding:5px 10px;
+  background:rgba(231,200,120,0.25);
+  border-radius:7px;
+}
+
+/* ========================= أنماط نظام الإشعارات ========================= */
+.notification-bell{
+  position:relative;
+  font-size:16px;
+  cursor:pointer;
+  transition:transform 0.2s ease, filter 0.25s ease;
+  width:30px;
+  height:30px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+}
+.notification-bell:hover{
+  transform:scale(1.1);
+}
+/* الحالة "مضيئة بالأحمر" الدائمة طالما هناك إشعار غير مقروء — وليست حركة عابرة فقط */
+.notification-bell.has-notifications{
+  background:rgba(231,76,60,0.14);
+  box-shadow:0 0 0 2px rgba(231,76,60,0.35);
+  filter:drop-shadow(0 0 6px rgba(231,76,60,0.65));
+  animation:bellRing 0.6s ease-in-out, bellGlow 1.6s ease-in-out infinite;
+}
+.notification-bell.has-notifications::after{
+  content:attr(data-count);
+  position:absolute;
+  top:-6px;
+  right:-8px;
+  background:#e74c3c;
+  color:#fff;
+  border-radius:50%;
+  min-width:20px;
+  height:20px;
+  padding:0 4px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:11px;
+  font-weight:800;
+  animation:pulse 1.5s infinite;
+}
+@keyframes bellRing{
+  0%, 100% { transform:rotate(0); }
+  10%, 30% { transform:rotate(-15deg); }
+  20%, 40% { transform:rotate(15deg); }
+  50% { transform:rotate(0); }
+}
+@keyframes bellGlow{
+  0%, 100% { box-shadow:0 0 0 2px rgba(231,76,60,0.35); }
+  50% { box-shadow:0 0 0 5px rgba(231,76,60,0.15); }
+}
+@keyframes pulse{
+  0%, 100% { box-shadow:0 0 0 0 rgba(231,100,100,0.7); }
+  50% { box-shadow:0 0 0 8px rgba(231,100,100,0); }
+}
+
+.notifications-panel{
+  position:fixed;
+  top:60px;
+  right:16px;
+  width:min(340px, calc(100vw - 32px));
+  max-height:70vh;
+  background:#fff;
+  border:1.5px solid var(--gold-3);
+  border-radius:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.15);
+  z-index:999;
+  display:flex;
+  flex-direction:column;
+  animation:slideIn 0.3s ease;
+}
+.notifications-panel.show{
+  display:flex !important;
+}
+@keyframes slideIn{
+  from { transform:translateY(-10px); opacity:0; }
+  to { transform:translateY(0); opacity:1; }
+}
+.notifications-header{
+  padding:14px 16px;
+  border-bottom:1px solid rgba(169,127,42,0.2);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:linear-gradient(135deg, rgba(169,127,42,0.08), rgba(231,200,120,0.05));
+}
+.notifications-title{
+  font-size:14px;
+  font-weight:800;
+  color:var(--ink);
+}
+.notifications-content{
+  flex:1;
+  overflow-y:auto;
+  padding:8px;
+}
+.notification-item{
+  padding:12px;
+  border-bottom:1px solid rgba(169,127,42,0.1);
+  display:flex;
+  gap:10px;
+  cursor:pointer;
+  transition:background 0.2s ease;
+  border-radius:8px;
+  margin-bottom:4px;
+}
+.notification-item:hover{
+  background:rgba(169,127,42,0.08);
+}
+.notification-item.unread{
+  background:rgba(231,200,120,0.12);
+  border-right:3px solid var(--gold-3);
+  padding-right:9px;
+}
+.notif-item-icon{
+  font-size:18px;
+  flex-shrink:0;
+}
+.notif-item-content{
+  flex:1;
+  min-width:0;
+}
+.notif-item-title{
+  font-size:12px;
+  font-weight:800;
+  color:var(--ink);
+  margin-bottom:3px;
+}
+.notif-item-message{
+  font-size:11px;
+  color:var(--ink-soft);
+  line-height:1.4;
+  margin-bottom:5px;
+}
+.notif-item-time{
+  font-size:10px;
+  color:var(--ink-soft);
+  opacity:0.7;
+}
+.notif-item-delete{
+  background:none;
+  border:none;
+  cursor:pointer;
+  font-size:14px;
+  flex-shrink:0;
+  opacity:0.5;
+  transition:opacity 0.2s ease;
+}
+.notif-item-delete:hover{
+  opacity:1;
+}
+.empty-notification{
+  padding:40px 20px;
+  text-align:center;
+  color:var(--ink-soft);
+}
+.empty-icon{
+  font-size:32px;
+  margin-bottom:12px;
+}
+.empty-text{
+  font-size:12px;
+  font-weight:600;
+}
+
+.notification-banner{
+  position:fixed;
+  top:16px;
+  left:50%;
+  transform:translateX(-50%) translateY(-120px);
+  background:#fff;
+  border:2px solid var(--gold-3);
+  border-radius:12px;
+  padding:14px 16px;
+  max-width:min(400px, calc(100vw - 32px));
+  box-shadow:0 8px 24px rgba(169,127,42,0.2);
+  z-index:10000;
+  animation:bannerDrop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.notification-banner.show{
+  animation:bannerSlideDown 0.4s ease forwards, bannerSlideUp 0.4s ease 4.6s forwards;
+}
+@keyframes bannerDrop{
+  to { transform:translateX(-50%) translateY(0); }
+}
+@keyframes bannerSlideDown{
+  from { transform:translateX(-50%) translateY(-120px); }
+  to { transform:translateX(-50%) translateY(0); }
+}
+@keyframes bannerSlideUp{
+  to { transform:translateX(-50%) translateY(-120px); }
+}
+.notification-banner-content{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+.notif-icon{
+  font-size:20px;
+  flex-shrink:0;
+}
+.notif-message{
+  flex:1;
+  min-width:0;
+}
+.notif-title{
+  font-size:13px;
+  font-weight:800;
+  color:var(--ink);
+  margin-bottom:4px;
+}
+.notif-text{
+  font-size:12px;
+  color:var(--ink-soft);
+  line-height:1.4;
+}
+.notif-close{
+  background:none;
+  border:none;
+  cursor:pointer;
+  font-size:16px;
+  color:var(--gold-3);
+  flex-shrink:0;
+  opacity:0.7;
+  transition:opacity 0.2s ease;
+}
+.notif-close:hover{
+  opacity:1;
+}
+
+/* ========================= أنماط إدارة التلاميذ ========================= */
+.student-management-panel{
+  background:rgba(255,255,255,0.6);
+  border:1.5px solid var(--gold-3);
+  border-radius:12px;
+  padding:16px;
+  margin-top:14px;
+}
+.student-item{
+  background:rgba(255,255,255,0.8) !important;
+  border:1px solid rgba(169,127,42,0.2) !important;
+  transition:all 0.2s ease;
+}
+.student-item:hover{
+  background:rgba(169,127,42,0.08) !important;
+}
+.student-checkbox{
+  width:18px;
+  height:18px;
+  cursor:pointer;
+  accent-color:var(--gold-3);
+}
+.bulk-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.bulk-actions .al-key{
+  flex:1;
+  min-width:120px;
+  padding:10px 12px;
+  font-size:12px;
+}
+.notification-form{
+  background:rgba(231,200,120,0.05);
+  border:1.5px dashed var(--gold-3);
+  border-radius:12px;
+  padding:16px;
+  margin-top:14px;
+}
+.notification-form input,
+.notification-form textarea{
+  display:block;
+  width:100%;
+  margin-bottom:10px;
+}
+.notification-form textarea{
+  font-family:'Cairo', sans-serif;
+  resize:vertical;
+  min-height:80px;
+}
+.notification-form .install-btn{
+  width:100%;
+  justify-content:center;
+}
+
+/* =========================================================================================
+   تصدير الخريطة الذهنية كملف PDF (تحميل مباشر عبر html2canvas + jsPDF، بلا نافذة طباعة)
+   ========================================================================================= */
+#mindmapPrintArea{
+  /* لا نستخدم display:none هنا أبدًا: العنصر يجب أن يبقى "مرسومًا" فعليًا في الصفحة
+     (وإن كان خارج مجال الرؤية تمامًا عبر position:fixed + left سالب جدًا) وإلا فإن
+     html2canvas يلتقط قماشًا (canvas) بأبعاد صفرية، مما يسبب خطأ
+     "Invalid coordinates passed to jsPDF.addImage" عند تمرير أبعاد NaN/صفرية إلى jsPDF. */
+  position:fixed; top:0; left:-99999px; width:794px; z-index:-1; background:#fff;
+  visibility:visible; pointer-events:none;
+}
+.pp-page{ font-family:'Cairo', sans-serif; direction:rtl; width:794px; padding:34px 40px; background:#fff; }
+.pp-header{ text-align:center; margin-bottom:12px; border-bottom:2.5px solid #A97F2A; padding-bottom:9px; }
+.pp-platform{
+  /* نستخدم عمدًا خط Cairo (وليس Rakkas/Aref Ruqaa الزخرفيَّين المستخدمين في واجهة التطبيق)
+     لأن محرك التقاط الصورة (html2canvas) يفشل في رسم تشكيل الحروف العربية المتصلة بشكل صحيح
+     مع الخطوط الزخرفية المعقّدة، فتظهر الحروف مفكّكة ومشوّهة رغم ظهورها سليمة تمامًا داخل
+     التطبيق نفسه. خط Cairo أبسط في تشكيله ويُرسَم بشكل سليم دائمًا. ملاحظة مهمّة: لا نضيف أي
+     letter-spacing على النص العربي هنا مطلقًا، لأن أي مسافة بين الحروف — مهما كانت صغيرة —
+     تُجبر المتصفح على فصل الحروف العربية عن بعضها (كل حرف بشكله المنعزل) بدل اتصالها الطبيعي،
+     وهذا بالضبط ما كان يكسر شكل عنوان المنصة سابقًا رغم أن باقي العناوين المجاورة (بلا
+     letter-spacing) كانت تُرسَم سليمة تمامًا بنفس الخط. نعوّض عن الطابع الزخرفي بحجم كبير
+     ووزن عريض جدًا فقط. */
+  font-family:'Cairo', sans-serif; font-size:21px; font-weight:900; color:#A97F2A;
+}
+.pp-level{ font-size:11px; font-weight:700; color:#6E8F73; margin-top:2px; }
+.pp-lesson-title{
+  font-family:'Cairo', sans-serif; font-weight:800; font-size:17px; color:#33260A; margin-top:7px;
+}
+/* ===== تعريف الدرس (نص أصلي دون أي تغيير) ===== */
+.pp-def{
+  background:#FBF6E8; border:1.8px solid #A97F2A; border-radius:12px;
+  padding:9px 14px; margin-bottom:10px; font-size:11px; line-height:1.7; color:#22352B;
+  text-align:center;
+}
+.pp-def mark{ background:#F5E1A4; color:#22352B; padding:0 3px; border-radius:3px; }
+.pp-branches{ display:flex; flex-direction:column; gap:8px; }
+.pp-branch{ border:1.6px solid #A97F2A; border-radius:10px; overflow:hidden; break-inside:avoid; }
+.pp-branch-head{ font-weight:800; font-size:12.5px; padding:6px 10px; }
+.pp-branch.c-blue .pp-branch-head{ background:#D7E8F5; } .pp-branch.c-blue{ border-color:#2F6FB0; }
+.pp-branch.c-green .pp-branch-head{ background:#DCF0DA; } .pp-branch.c-green{ border-color:#2E8B57; }
+.pp-branch.c-purple .pp-branch-head{ background:#E9DFF5; } .pp-branch.c-purple{ border-color:#6E4FA3; }
+.pp-branch.c-orange .pp-branch-head{ background:#FBE3CE; } .pp-branch.c-orange{ border-color:#D6483F; }
+.pp-branch.c-gold .pp-branch-head{ background:#F0DFA3; } .pp-branch.c-gold{ border-color:#A97F2A; }
+.pp-branch.c-teal .pp-branch-head{ background:#CDEFE8; } .pp-branch.c-teal{ border-color:#1D8C7A; }
+.pp-branch.c-brown .pp-branch-head{ background:#EAD9C4; } .pp-branch.c-brown{ border-color:#8B5A2B; }
+.pp-branch-body{ padding:7px 10px 8px; }
+.pp-rule{ font-size:10.5px; font-weight:700; line-height:1.6; color:#22352B; }
+.pp-example{ font-size:9.5px; font-weight:600; margin-top:3px; color:#5A4A2E; }
+.pp-children{ display:grid; grid-template-columns:repeat(2, 1fr); gap:6px; margin-top:6px; }
+.pp-leaf{ background:rgba(255,255,255,0.6); border:1.2px solid rgba(169,127,42,0.4); border-radius:8px; padding:5px 8px; break-inside:avoid; }
+.pp-leaf-title{
+  font-weight:800; font-size:9px; display:inline-block; padding:1px 7px; border-radius:999px;
+  background:#A97F2A; color:#fff; margin-bottom:3px;
+}
+.pp-leaf-rule{ font-size:9.5px; font-weight:700; line-height:1.5; color:#22352B; }
+.pp-leaf-example{ font-size:8.5px; font-weight:600; margin-top:3px; color:#5A4A2E; }
+.pp-footer{ text-align:center; font-size:9px; color:#8A5626; margin-top:14px; opacity:.85; }
+
+/* ===== تكييف تلقائي لحجم الخط/المسافات حسب حجم محتوى الدرس، لضمان بقاء كل شيء في صفحة واحدة أنيقة ===== */
+.pp-page.pp-compact{ padding:26px 34px; }
+.pp-page.pp-compact .pp-header{ margin-bottom:9px; padding-bottom:7px; }
+.pp-page.pp-compact .pp-platform{ font-size:20px; }
+.pp-page.pp-compact .pp-lesson-title{ font-size:16px; margin-top:5px; }
+.pp-page.pp-compact .pp-def{ padding:7px 12px; margin-bottom:8px; font-size:10px; line-height:1.55; }
+.pp-page.pp-compact .pp-branches{ gap:6px; }
+.pp-page.pp-compact .pp-branch-head{ font-size:11.5px; padding:5px 9px; }
+.pp-page.pp-compact .pp-branch-body{ padding:6px 9px 7px; }
+.pp-page.pp-compact .pp-rule{ font-size:9.5px; line-height:1.5; }
+.pp-page.pp-compact .pp-example{ font-size:8.5px; }
+.pp-page.pp-compact .pp-children{ gap:5px; margin-top:5px; }
+.pp-page.pp-compact .pp-leaf{ padding:4px 7px; }
+.pp-page.pp-compact .pp-leaf-title{ font-size:8.5px; padding:1px 6px; }
+.pp-page.pp-compact .pp-leaf-rule{ font-size:8.5px; }
+.pp-page.pp-compact .pp-leaf-example{ font-size:8px; }
+.pp-page.pp-compact .pp-footer{ margin-top:9px; }
+
+.pp-page.pp-ultra-compact{ padding:20px 28px; }
+.pp-page.pp-ultra-compact .pp-header{ margin-bottom:7px; padding-bottom:6px; }
+.pp-page.pp-ultra-compact .pp-platform{ font-size:18px; }
+.pp-page.pp-ultra-compact .pp-lesson-title{ font-size:14.5px; margin-top:4px; }
+.pp-page.pp-ultra-compact .pp-def{ padding:6px 10px; margin-bottom:6px; font-size:9px; line-height:1.45; }
+.pp-page.pp-ultra-compact .pp-branches{ gap:5px; }
+.pp-page.pp-ultra-compact .pp-branch{ border-width:1.2px; border-radius:8px; }
+.pp-page.pp-ultra-compact .pp-branch-head{ font-size:10.5px; padding:4px 8px; }
+.pp-page.pp-ultra-compact .pp-branch-body{ padding:5px 8px 6px; }
+.pp-page.pp-ultra-compact .pp-rule{ font-size:8.5px; line-height:1.4; }
+.pp-page.pp-ultra-compact .pp-example{ font-size:7.5px; }
+.pp-page.pp-ultra-compact .pp-children{ gap:4px; margin-top:4px; }
+.pp-page.pp-ultra-compact .pp-leaf{ padding:3px 6px; }
+.pp-page.pp-ultra-compact .pp-leaf-title{ font-size:7.5px; padding:1px 5px; margin-bottom:2px; }
+.pp-page.pp-ultra-compact .pp-leaf-rule{ font-size:7.5px; }
+.pp-page.pp-ultra-compact .pp-leaf-example{ font-size:7px; }
+.pp-page.pp-ultra-compact .pp-footer{ margin-top:6px; font-size:8px; }
+
+/* =========================================================================================
+   طباعة تمارين الدرس والحل النموذجي كملف PDF (html2canvas + jsPDF)
+   نفس أسلوب طباعة الخريطة الذهنية أعلاه بالضبط: خط Cairo فقط بلا letter-spacing، لأن هذا
+   ما يضمن رسم الحروف العربية متصلة وسليمة عبر html2canvas، بدل استخدام jsPDF.text() مباشرة
+   (الذي يعتمد خط Helvetica الافتراضي غير الداعم للعربية إطلاقًا وينتج رموزًا مشوّهة).
+   ========================================================================================= */
+#exercisePrintArea{
+  position:fixed; top:0; left:-99999px; width:794px; z-index:-1; background:#fff;
+  visibility:visible; pointer-events:none;
+}
+.ep-page{ font-family:'Cairo', sans-serif; direction:rtl; width:794px; padding:30px 38px; background:#fff; }
+.ep-header-wrap{ margin-bottom:14px; }
+.ep-header{ text-align:center; border-radius:10px; padding:10px 14px; }
+.ep-header.theme-gold{ background:#A97F2A; }
+.ep-header.theme-green{ background:#29806B; }
+.ep-header-title{ font-family:'Cairo', sans-serif; font-weight:900; font-size:14px; color:#fff; }
+.ep-lesson-title{ font-family:'Cairo', sans-serif; font-weight:800; font-size:15.5px; color:#33260A; margin-top:10px; }
+.ep-note{ font-size:10px; font-weight:600; color:#5B6E62; margin-top:5px; line-height:1.7; }
+.ep-block{ margin-bottom:10px; }
+.ep-section-title{ font-weight:800; font-size:12.5px; }
+.ep-section-title.theme-gold{ color:#A97F2A; }
+.ep-section-title.theme-green{ color:#29806B; }
+.ep-section-instr{ font-size:9.5px; font-weight:600; color:#767676; margin-top:3px; line-height:1.6; }
+.ep-q{ font-size:10.5px; font-weight:700; color:#22352B; line-height:1.9; }
+.ep-q .ep-answer{ color:#29806B; font-weight:800; }
+.ep-blank{ display:inline-block; min-width:70px; border-bottom:1.4px solid #A97F2A; margin:0 3px; }
+.ep-source{ font-size:9.5px; font-weight:600; color:#3a3a3a; line-height:1.9; background:#FBF6E8; border:1.4px solid #A97F2A; border-radius:10px; padding:9px 11px; margin-bottom:6px; white-space:pre-line; }
+.ep-table{ width:100%; border-collapse:collapse; }
+.ep-table th{ background:#F0DFA3; color:#33260A; font-size:9px; font-weight:800; padding:5px; border:1px solid #A97F2A; }
+.ep-table td{ border:1px solid #cbb27a; height:22px; }
+.ep-pair{ font-size:9.5px; font-weight:600; color:#22352B; border-bottom:1px dashed #cbb27a; padding:4px 2px; }
+.ep-lines{ margin-top:3px; }
+.ep-line{ height:17px; border-bottom:1px solid #ccc; }
+.ep-word{ font-weight:800; font-size:10.5px; color:#22352B; }
+.ep-answer-label{ font-size:9px; font-weight:700; margin-top:3px; }
+.ep-answer-label.theme-green{ color:#29806B; }
+.ep-answer-text{ font-size:9.5px; color:#22352B; margin-top:2px; line-height:1.7; }
+.ep-footer{ text-align:center; font-size:8px; color:#8A5626; margin-top:6px; opacity:.85; }
+
+/* ========================= خانة إحصائيات المنصّة الثابتة (منضمّون / متصلون الآن) ========================= */
+.platform-stats-widget{
+  position:fixed; top:16px; right:20px; z-index:1000;
+  display:flex; align-items:center; gap:8px;
+  background:rgba(255,253,247,0.92);
+  border:1.4px solid var(--gold-3);
+  border-radius:999px;
+  padding:6px 12px;
+  box-shadow:0 4px 10px rgba(169,127,42,0.25);
+  font-size:12.5px; font-weight:700; color:var(--ink);
+  backdrop-filter:blur(2px);
+}
+.platform-stats-widget .ps-item{ display:flex; align-items:center; gap:5px; white-space:nowrap; }
+.platform-stats-widget .ps-emoji{ font-size:13px; line-height:1; }
+.platform-stats-widget .ps-num{ min-width:10px; text-align:center; }
+.platform-stats-widget .ps-sep{ width:1px; height:14px; background:rgba(169,127,42,0.35); }
+.platform-stats-widget .ps-dot{
+  width:8px; height:8px; border-radius:50%; background:#3FBF61;
+  box-shadow:0 0 0 0 rgba(63,191,97,0.6);
+  animation:psDotPulse 1.8s ease-in-out infinite;
+}
+@keyframes psDotPulse{
+  0%{ box-shadow:0 0 0 0 rgba(63,191,97,0.55); }
+  70%{ box-shadow:0 0 0 6px rgba(63,191,97,0); }
+  100%{ box-shadow:0 0 0 0 rgba(63,191,97,0); }
+}
+
+@media (max-width:420px){
+  .platform-stats-widget{ top:auto; bottom:14px; right:14px; font-size:11.5px; padding:5px 10px; gap:6px; }
+}
+
+/* ========================= أنماط الترتيب التفاعلية — العناوين والـ Popups ========================= */
+
+/* العنوان التفاعلي (قابل للضغط) */
+.lb-section-title-clickable{
+  display:flex; align-items:center; gap:8px; font-family:'Aref Ruqaa', serif;
+  font-weight:700; font-size:17px; color:var(--ink); margin-bottom:6px;
+  border:1.5px solid var(--gold-3); border-radius:14px;
+  padding:12px 14px; background:#FFFDF7;
+  transition:all 0.25s ease;
+  user-select:none;
+}
+.lb-section-title-clickable:hover{
+  color:var(--gold); border-color:var(--gold);
+  box-shadow:0 4px 14px rgba(169,127,42,0.18);
+}
+.lb-section-title-clickable:active{
+  transform:scale(0.98);
+}
+.lb-section-title-clickable span:nth-child(2){ flex:1; }
+
+/* مؤشر الـ Popup */
+.lb-popup-indicator{
+  font-size:18px; opacity:0.6; transition:all 0.3s ease;
+  display:inline-block;
+}
+.lb-section-title-clickable:hover .lb-popup-indicator{
+  opacity:1; transform:translateX(2px);
+}
+
+/* معاينة قائمة الترتيب (في الصفحة الرئيسية) */
+.lb-hall-list-preview{
+  display:flex; flex-direction:column; gap:10px; margin-top:12px;
+  max-height:220px; overflow-y:auto;
+  border-left:3px solid var(--gold-3); padding-left:12px;
+}
+
+/* ===== Overlay والـ Popup الكامل ===== */
+.leaderboard-modal-overlay{
+  position:fixed; inset:0; z-index:2000;
+  background:rgba(34, 53, 43, 0.4); backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center;
+  padding:16px; animation:fadeInLeaderboardModal 0.3s ease;
+}
+
+@keyframes fadeInLeaderboardModal{
+  from{ opacity:0; }
+  to{ opacity:1; }
+}
+
+.leaderboard-modal-popup{
+  position:relative; width:100%; max-width:500px; max-height:85vh;
+  background:#FFFDF7; border-radius:22px; border:1.5px solid var(--gold-3);
+  box-shadow:0 20px 60px rgba(34, 53, 43, 0.25), 
+             inset 0 1px 0 rgba(255,255,255,0.8);
+  display:flex; flex-direction:column; overflow:hidden;
+  animation:slideUpLeaderboardModal 0.35s ease;
+}
+
+@keyframes slideUpLeaderboardModal{
+  from{ opacity:0; transform:translateY(30px) scale(0.95); }
+  to{ opacity:1; transform:translateY(0) scale(1); }
+}
+
+/* الهيدر الخاص بـ Popup */
+.leaderboard-modal-header{
+  position:relative; padding:22px 18px; border-bottom:1.5px solid var(--gold-3);
+  background:linear-gradient(135deg, rgba(199,154,61,0.08), rgba(63,99,80,0.04));
+  text-align:right;
+}
+
+.leaderboard-modal-title{
+  font-family:'Aref Ruqaa', serif; font-weight:700; font-size:18px;
+  color:var(--ink); margin-bottom:4px;
+}
+
+.leaderboard-modal-subtitle{
+  font-size:12.5px; color:var(--ink-soft); font-weight:600;
+}
+
+/* زر الإغلاق */
+.leaderboard-modal-close{
+  position:absolute; top:14px; left:14px;
+  width:32px; height:32px; border-radius:50%;
+  border:1.3px solid var(--gold-3);
+  background:linear-gradient(135deg, var(--gold-1), var(--gold-2));
+  color:#33260A; font-size:18px; font-weight:700;
+  cursor:pointer; transition:all 0.2s ease;
+  display:flex; align-items:center; justify-content:center;
+  padding:0;
+}
+
+.leaderboard-modal-close:hover{
+  background:#A97F2A; color:#fff; transform:rotate(90deg);
+  box-shadow:0 4px 12px rgba(169,127,42,0.3);
+}
+
+.leaderboard-modal-close:active{
+  transform:rotate(90deg) scale(0.95);
+}
+
+/* قائمة النتائج داخل الـ Popup */
+.leaderboard-modal-list{
+  flex:1; overflow-y:auto; padding:16px 14px;
+  display:flex; flex-direction:column; gap:10px;
+}
+
+.leaderboard-modal-list::-webkit-scrollbar{
+  width:6px;
+}
+
+.leaderboard-modal-list::-webkit-scrollbar-track{
+  background:rgba(169,127,42,0.08); border-radius:10px;
+}
+
+.leaderboard-modal-list::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg, var(--gold-3), var(--gold-2));
+  border-radius:10px;
+}
+
+.leaderboard-modal-list::-webkit-scrollbar-thumb:hover{
+  background:linear-gradient(180deg, var(--gold-2), var(--gold));
+}
+
+/* ===== Animation للنقاط والترتيب داخل الـ Popups ===== */
+.leaderboard-modal-list .lb-hall-item{
+  animation:slideInLeaderboardItem 0.4s ease backwards;
+}
+
+.leaderboard-modal-list .lb-hall-item:nth-child(1){ animation-delay:0.05s; }
+.leaderboard-modal-list .lb-hall-item:nth-child(2){ animation-delay:0.1s; }
+.leaderboard-modal-list .lb-hall-item:nth-child(3){ animation-delay:0.15s; }
+.leaderboard-modal-list .lb-hall-item:nth-child(n+4){ animation-delay:0.2s; }
+
+@keyframes slideInLeaderboardItem{
+  from{ opacity:0; transform:translateX(-20px); }
+  to{ opacity:1; transform:translateX(0); }
+}
+
+/* ===== رسالة الفراغ داخل الـ Popup ===== */
+.leaderboard-modal-list .leaderboard-empty{
+  text-align:center; padding:40px 20px;
+  color:var(--ink-soft); font-weight:600; font-size:13.5px;
+}
+
+/* تكيف المحمول */
+@media (max-width:520px){
+  .leaderboard-modal-popup{
+    max-width:100%; max-height:90vh; border-radius:20px;
+  }
+  
+  .leaderboard-modal-header{
+    padding:18px 16px;
+  }
+  
+  .leaderboard-modal-title{
+    font-size:16px;
+  }
+  
+  .leaderboard-modal-list{
+    padding:12px 12px;
+  }
+  
+  .lb-section-title-clickable{
+    font-size:15px;
+  }
+}
+
+/* =========================================================================================
+   شهادة التقدير — القالب (يُلتقط عبر html2canvas داخل certificate-generator.js) + نافذة المعاينة
+   ملاحظة: خط Cairo فقط وبلا أي letter-spacing على النص العربي (نفس قيد قوالب PDF الأخرى في
+   المنصة)، حتى تُرسَم الحروف العربية متصلة وسليمة عبر html2canvas.
+   ========================================================================================= */
+#certificatePrintArea{
+  position:fixed; top:0; left:-99999px; width:1123px; z-index:-1; background:#fff;
+  visibility:visible; pointer-events:none;
+}
+
+.cert-page{
+  /* لون خلفية صلب فقط (بلا أي تدرّج) — التدرّجات داخل أي عنصر يُلتقط عبر html2canvas
+     قد تسبب خطأ addColorStop الشهير وتُفشل توليد الشهادة بالكامل، بنفس القيد المطبَّق
+     أصلاً على قالب طباعة الخريطة الذهنية (.pp-page) في هذا الملف. */
+  font-family:'Cairo', sans-serif; direction:rtl; width:1123px; height:794px;
+  background:#FBF6E8;
+  padding:26px; box-sizing:border-box;
+}
+
+.cert-frame{
+  position:relative; width:100%; height:100%; box-sizing:border-box;
+  border:3px solid var(--gold-3, #A97F2A); border-radius:14px;
+  padding:26px 54px; text-align:center;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  background:rgba(255,255,255,0.35);
+}
+.cert-frame::before{
+  content:''; position:absolute; inset:9px; border:1.4px solid var(--gold-2, #C79A3D);
+  border-radius:9px; pointer-events:none;
+}
+
+.cert-corner{ position:absolute; width:34px; height:34px; pointer-events:none; }
+.cert-corner-tl{ top:14px; left:14px; border-top:3px solid var(--gold-3,#A97F2A); border-right:3px solid var(--gold-3,#A97F2A); }
+.cert-corner-tr{ top:14px; right:14px; border-top:3px solid var(--gold-3,#A97F2A); border-left:3px solid var(--gold-3,#A97F2A); }
+.cert-corner-bl{ bottom:14px; left:14px; border-bottom:3px solid var(--gold-3,#A97F2A); border-right:3px solid var(--gold-3,#A97F2A); }
+.cert-corner-br{ bottom:14px; right:14px; border-bottom:3px solid var(--gold-3,#A97F2A); border-left:3px solid var(--gold-3,#A97F2A); }
+
+.cert-badge-ribbon{
+  position:absolute; top:22px; left:50%; transform:translateX(-50%);
+  font-size:34px; line-height:1; filter:drop-shadow(0 2px 2px rgba(169,127,42,0.35));
+}
+
+.cert-head{ margin-top:34px; }
+.cert-logo{ width:56px; height:56px; border-radius:50%; border:2px solid var(--gold-3,#A97F2A); object-fit:cover; background:#fff; }
+.cert-platform{ font-weight:900; font-size:15px; color:var(--gold-3,#A97F2A); margin-top:8px; }
+.cert-subject{ font-weight:700; font-size:10.5px; color:var(--sage-deep,#3F6350); margin-top:2px; }
+
+.cert-title{
+  font-weight:900; font-size:34px; color:#33260A; margin-top:14px; letter-spacing:0;
+}
+.cert-headline{ font-weight:800; font-size:14px; color:var(--gold-3,#A97F2A); margin-top:4px; }
+
+.cert-body{ margin-top:18px; max-width:760px; }
+.cert-line{ font-weight:600; font-size:13px; color:#22352B; line-height:1.9; }
+.cert-student-name{
+  font-weight:900; font-size:26px; color:#22352B; margin:6px 0 10px;
+  padding-bottom:6px; border-bottom:2.4px solid var(--gold-2,#C79A3D); display:inline-block;
+}
+.cert-lesson-title{
+  font-weight:800; font-size:17px; color:var(--sage-deep,#3F6350); margin:8px 0 4px;
+}
+.cert-score-row{
+  display:flex; align-items:center; justify-content:center; gap:10px; margin-top:10px;
+}
+.cert-score-label{ font-weight:700; font-size:12px; color:#5B6E62; }
+.cert-score-value{
+  font-weight:900; font-size:20px; color:#fff;
+  background:var(--gold-2,#C79A3D);
+  border:1.4px solid var(--gold-3,#A97F2A); border-radius:999px; padding:3px 16px;
+}
+.cert-msg{ font-weight:700; font-size:12.5px; color:var(--sage-deep,#3F6350); margin-top:12px; line-height:1.8; }
+
+.cert-foot{
+  margin-top:auto; padding-top:18px; width:100%; max-width:820px;
+  display:flex; align-items:flex-end; justify-content:space-between;
+}
+.cert-foot-col{ flex:1; text-align:center; }
+.cert-foot-label{ font-weight:700; font-size:9.5px; color:#8A5626; }
+.cert-foot-value{ font-weight:800; font-size:12px; color:#33260A; margin-top:2px; }
+.cert-teacher-photo{
+  width:38px; height:38px; border-radius:50%; object-fit:cover; margin-bottom:4px;
+  border:1.6px solid var(--gold-3,#A97F2A);
+}
+.cert-seal{
+  width:52px; height:52px; border-radius:50%; margin:0 auto;
+  background:var(--gold-2,#C79A3D);
+  border:2px solid var(--gold-3,#A97F2A); color:#fff; font-weight:900; font-size:22px;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* ===== نافذة معاينة الشهادة على الشاشة ===== */
+.cert-modal-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:9999;
+  display:flex; align-items:center; justify-content:center; padding:16px;
+  animation:fadeIn 0.25s ease-in;
+}
+.cert-modal-box{
+  background:#F7F2E4; border-radius:18px; width:100%; max-width:880px; max-height:92vh;
+  overflow:hidden; position:relative; box-shadow:0 14px 44px rgba(0,0,0,0.35);
+  display:flex; flex-direction:column;
+}
+.cert-modal-close{
+  position:absolute; top:10px; left:10px; z-index:2; width:32px; height:32px; border-radius:50%;
+  border:1.3px solid var(--gold-3,#A97F2A); background:#FFFDF7; color:#33260A; font-weight:800;
+  font-size:14px; cursor:pointer;
+}
+.cert-modal-scroll{ overflow:auto; padding:16px; }
+.cert-preview-wrap{
+  transform:scale(0.62); transform-origin:top center; margin:-140px auto -190px;
+}
+.cert-modal-actions{
+  padding:12px 16px 16px; border-top:1.3px solid rgba(169,127,42,0.3); text-align:center;
+}
+.cert-download-btn{
+  background:linear-gradient(135deg, var(--gold-1,#E7C878), var(--gold-2,#C79A3D));
+  color:#33260A; border:1.3px solid var(--gold-3,#A97F2A); border-radius:999px;
+  font-weight:800; font-size:13.5px; padding:11px 28px; cursor:pointer;
+}
+.cert-download-btn:disabled{ opacity:0.7; cursor:default; }
+
+@media (max-width:720px){
+  .cert-preview-wrap{ transform:scale(0.34); margin:-260px auto -330px; }
+}
+
+/* =========================================================================================
+   إدارة حصص الزوم — لوحة الأستاذ (نافذة منبثقة) + واجهة التلميذ (تبويبات الأفواج)
+   ========================================================================================= */
+
+/* ----- بطاقة الدخول البارزة في لوحة الأستاذ ----- */
+.zoom-manage-card{ transition:transform .15s ease, box-shadow .15s ease; }
+.zoom-manage-card:hover{ transform:translateY(-2px); box-shadow:0 14px 26px rgba(169,127,42,0.22); }
+.zoom-manage-card:active{ transform:translateY(1px); }
+
+/* ----- النافذة المنبثقة (Overlay + Popup) ----- */
+.zoom-modal-overlay{
+  position:fixed; inset:0; z-index:2100;
+  background:rgba(34,53,43,0.45); backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center;
+  padding:16px; animation:fadeInLeaderboardModal 0.25s ease;
+}
+.zoom-modal-popup{
+  position:relative; width:100%; max-width:520px; max-height:88vh;
+  background:#FFFDF7; border-radius:22px; border:1.5px solid var(--gold-3);
+  box-shadow:0 20px 60px rgba(34,53,43,0.28), inset 0 1px 0 rgba(255,255,255,0.8);
+  display:flex; flex-direction:column; overflow:hidden;
+  animation:slideUpLeaderboardModal 0.3s ease;
+}
+.zoom-modal-header{
+  position:relative; padding:20px 52px 16px 18px; border-bottom:1.5px solid var(--gold-3);
+  background:linear-gradient(135deg, rgba(199,154,61,0.10), rgba(63,99,80,0.05));
+  text-align:right;
+}
+.zoom-modal-title{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:18px; color:var(--ink); margin-bottom:4px; }
+.zoom-modal-subtitle{ font-size:12px; color:var(--ink-soft); font-weight:600; }
+.zoom-modal-close{
+  position:absolute; top:14px; left:14px; width:32px; height:32px; border-radius:50%;
+  border:1.3px solid var(--gold-3); background:linear-gradient(135deg, var(--gold-1), var(--gold-2));
+  color:#33260A; font-size:18px; font-weight:700; cursor:pointer; padding:0;
+  display:flex; align-items:center; justify-content:center; transition:all .2s ease;
+}
+.zoom-modal-close:hover{ background:#A97F2A; color:#fff; transform:rotate(90deg); }
+.zoom-modal-body{ flex:1; overflow-y:auto; padding:16px 16px 20px; }
+.zoom-lesson-row{ cursor:pointer; }
+.zoom-lesson-row:active{ transform:scale(0.99); }
+
+/* ----- نموذج إدخال روابط الأفواج الأربعة ----- */
+.zoom-back-btn{
+  display:inline-block; background:none; border:none; color:var(--gold-3); font-weight:800;
+  font-size:13px; cursor:pointer; padding:4px 0; margin-bottom:10px;
+}
+.zoom-form-note{
+  font-size:12px; color:var(--ink-soft); line-height:1.9; margin-bottom:14px;
+  background:rgba(199,154,61,0.08); border:1.2px dashed var(--gold-3); border-radius:12px; padding:10px 12px;
+}
+.zoom-form-group{ margin-bottom:14px; }
+.zoom-form-label{ display:block; font-family:'Aref Ruqaa', serif; font-weight:700; font-size:14.5px; color:var(--ink); margin-bottom:6px; }
+.zoom-form-input{
+  width:100%; padding:11px 14px; border-radius:11px; border:1.4px solid rgba(169,127,42,0.4);
+  font-family:'Cairo', sans-serif; font-size:13px; background:var(--paper); color:var(--ink);
+  direction:ltr; text-align:left;
+}
+.zoom-form-input:focus{ outline:none; border-color:var(--gold-3); box-shadow:0 0 0 3px rgba(199,154,61,0.18); }
+.zoom-form-divider{
+  display:flex; align-items:center; gap:10px; margin:22px 0 12px; text-align:center;
+  font-family:'Aref Ruqaa', serif; font-weight:700; font-size:14px; color:var(--gold-3);
+}
+.zoom-form-divider::before, .zoom-form-divider::after{ content:''; flex:1; height:1.3px; background:rgba(169,127,42,0.3); }
+.zoom-save-btn{
+  display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+  font-family:'Aref Ruqaa', serif; font-weight:700; font-size:16px; color:#33260A;
+  background:linear-gradient(135deg, var(--gold-1), var(--gold-2)); border:1.6px solid var(--gold-3);
+  border-radius:14px; padding:12px 18px; margin-top:6px; cursor:pointer;
+  box-shadow:0 8px 18px rgba(169,127,42,0.25); transition:transform .15s ease;
+}
+.zoom-save-btn:hover{ transform:translateY(-1px); }
+.zoom-save-btn:disabled{ opacity:0.7; cursor:default; transform:none; }
+.zoom-save-feedback{ margin-top:10px; font-size:12.5px; font-weight:700; text-align:center; min-height:16px; }
+
+/* صفّ رابط واحد قابل للحذف داخل حقل قابل للتكرار (فيديو/ملخّص/تمارين)، وزر إضافة صفّ جديد */
+.zoom-link-rows{ display:flex; flex-direction:column; gap:8px; }
+.zoom-link-row{ display:flex; align-items:center; gap:8px; }
+.zoom-link-row .zoom-form-input{ flex:1; }
+.exam-link-row{
+  flex-wrap:wrap; padding:9px 10px; border-radius:12px;
+  border:1.3px solid rgba(169,127,42,0.25); background:rgba(255,253,247,0.55);
+}
+.exam-link-row .exam-link-title{ flex:1 1 100%; }
+.exam-link-row .exam-link-url{ flex:1 1 auto; min-width:0; }
+.exam-link-row .zoom-link-remove-btn{ flex:0 0 auto; }
+.zoom-link-remove-btn{
+  flex:none; width:34px; height:34px; border-radius:10px; border:1.4px solid rgba(181,67,42,0.4);
+  background:rgba(181,67,42,0.08); color:#b5432a; font-weight:800; font-size:14px; cursor:pointer;
+}
+.zoom-link-remove-btn:active{ transform:scale(0.95); }
+.zoom-add-link-btn{
+  display:inline-block; margin-top:8px; background:none; border:none; color:var(--gold-3);
+  font-weight:800; font-size:12.5px; cursor:pointer; padding:4px 0;
+}
+.zoom-add-link-btn:active{ transform:translateY(1px); }
+
+/* ----- واجهة التلميذ: تبويبات صفحة الدرس (تمارين / زوم / اختبار / خريطة ذهنية) ----- */
+/* نوافذ صفحة الدرس: نفس بطاقات الصفحة الرئيسية (.home-card) بنفس الحجم والشكل */
+.ld-tabs{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:22px 0 18px; }
+.ld-tab-card.active{
+  background:linear-gradient(160deg, #FBEDC3, #EBCB7C); border-color:var(--gold-3);
+  box-shadow:0 12px 24px rgba(169,127,42,0.28), inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.ld-tab-card.active .hc-sub{ color:#5A4310; }
+
+/* ----- واجهة التلميذ: صندوق "تسجيلات حصص الزوم" داخل صفحة الدرس ----- */
+.zoom-groups-wrap{ background:var(--paper); border:1.6px solid var(--gold-3); border-radius:16px; padding:16px; margin:24px 0; }
+.zoom-groups-title{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:17px; margin-bottom:12px; color:var(--ink); text-align:center; }
+.zoom-tabs{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.zoom-tab-btn{
+  font-family:'Cairo', sans-serif; font-weight:800; font-size:13px; color:var(--ink);
+  background:linear-gradient(150deg, #FFFDF7, #F3ECD5); border:1.5px solid rgba(169,127,42,0.35);
+  border-radius:13px; padding:12px 8px; cursor:pointer; transition:.15s ease;
+}
+.zoom-tab-btn:active{ transform:translateY(1px); }
+/* عند وجود عدد فردي من الأفواج، يمتد الزر الأخير على السطر كاملاً بدل ترك فراغ بجانبه */
+.zoom-tab-btn:last-child:nth-child(odd){ grid-column:1 / -1; }
+.zoom-tab-btn.active{
+  background:linear-gradient(135deg, var(--gold-1), var(--gold-2)); border-color:var(--gold-3);
+  color:#33260A; box-shadow:0 8px 18px rgba(169,127,42,0.28);
+}
+/* أزرار وثائق الدرس (ملخّص + تمارين) — تظهر أعلى تبويبات الأفواج، لأنها مشتركة بين الجميع */
+.zoom-docs-row{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:14px; }
+.zoom-doc-btn{
+  display:inline-flex; align-items:center; gap:7px; font-family:'Cairo', sans-serif; font-weight:800; font-size:12px;
+  color:var(--sage-deep); background:linear-gradient(150deg, #E4EFE6, #C9DFCE); border:1.4px solid rgba(63,99,80,0.35);
+  border-radius:999px; padding:9px 16px; text-decoration:none; transition:.15s ease;
+}
+.zoom-doc-btn:active{ transform:translateY(1px); }
+/* أزرار تبديل الفيديو عند وجود أكثر من رابط فيديو واحد لنفس الفوج (مثلاً أكثر من حصة) */
+.zoom-video-tabs{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:10px; }
+.zoom-video-tab-btn{
+  font-family:'Cairo', sans-serif; font-weight:800; font-size:12px; color:var(--ink);
+  background:linear-gradient(150deg, #FFFDF7, #F3ECD5); border:1.4px solid rgba(169,127,42,0.35);
+  border-radius:999px; padding:8px 14px; cursor:pointer; transition:.15s ease;
+}
+.zoom-video-tab-btn:active{ transform:translateY(1px); }
+.zoom-video-tab-btn.active{
+  background:linear-gradient(135deg, var(--gold-1), var(--gold-2)); border-color:var(--gold-3);
+  color:#33260A; box-shadow:0 6px 14px rgba(169,127,42,0.28);
+}
+.zoom-player-box{ margin-top:14px; }
+.zoom-player-box iframe, .zoom-player-box video{
+  position:relative; width:100%; aspect-ratio:16/9; border-radius:12px; border:0; background:#000; display:block;
+}
+.zoom-fallback-link{
+  display:block; text-align:center; margin-top:8px; font-size:11.5px; font-weight:700;
+  color:var(--gold-3); text-decoration:none;
+}
+.zoom-empty-msg{
+  text-align:center; padding:22px 14px; border:1.3px dashed rgba(169,127,42,0.4); border-radius:14px;
+  background:rgba(255,255,255,0.5); font-size:13px; font-weight:700; color:var(--ink-soft);
+}
+/* بطاقة "فتح على تيليجرام" — بديل مشغّل الفيديو للروابط التي لا يمكن تضمينها داخل إطار */
+.zoom-telegram-box{
+  text-align:center; padding:26px 18px; border-radius:16px;
+  background:linear-gradient(150deg, #FFFDF7, #F3ECD5); border:1.6px solid var(--gold-3);
+}
+
+.zoom-telegram-btn{
+  display:inline-flex; align-items:center; gap:8px; font-family:'Aref Ruqaa', serif; font-weight:700; font-size:15px;
+  color:#33260A; background:linear-gradient(135deg, var(--gold-1), var(--gold-2)); border:1.6px solid var(--gold-3);
+  border-radius:999px; padding:11px 24px; text-decoration:none; box-shadow:0 8px 18px rgba(169,127,42,0.25);
+}
+.zoom-note{
+  margin:14px 4px 0; font-family:'Cairo', sans-serif; font-weight:300; font-style:italic; font-size:12px;
+  line-height:1.9; color:var(--ink-soft); text-align:center;
+}
+
+/* ----- واجهة التلميذ: إرسال حل التمرين — صفّ مصغّر داخل تبويب الفوج المفتوح ----- */
+.solution-inline-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
+.solution-inline-file{
+  flex:1; min-width:140px; max-width:220px; padding:8px 10px; border-radius:11px;
+  border:1.4px solid rgba(169,127,42,0.4); font-family:'Cairo', sans-serif; font-size:11.5px;
+  background:var(--paper); color:var(--ink);
+}
+.solution-file-preview{ margin-top:10px; text-align:center; }
+.solution-file-preview img{ max-width:100%; max-height:220px; border-radius:12px; border:1.4px solid rgba(169,127,42,0.35); }
+.solution-file-name{
+  display:inline-block; font-size:12.5px; font-weight:700; color:var(--ink-soft);
+  background:rgba(199,154,61,0.08); border:1.2px dashed var(--gold-3); border-radius:10px; padding:8px 12px;
+}
+
+@media (max-width:380px){
+  .zoom-tabs{ grid-template-columns:1fr 1fr; }
+  .zoom-tab-btn{ font-size:12px; padding:10px 6px; }
+}
+
+/* =========================================================================================
+   قسم الدردشة — رسائل التلاميذ + أسئلة موجّهة للأستاذ (وسم #الاستاذ)
+   ========================================================================================= */
+.chat-hint{
+  font-size:12.5px; color:var(--ink-soft); background:rgba(199,154,61,0.1);
+  border:1.2px dashed var(--gold-3); border-radius:12px; padding:10px 14px; margin-bottom:12px;
+}
+.chat-quota-note{
+  font-size:12px; font-weight:700; color:var(--sage-deep); margin:-4px 0 12px 2px;
+}
+
+/* ----- نافذة الدردشة الموحّدة: إطار واحد كبير للمحادثة كلّها، بتمرير داخلي (مثل واتساب/تيليغرام) ----- */
+.chat-window{
+  border:1.6px solid var(--gold-3); border-radius:16px; overflow:hidden;
+  background:rgba(255,253,247,0.7); margin-bottom:10px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.4);
+}
+.chat-messages-scroll{
+  height:64vh; min-height:360px; max-height:680px;
+  overflow-y:auto; -webkit-overflow-scrolling:touch; scroll-behavior:smooth;
+  padding:14px; display:flex; flex-direction:column;
+}
+
+/* فقاعات الرسائل — بلا إطار فردي حول كل رسالة، فقط لون خلفية يميّزها */
+.chat-msg{
+  margin-bottom:10px; padding:9px 13px; border-radius:14px;
+  background:#fff; box-shadow:0 1px 3px rgba(34,53,43,0.1); max-width:90%;
+}
+.chat-msg.own{ background:rgba(231,200,120,0.35); }
+.chat-msg-name{ font-size:11.5px; font-weight:800; color:var(--sage-deep); margin-bottom:3px; }
+.chat-msg-text{ font-size:14px; color:var(--ink); white-space:pre-wrap; word-break:break-word; }
+
+.chat-question{ background:rgba(231,200,120,0.45); box-shadow:0 1px 3px rgba(169,127,42,0.3); }
+.chat-question .chat-msg-text{ font-weight:700; }
+.chat-question-tag{
+  display:inline-block; font-size:10.5px; font-weight:800; color:#8A5A0A;
+  background:rgba(255,255,255,0.6); padding:2px 9px; border-radius:8px; margin-bottom:5px;
+}
+.chat-answer{
+  margin:-3px 0 12px; padding:9px 13px; border-radius:14px; max-width:90%;
+  background:rgba(110,143,115,0.22); box-shadow:0 1px 3px rgba(63,99,80,0.25);
+}
+.chat-answer-label{ font-size:11.5px; font-weight:800; color:var(--sage-deep); margin-bottom:5px; }
+.chat-answer audio{ width:100%; margin-top:4px; }
+.chat-pending-note{ font-size:11px; color:var(--ink-soft); margin:-3px 0 12px 4px; }
+
+/* ----- بطاقة "جواب الأستاذ على سؤالك" — ثابتة أسفل نافذة الدردشة، فوق خانة الكتابة،
+   تظهر للتلميذ السائل فقط ولا تختفي بالتمرير حتى لا يضيع جوابه وسط رسائل كثيرة ----- */
+.chat-my-answer-banner{
+  margin-bottom:10px; padding:10px 13px; border-radius:14px;
+  background:rgba(110,143,115,0.28); border:1.4px solid var(--sage-deep, #3F6350);
+  box-shadow:0 2px 8px rgba(63,99,80,0.25);
+}
+.chat-my-answer-head{
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:12.5px; font-weight:800; color:var(--sage-deep); margin-bottom:6px;
+}
+.chat-my-answer-close{
+  background:rgba(255,255,255,0.6); border:1px solid rgba(63,99,80,0.3); border-radius:8px;
+  width:24px; height:24px; line-height:1; font-size:13px; font-weight:800; color:var(--sage-deep);
+  cursor:pointer; padding:0;
+}
+.chat-my-answer-question{
+  font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:6px;
+}
+.chat-my-answer-banner audio{ width:100%; margin-top:2px; }
+
+.chat-input-row{
+  display:flex; gap:8px;
+  background:var(--paper, #fff); padding:8px; border-radius:14px; border:1.3px solid var(--gold-3);
+}
+.chat-input-row input{
+  flex:1; min-width:0; padding:10px 12px; border-radius:10px; border:1.3px solid var(--gold-3);
+  font-family:inherit; font-size:14px; background:#fff; color:var(--ink);
+}
+
+/* ----- لوحة الأستاذ: بطاقات أسئلة التلاميذ في انتظار الرد ----- */
+.chat-q-card{ background:#fff; border:1.3px solid var(--gold-3); border-radius:14px; padding:12px; margin-bottom:12px; }
+.chat-q-card .chat-msg-name{ margin-bottom:6px; }
+.chat-q-card textarea{
+  width:100%; min-height:60px; border-radius:10px; border:1.3px solid var(--gold-3);
+  padding:8px 10px; font-family:inherit; font-size:13px; margin-top:8px; resize:vertical;
+}
+.chat-q-actions{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+.chat-q-actions button.recording{ background:#B8382C !important; color:#fff !important; }
+.chat-q-actions .chat-q-delete{ color:#B8382C !important; border-color:rgba(184,56,44,0.4) !important; }
+.chat-q-actions .chat-q-delete:hover{ background:rgba(184,56,44,0.08) !important; }

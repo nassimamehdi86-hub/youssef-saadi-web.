@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>منصة الأستاذ يوسف سعدي</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#F7F2E4">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="يوسف سعدي">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Rakkas&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ===== تدرّجات ذهبية مشتركة لأيقونات الشاشة الرئيسية المجسّمة ===== -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="hcGoldMetal" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#FBEDC3"/>
+        <stop offset="0.45" stop-color="#E7C878"/>
+        <stop offset="1" stop-color="#A9772A"/>
+      </linearGradient>
+      <linearGradient id="hcGoldDark" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#C79A3D"/>
+        <stop offset="1" stop-color="#7A5216"/>
+      </linearGradient>
+      <radialGradient id="hcGoldMedallion" cx="0.35" cy="0.3" r="0.8">
+        <stop offset="0" stop-color="#FFF6DE"/>
+        <stop offset="0.5" stop-color="#E7C878"/>
+        <stop offset="1" stop-color="#96702A"/>
+      </radialGradient>
+      <linearGradient id="hcMaroonCover" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#8A3421"/>
+        <stop offset="0.55" stop-color="#63200F"/>
+        <stop offset="1" stop-color="#3C130A"/>
+      </linearGradient>
+      <linearGradient id="hcSageGem" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#C9DFCE"/>
+        <stop offset="0.5" stop-color="#6E8F73"/>
+        <stop offset="1" stop-color="#33503A"/>
+      </linearGradient>
+      <linearGradient id="hcWood" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#6B4A2C"/>
+        <stop offset="1" stop-color="#3E2A18"/>
+      </linearGradient>
+      <linearGradient id="hcInk" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#3F6350"/>
+        <stop offset="1" stop-color="#22352B"/>
+      </linearGradient>
+      <linearGradient id="hcCream" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#FFFDF7"/>
+        <stop offset="1" stop-color="#EFE2BE"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+<!-- ============ زر فتح المتصفح الحقيقي (يظهر تلقائياً داخل تيليجرام/إنستغرام...) ============ -->
+<div id="openInBrowserBar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;background:#A97F2A;color:#fff;padding:10px 14px;text-align:center;font-family:'Cairo',sans-serif;font-weight:700;font-size:15px;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer" onclick="__openInRealBrowser()">
+  📲 اضغط هنا لفتح التطبيق بشكل صحيح
+</div>
+<script>
+(function(){
+  var ua = navigator.userAgent || navigator.vendor || window.opera || "";
+  // اكتشاف المتصفحات المدمجة داخل التطبيقات (Telegram, Instagram, Facebook, TikTok, Snapchat...)
+  var isInApp = /Telegram|Instagram|FBAN|FBAV|FB_IAB|Line\/|Snapchat|TikTok|MicroMessenger|Twitter/i.test(ua);
+  var isAndroid = /Android/i.test(ua);
+  var isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+  // تعريف الدالة أولاً قبل أي استدعاء لها
+  window.__openInRealBrowser = function () {
+    var url = window.location.href;
+
+    if (isAndroid) {
+      // انتقال تلقائي وموثوق لمتصفح Chrome عبر intent://
+      var strippedUrl = url.replace(/^https?:\/\//, '');
+      var intentUrl = 'intent://' + strippedUrl + '#Intent;scheme=https;package=com.android.chrome;end';
+      window.location.href = intentUrl;
+      // خطة بديلة إن لم يتوفر كروم
+      setTimeout(function () {
+        window.location.href = url;
+      }, 800);
+    } else if (isIOS) {
+      // آيفون: لا توجد وسيلة تلقائية موثوقة، فنوجّه المستخدم بخطوة واحدة واضحة
+      alert('لفتح الموقع في متصفح Safari:\n\nاضغط على أيقونة (⋯) أو (مشاركة) في الأعلى، ثم اختر "فتح في Safari".');
+    } else {
+      window.open(url, '_blank');
+    }
+  };
+
+  if (isInApp) {
+    // نُظهر الشريط دائماً كخطة احتياطية (يظهر فوراً إن فشل الانتقال التلقائي لأي سبب)
+    document.addEventListener('DOMContentLoaded', function () {
+      var bar = document.getElementById('openInBrowserBar');
+      if (bar) {
+        bar.style.display = 'block';
+        document.body.style.paddingTop = '42px';
+      }
+    });
+
+    if (isAndroid) {
+      // أندرويد: ننتقل تلقائياً وفوراً للمتصفح الحقيقي دون انتظار أي ضغطة من التلميذ
+      __openInRealBrowser();
+    } else if (isIOS) {
+      // آيفون: نظام آبل يمنع أي انتقال تلقائي لمتصفح خارجي دون لمسة حقيقية من المستخدم،
+      // لذلك أقصى ما يمكن فعله هو تنبيه فوري بخطوة واحدة بدل انتظار ضغط الشريط
+      document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(__openInRealBrowser, 400);
+      });
+    }
+  }
+})();
+</script>
+
+<!-- ============ خلفية شفافة: صورة الأستاذ (Watermark) ============ -->
+<div class="teacher-watermark"><img src="teacher-watermark.jpg" alt=""></div>
+
+<!-- ============ جرس الإشعارات: ثابت أقصى يسار الشريط العلوي ============ -->
+<div class="notification-bell" id="notificationBell" title="الإشعارات والتنبيهات" style="position:fixed;top:14px;left:14px;z-index:1000">
+  🔔
+  <span class="notification-badge" style="display:none"></span>
+</div>
+
+<!-- ============ زر دخول الأستاذ: ثابت أقصى يمين الشريط العلوي ============ -->
+<div class="admin-entry" id="adminEntryBtn" title="دخول الأستاذ / المشرف" style="position:fixed;top:14px;right:14px;z-index:1000">🔑</div>
+
+<!-- ===== لوحة الإشعارات (مخفية افتراضياً) ===== -->
+<div class="notifications-panel" id="notificationsPanel" style="display:none">
+  <div class="notifications-header">
+    <div class="notifications-title">الإشعارات</div>
+    <button class="notifications-close" style="background:none;border:none;font-size:18px;cursor:pointer;color:#A97F2A">✕</button>
+  </div>
+  <div class="notifications-content" id="notificationsContent"></div>
+</div>
+
+<div class="wrap">
+
+  <div id="fbNotice"></div>
+
+  <!-- ============ الترويسة ============ -->
+  <div class="hero">
+    <div class="islamic-pattern"></div>
+    <div class="corner tl"><svg viewBox="0 0 40 40"><path d="M2 38 Q2 2 38 2" fill="none" stroke="#A97F2A" stroke-width="1.4"/><path d="M2 38 Q6 10 30 4" fill="none" stroke="#A97F2A" stroke-width="1"/><circle cx="6" cy="34" r="1.6" fill="#A97F2A"/></svg></div>
+    <div class="corner tr"><svg viewBox="0 0 40 40"><path d="M2 38 Q2 2 38 2" fill="none" stroke="#A97F2A" stroke-width="1.4"/><path d="M2 38 Q6 10 30 4" fill="none" stroke="#A97F2A" stroke-width="1"/><circle cx="6" cy="34" r="1.6" fill="#A97F2A"/></svg></div>
+    <div class="corner bl"><svg viewBox="0 0 40 40"><path d="M2 38 Q2 2 38 2" fill="none" stroke="#A97F2A" stroke-width="1.4"/><path d="M2 38 Q6 10 30 4" fill="none" stroke="#A97F2A" stroke-width="1"/><circle cx="6" cy="34" r="1.6" fill="#A97F2A"/></svg></div>
+    <div class="corner br"><svg viewBox="0 0 40 40"><path d="M2 38 Q2 2 38 2" fill="none" stroke="#A97F2A" stroke-width="1.4"/><path d="M2 38 Q6 10 30 4" fill="none" stroke="#A97F2A" stroke-width="1"/><circle cx="6" cy="34" r="1.6" fill="#A97F2A"/></svg></div>
+    <!-- ===== شريط الأمثال والحكم ===== -->
+    <div id="wisdomBannerContainer" style="width:100%;margin-bottom:16px"></div>
+
+    <div class="hero-content">
+      <div class="lantern-row">
+        <svg class="lantern" viewBox="0 0 30 44"><path d="M15 2 L20 8 L10 8 Z M9 8 H21 L23 16 H7 Z M8 16 H22 V32 Q22 38 15 38 Q8 38 8 32 Z M11 38 H19 V42 H11 Z" fill="none" stroke="#A97F2A" stroke-width="1.3"/><circle cx="15" cy="22" r="4" fill="#E7C878" opacity=".7"/></svg>
+        <svg class="lantern" viewBox="0 0 30 44"><path d="M15 2 L20 8 L10 8 Z M9 8 H21 L23 16 H7 Z M8 16 H22 V32 Q22 38 15 38 Q8 38 8 32 Z M11 38 H19 V42 H11 Z" fill="none" stroke="#A97F2A" stroke-width="1.3"/><circle cx="15" cy="22" r="4" fill="#E7C878" opacity=".7"/></svg>
+      </div>
+      <div class="teacher-photo" id="teacherPhotoTrigger"><img src="teacher-avatar.jpg" alt="الأستاذ يوسف سعدي" onerror="this.style.display='none'; this.parentElement.textContent='👤';"></div>
+      <div class="platform-name">منصّة الأستاذ يوسف سعدي</div>
+      <div class="teacher-name">إعداد الأستاذ: <b>يوسف سعدي</b></div>
+      <div class="level-pill">اللغة العربية — السنة الرابعة متوسط</div>
+      <div class="tagline">✦ تألق وتفوق ✦</div>
+    </div>
+  </div>
+
+  <div class="welcome-bar" id="welcomeBox" style="display:none"></div>
+
+  <!-- ============ الصفحة الرئيسية ============ -->
+  <div id="screen-home">
+    <div class="home-menu">
+      <div class="home-card c1" data-nav="lessons">
+        <div class="hc-icon-wrap">
+          <svg class="hc-svg-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 16 L50 12 L52 50 L16 54 Z" fill="url(#hcCream)" stroke="#D8AE52" stroke-width="1"/>
+            <path d="M16 18 L16 52 M20 17.5 L20 52.5 M24 17 L24 53" stroke="#D8AE52" stroke-width="0.7" opacity="0.6"/>
+            <path d="M10 14 L46 9 L48 47 L12 51 Z" fill="url(#hcMaroonCover)" stroke="#2B0D08" stroke-width="1"/>
+            <path d="M10 14 L15 14.6 L17 49 L12 51 Z" fill="#A0472C" opacity="0.55"/>
+            <path d="M10 14 L46 9 L46 12.5 L10 17.5 Z" fill="#fff" opacity="0.22"/>
+            <rect x="17" y="17" width="26" height="30" rx="2.5" fill="none" stroke="url(#hcGoldMetal)" stroke-width="1.4" opacity="0.95" transform="rotate(-2 30 32)"/>
+            <circle cx="29" cy="31" r="8" fill="url(#hcGoldMedallion)" stroke="#7A5216" stroke-width="1"/>
+            <path d="M29 24.5 L31 29 L36 29.3 L32.3 32.3 L33.6 37 L29 34.2 L24.4 37 L25.7 32.3 L22 29.3 L27 29 Z" fill="#7A5216" opacity="0.85"/>
+            <circle cx="29" cy="31" r="2.1" fill="#FFF6DE"/>
+          </svg>
+        </div><div class="hc-title">الدروس</div><div class="hc-sub">حسب المنهاج</div>
+      </div>
+      <div class="home-card c4" data-nav="situation">
+        <div class="hc-icon-wrap">
+          <svg class="hc-svg-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 12 h16 c0,-3.5 2.8,-6 6,-6 c3.2,0 6,2.5 6,6 h4 v16 c3.5,0 6,2.8 6,6 c0,3.2 -2.5,6 -6,6 v14 h-16 c0,3.5 -2.8,6 -6,6 c-3.2,0 -6,-2.5 -6,-6 h-10 v-16 c-3.5,0 -6,-2.8 -6,-6 c0,-3.2 2.5,-6 6,-6 v-14 Z"
+                  fill="url(#hcGoldMetal)" stroke="#7A5216" stroke-width="1.2" stroke-linejoin="round" transform="translate(-4,2) scale(0.86)"/>
+            <path d="M30 30 h16 c0,-3.5 2.8,-6 6,-6 c3.2,0 6,2.5 6,6 h4 v16 c3.5,0 6,2.8 6,6 c0,3.2 -2.5,6 -6,6 v14 h-16 c0,3.5 -2.8,6 -6,6 c-3.2,0 -6,-2.5 -6,-6 h-10 v-16 c-3.5,0 -6,-2.8 -6,-6 c0,-3.2 2.5,-6 6,-6 v-14 Z"
+                  fill="url(#hcSageGem)" stroke="#2E4A34" stroke-width="1.2" stroke-linejoin="round" transform="translate(-16,-16) scale(0.56)"/>
+            <ellipse cx="20" cy="18" rx="7" ry="4" fill="#fff" opacity="0.3" transform="rotate(-20 20 18)"/>
+            <circle cx="34" cy="34" r="5.5" fill="url(#hcGoldMedallion)" stroke="#7A5216" stroke-width="1"/>
+          </svg>
+        </div><div class="hc-title">الوضعية الإدماجية</div><div class="hc-sub">تدريبات الإدماج</div>
+      </div>
+      <div class="home-card c3" data-nav="irab" id="irabHomeCard">
+        <div class="hc-icon-wrap">
+          <svg class="hc-svg-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 50 C22 40 34 28 46 15 L51 20 C39 32 27 44 17 54 Z" fill="url(#hcWood)" stroke="#241708" stroke-width="1"/>
+            <path d="M46 15 L51 20 L54 17 C55.5 15.5 55.5 13.5 54 12 C52.5 10.5 50.5 10.5 49 12 Z" fill="url(#hcGoldMetal)" stroke="#7A5216" stroke-width="1"/>
+            <path d="M12 50 L17 54 L14 58 C13 59 11 58.6 11 57 Z" fill="#1D1408"/>
+            <path d="M15 47 C25 37 35 27 45 17" stroke="#fff" stroke-width="1" opacity="0.3"/>
+            <path d="M11 58 C 18 52, 24 50, 34 52 C 26 54, 20 57, 16 62" fill="none" stroke="url(#hcGoldMetal)" stroke-width="1.6" stroke-linecap="round" opacity="0.9"/>
+            <circle cx="35" cy="52" r="1.6" fill="#E7C878"/>
+          </svg>
+        </div><div class="hc-title">إعراب الجمل</div><div class="hc-sub">101 جملة وجملة</div>
+        <div class="hc-lock-badge" id="irabHomeLockBadge" style="display:none">🔒 مغلق</div>
+      </div>
+      <div class="home-card c2" data-nav="exams">
+        <div class="hc-icon-wrap">
+          <svg class="hc-svg-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 22 L28 22 L32 26 L50 26 L50 46 L14 46 Z" fill="url(#hcInk)" stroke="#16241C" stroke-width="1"/>
+            <path d="M17 20 L46 20 L46 44 L17 44 Z" fill="url(#hcCream)" stroke="#D8AE52" stroke-width="1"/>
+            <path d="M21 26 L42 26 M21 31 L42 31 M21 36 L36 36" stroke="#8A6A2A" stroke-width="1.3" opacity="0.55"/>
+            <circle cx="41" cy="41" r="8.5" fill="url(#hcGoldMedallion)" stroke="#7A5216" stroke-width="1"/>
+            <path d="M37.2 41 L39.8 43.8 L45 38" fill="none" stroke="#5C3D0F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div><div class="hc-title">الفروض والاختبارات</div><div class="hc-sub">الفصل الأول، الثاني، الثالث</div>
+      </div>
+      <div class="home-card c5" data-nav="dailyExercises" style="grid-column:1 / -1">
+        <div class="hc-icon-wrap">
+          <svg class="hc-svg-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <rect x="9" y="13" width="46" height="42" rx="6" fill="url(#hcGoldMetal)" stroke="#7A5216" stroke-width="1.3"/>
+            <rect x="9" y="13" width="46" height="11" rx="6" fill="url(#hcGoldMedallion)" stroke="#7A5216" stroke-width="1"/>
+            <rect x="16" y="6" width="4.5" height="11" rx="2.2" fill="#7A5216"/>
+            <rect x="43.5" y="6" width="4.5" height="11" rx="2.2" fill="#7A5216"/>
+            <rect x="16" y="30" width="8.5" height="8.5" rx="1.6" fill="url(#hcCream)" opacity="0.95"/>
+            <rect x="27.7" y="30" width="8.5" height="8.5" rx="1.6" fill="url(#hcCream)" opacity="0.95"/>
+            <rect x="39.5" y="30" width="8.5" height="8.5" rx="1.6" fill="url(#hcCream)" opacity="0.95"/>
+            <rect x="16" y="41.5" width="8.5" height="8.5" rx="1.6" fill="url(#hcCream)" opacity="0.95"/>
+            <path d="M30.5 44 L33.3 46.8 L38.5 41" fill="none" stroke="#2E4A34" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div><div class="hc-title">تمارين يومية <span id="dailyExCountBadge" style="display:none"></span></div><div class="hc-sub">اطبع تمرين اليوم أو حلّه كتابةً — تصحيح فوري بالذكاء الاصطناعي، والنتيجة تُحسب في ترتيبك</div>
+      </div>
+    </div>
+
+    <div class="home-card-wide" data-nav="leaderboard" style="cursor:pointer;margin-bottom:14px">
+      <div class="hc-icon-wrap">🏆</div><div class="hc-title">الترتيب والنقاط</div><div class="hc-sub">تُحسب بالنسبة المئوية %</div>
+    </div>
+
+    <div class="home-card-wide" data-nav="chat" style="cursor:pointer;margin-bottom:14px">
+      <div class="hc-icon-wrap">💬</div><div class="hc-title">الدردشة</div><div class="hc-sub">تواصل مع زملائك، واكتب #الاستاذ ليصل سؤالك للأستاذ مباشرة</div>
+    </div>
+
+    <div class="sticker-row" id="badgesRow">
+      <div class="sticker" id="badge-streak"><span class="st-emoji">🔥</span><span class="st-label">سلسلة نشاط</span></div>
+      <div class="sticker" id="badge-goal"><span class="st-emoji">🎯</span><span class="st-label">هدف محقَّق</span></div>
+      <div class="sticker" id="badge-fast"><span class="st-emoji">🚀</span><span class="st-label">تقدّم سريع</span></div>
+      <div class="sticker" id="badge-perfect"><span class="st-emoji">💎</span><span class="st-label">إتقان تام</span></div>
+    </div>
+
+    <div class="install-row"><button class="install-btn" id="pwaInstallBtn">📲 تثبيت التطبيق</button></div>
+  </div>
+
+  <!-- ============ شاشة قائمة الدروس ============ -->
+  <div id="screen-lessons" style="display:none">
+    <div class="lesson-topbar"><button class="back-btn" data-nav="home">→ رجوع للرئيسية</button></div>
+    <div class="section-title"><span>الدروس</span><div class="line"></div></div>
+    <div id="lessonsListWrap"></div>
+  </div>
+
+  <!-- ============ شاشة تفاصيل الدرس ============ -->
+  <div id="screen-lessonDetail" style="display:none">
+    <div class="lesson-topbar"><button class="back-btn" data-nav="lessons">→ رجوع لقائمة الدروس</button></div>
+    <div class="hub"><div class="badge" id="ldBadge"><b id="ldTitle"></b><span id="ldSubtitle"></span></div></div>
+    <p class="hub-def" id="ldDef"></p>
+
+    <div class="listen-wrap">
+      <div class="listen-title">🎧 استمع لشرح الأستاذ</div>
+      <div class="video-frame"><iframe id="ldVideo" src="" allowfullscreen loading="lazy"></iframe></div>
+    </div>
+
+    <!-- تبويبات صفحة الدرس: كل قسم (الخريطة الذهنية / حصص الزوم والواجب المنزلي / اختبار الفهم /
+         تمارين الدرس) يظهر كنافذة مستقلة بدل صفحة طويلة واحدة، حتى لا يضيع التلميذ بين الأقسام.
+         الأزرار تُبنى وتُفعَّل ديناميكيًا حسب نوع الدرس (بعض الدروس بلا تمارين أو بلا تسجيلات زوم،
+         فتظهر فقط النوافذ المتوفرة فعليًا). */ -->
+    <div class="ld-tabs" id="ldTabs"></div>
+
+    <div id="ldExercisesSection" class="ld-tab-panel">
+      <div class="section-title"><span>📝 تمارين الدرس (الواجب المنزلي)</span><div class="line"></div></div>
+      <div id="ldExercisesBox"></div>
+    </div>
+
+    <div id="ldZoomSection" class="ld-tab-panel">
+      <div class="zoom-groups-wrap" id="ldZoomBox"></div>
+    </div>
+
+    <div id="ldQuizSection" class="ld-tab-panel">
+      <div class="section-title"><span>اختبار الفهم</span><div class="line"></div></div>
+      <button class="lesson-cta-btn" id="ldQuizStartBtn">▶️ ابدأ اختبار الفهم</button>
+      <div class="lesson-cta-note">أعد المحاولة بحرّية حتى تصل للنسبة التي ترضيك — هذا الاختبار لا يدخل الترتيب.</div>
+      <div id="ldQuiz" style="margin-top:14px"></div>
+    </div>
+
+    <div id="ldMindmapSection" class="ld-tab-panel">
+      <div class="mm-title-row">
+        <div class="mm-title">🗺️ الخريطة الذهنية للدرس</div>
+        <button class="mm-pdf-btn" id="ldMindmapPdfBtn" title="تحميل الخريطة الذهنية كملف PDF">⬇️ تحميل</button>
+      </div>
+      <div class="mm-wrap" id="ldMindmap"></div>
+    </div>
+
+    <div id="ldLeaderboardSection"></div>
+  </div>
+
+  <!-- ============ شاشة الفروض والاختبارات ============ -->
+  <div id="screen-exams" style="display:none">
+    <div class="lesson-topbar"><button class="back-btn" data-nav="home">→ رجوع للرئيسية</button></div>
+    <div class="section-title"><span>الفروض والاختبارات</span><div class="line"></div></div>
+    <a class="home-card-wide" href="smart-teacher.html" style="text-decoration:none;margin-bottom:16px">
+      <div class="hc-icon-wrap">🧠</div><div class="hc-title">فروض واختبارات</div><div class="hc-sub">اطبع اختبارك، صوّر ورقة إجابتك، واحصل على تصحيحك فورًا بالذكاء الاصطناعي</div>
+    </a>
+    <div class="exam-tabs" id="examTabsWrap"></div>
+    <div id="examPanelWrap"></div>
+  </div>
+
+  <!-- ============ شاشة التمارين اليومية ============ -->
+  <div id="screen-dailyExercises" style="display:none">
+    <div class="lesson-topbar"><button class="back-btn" data-nav="home">→ رجوع للرئيسية</button></div>
+    <div class="section-title"><span>تمارين يومية</span><div class="line"></div></div>
+    <a class="home-card-wide" href="smart-teacher.html?cat=daily" style="text-decoration:none;margin-bottom:16px">
+      <div class="hc-icon-wrap">📆</div><div class="hc-title">تمارين يومية</div><div class="hc-sub">اطبع تمرين اليوم أو حلّه كتابةً على الورقة، صوّر إجابتك أو اكتبها، واحصل على تصحيحك فورًا بالذكاء الاصطناعي — نتيجتك تُحسب مباشرة في ترتيبك العام</div>
+    </a>
+  </div>
+
+  <!-- ============ شاشة الوضعية الإدماجية ============ -->
+  <div id="screen-situation" style="display:none">
+    <div class="lesson-topbar"><button class="back-btn" data-nav="home">→ رجوع للرئيسية</button></div>
+    <div class="section-title"><span>الوضعية الإدماجية</span><div class="line"></div></div>
+    <div style="margin-bottom:16px">
+      <div class="video-frame"><iframe src="https://www.youtube.com/embed/ElhaTiggtDQ" allowfullscreen loading="lazy"></iframe></div>
+    </div>
+    <p class="hub-def" id="situationDef"></p>
+    <div class="mm-title-row">
+      <div class="mm-title">🗺️ الخريطة الذهنية للمنهجية</div>
+      <button class="mm-pdf-btn" id="situationMindmapPdfBtn" title="تحميل الخريطة الذهنية كملف PDF">⬇️ تحميل</button>
+    </div>
+    <div class="mm-wrap" id="situationMindmap"></div>
+
+    <div class="section-title" style="margin-top:26px"><span>📝 وضعيات للاستئناس حسب المقاطع</span><div class="line"></div></div>
+    <div class="situ-tabs-scroll"><div class="situ-tabs" id="situPracticeTabs"></div></div>
+    <div id="situPracticePanel"></div>
+  </div>
+
+  <!-- ============ شاشة إعراب الجمل ============ -->
+  <div id="screen-irab" style="display:none">
+    <div class="lesson-topbar"><button class="back-btn" data-nav="home">→ رجوع للرئيسية</button></div>
+    <div style="margin-bottom:16px">
+      <div style="font-weight:800;font-family:'Cairo';color:#22352B;margin-bottom:8px">🔴 بث مباشر: إعراب الجمل من الصفر</div>
+      <div class="video-frame"><iframe src="https://www.youtube.com/embed/2W5GQ6m1Oww" allowfullscreen loading="lazy"></iframe></div>
+    </div>
+    <div class="section-title"><span>إعراب الجمل</span><div class="line"></div></div>
+    <div id="irabContentWrap"></div>
+  </div>
+
+  <!-- ============ شاشة الترتيب العام ============ -->
+  <div id="screen-leaderboard" style="display:none">
+    <div class="lesson-topbar"><button class="back-btn" data-nav="home">→ رجوع للرئيسية</button></div>
+    <div class="section-title"><span>الترتيب والنقاط</span><div class="line"></div></div>
+    <div id="leaderboardWrap"></div>
+  </div>
+
+  <!-- ============ شاشة الدردشة ============ -->
+  <div id="screen-chat" style="display:none">
+    <div class="lesson-topbar"><button class="back-btn" data-nav="home">→ رجوع للرئيسية</button></div>
+    <div class="section-title"><span>الدردشة</span><div class="line"></div></div>
+    <div class="chat-hint">💡 اكتب <b>#الاستاذ</b> في رسالتك — أو اضغط الزر أدناه — ليصل سؤالك مباشرة إلى الأستاذ، وستظهر إجابته هنا للجميع.</div>
+    <div class="chat-quota-note" id="chatQuotaNote"></div>
+    <div class="chat-window">
+      <div id="chatMessagesWrap" class="chat-messages-scroll"><div class="chat-pending">جارٍ تحميل الرسائل…</div></div>
+    </div>
+    <!-- بطاقة ثابتة أسفل الدردشة: تُظهر آخر جواب على سؤال هذا التلميذ فقط، وتبقى ظاهرة
+         له دون تمرير حتى لا تضيع وسط كثرة الأسئلة الأخرى -->
+    <div id="chatMyAnswerBanner" class="chat-my-answer-banner" style="display:none"></div>
+    <div class="chat-input-row">
+      <button type="button" class="al-key" id="chatAskTeacherBtn" style="width:auto;padding:10px 14px" title="سؤال مباشر للأستاذ">❓ للأستاذ</button>
+      <input type="text" id="chatInput" placeholder="اكتب رسالتك..." maxlength="500">
+      <button class="al-key" style="width:auto;padding:10px 18px" id="chatSendBtn">إرسال</button>
+    </div>
+  </div>
+
+  <!-- ============ لوحة تحكم الأستاذ/المشرف ============ -->
+  <div id="screen-admin" style="display:none">
+    <div class="lesson-topbar"><button class="back-btn" id="adminLogoutBtn">🚪 تسجيل خروج الأستاذ/المشرف</button></div>
+    <div class="section-title"><span>لوحة تحكم الأستاذ / المشرف</span><div class="line"></div></div>
+    <div id="adminWrap"></div>
+  </div>
+
+  <footer>منصة الأستاذ يوسف سعدي — السنة الرابعة متوسط</footer>
+</div>
+
+<!-- ============ نافذة تسجيل دخول التلميذ ============ -->
+<div class="modal-overlay" id="loginModal">
+  <div class="admin-login-mock" style="max-width:320px">
+
+    <!-- ===== خطوة 1: شاشة الترحيب — اختيار تسجيل الدخول أو إنشاء حساب جديد ===== -->
+    <div id="loginWelcomeStep">
+      <div class="al-icon"><span class="icon-glyph">👋</span></div>
+      <div class="al-title">مرحباً بك في المنصة</div>
+      <div class="al-sub">اختر ما تريد من الخيارات أدناه للبدء في التعلم والمراجعة — سجّل الدخول أو أنشئ حساباً جديداً للوصول إلى المحتوى</div>
+      <button class="install-btn" id="loginGoSigninBtn" style="width:100%;justify-content:center;margin-bottom:10px">🔐 تسجيل الدخول</button>
+      <button class="install-btn" id="loginGoSignupBtn" style="width:100%;justify-content:center;background:#A97F2A">✨ إنشاء حساب جديد</button>
+    </div>
+
+    <!-- ===== خطوة 2: نموذج تسجيل الدخول / إنشاء الحساب ===== -->
+    <div id="loginFormStep" style="display:none">
+      <div class="al-icon"><span class="icon-glyph">🔒</span></div>
+      <div class="al-title" id="loginFormTitle">تسجيل الدخول</div>
+      <div class="al-sub" id="loginFormSub">أدخل رقم هاتفك واسمك ولقبك</div>
+
+      <div style="font-size:11px;font-weight:700;color:#5B6E62;margin-bottom:5px;text-align:right">رقم الهاتف</div>
+      <input type="tel" id="loginPhoneInput" placeholder="0X XX XX XX XX" style="width:100%;padding:11px 14px;border-radius:11px;border:1.4px solid #A97F2A;font-family:'Cairo';font-size:14px;margin-bottom:10px;background:#FFFDF7;color:#22352B">
+
+      <div style="font-size:11px;font-weight:700;color:#5B6E62;margin-bottom:5px;text-align:right">الاسم</div>
+      <input type="text" id="loginFirstNameInput" placeholder="......." style="width:100%;padding:11px 14px;border-radius:11px;border:1.4px solid #A97F2A;font-family:'Cairo';font-size:14px;margin-bottom:10px;background:#FFFDF7;color:#22352B">
+      <div style="font-size:11px;font-weight:700;color:#5B6E62;margin-bottom:5px;text-align:right">اللقب</div>
+      <input type="text" id="loginLastNameInput" placeholder="......." style="width:100%;padding:11px 14px;border-radius:11px;border:1.4px solid #A97F2A;font-family:'Cairo';font-size:14px;margin-bottom:10px;background:#FFFDF7;color:#22352B">
+
+      <div id="loginRecalledBox" style="display:none;font-size:12px;font-weight:700;color:#5B6E62;text-align:center;margin-bottom:10px">
+        تم استرجاع معلوماتك المحفوظة: <span id="loginRecalledName"></span><br>
+        <a href="#" id="loginNotMeLink" style="color:#2E6DA4;text-decoration:underline;font-weight:700">ليست معلوماتي</a>
+      </div>
+
+      <button class="install-btn" id="loginSubmitBtn" style="width:100%;justify-content:center">دخول</button>
+      <div id="loginMsg" style="margin-top:12px;font-size:12px;font-weight:700;color:#5B6E62"></div>
+
+      <div style="margin-top:14px;text-align:center">
+        <a href="#" id="loginBackToWelcomeLink" style="color:#5B6E62;text-decoration:underline;font-size:12px;font-weight:700">→ رجوع</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ نافذة دخول الأستاذ/المشرف (رقم سري) ============ -->
+<div class="modal-overlay" id="adminLoginModal">
+  <div class="admin-login-mock">
+    <button class="modal-close" id="adminLoginClose" style="position:static;float:left;background:#A97F2A;color:#fff">✕</button>
+    <div class="al-icon"><span class="icon-glyph">🔐</span></div>
+    <div class="al-title">دخول الأستاذ / المشرف</div>
+    <div class="al-sub">أدخل الرقم السري للوصول إلى لوحة التحكم</div>
+    <input type="password" id="adminPinInput" placeholder="••••" style="width:100%;text-align:center;letter-spacing:6px;padding:11px 14px;border-radius:11px;border:1.4px solid #A97F2A;font-family:'Cairo';font-size:18px;margin-bottom:12px;background:#FFFDF7;color:#22352B">
+    <button class="install-btn" id="adminPinSubmit" style="width:100%;justify-content:center">دخول</button>
+  </div>
+</div>
+
+<!-- ============ منطقة بناء الخريطة الذهنية لتصديرها كملف PDF (خارج الشاشة، غير مرئية للمستخدم) ============ -->
+<div id="mindmapPrintArea"></div>
+<div id="certificatePrintArea"></div>
+<div id="exercisePrintArea"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+  onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';document.head.appendChild(s);"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+  onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';document.head.appendChild(s);"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="sound-effects.js"></script>
+<script src="firebase-config.js"></script>
+<script src="telegram-config.js"></script>
+<script src="lessons-data.js"></script>
+<script src="irab-data.js"></script>
+<script src="situation-data.js"></script>
+<script src="integration-situations-data.js"></script>
+
+<!-- ===== ملفات الميزات الجديدة ===== -->
+<script src="wisdom-quotes.js"></script>
+<script src="notifications-system.js"></script>
+<script src="student-management.js"></script>
+<script src="app-enhancements.js"></script>
+<script src="exercise-pdf-generator.js"></script>
+<script src="certificate-generator.js"></script>
+
+<script src="app.js"></script>
+</body>
+</html>

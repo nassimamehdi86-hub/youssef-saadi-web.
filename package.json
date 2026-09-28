@@ -1,0 +1,46 @@
+{
+  "name": "bcse-platform",
+  "version": "2.5.0",
+  "description": "منصة تعليمية تفاعلية لتدريب الطلاب البيطريين على امتحان BCSE مع تكامل Telegram",
+  "main": "app.js",
+  "scripts": {
+    "start": "http-server -p 3000 -c-1",
+    "dev": "http-server -p 3000 -c-1 --cors",
+    "build": "echo 'Static PWA - No build needed'",
+    "test": "jest",
+    "lint": "eslint .",
+    "serve": "python -m http.server 8000"
+  },
+  "keywords": [
+    "bcse",
+    "exam",
+    "education",
+    "veterinary",
+    "react",
+    "telegram",
+    "pwa",
+    "حيوان",
+    "امتحان",
+    "تعليم"
+  ],
+  "author": "يوسف سعدي",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/bcse-platform.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/bcse-platform/issues"
+  },
+  "homepage": "https://github.com/yourusername/bcse-platform#readme",
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "jest": "^27.5.1",
+    "eslint": "^8.0.0"
+  },
+  "dependencies": {}
+}

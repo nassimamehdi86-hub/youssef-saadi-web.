@@ -1,0 +1,2826 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المعلّم الذكي — منصة الأستاذ يوسف سعدي</title>
+<meta name="description" content="المعلّم الذكي — وحدة الاختبارات والتصحيح الآلي ضمن منصة الأستاذ يوسف سعدي.">
+<meta name="theme-color" content="#F7F2E4">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="sound-effects.js"></script>
+<style>
+  :root{
+    --bg:#F7F2E4; --bg2:#EFE7D2; --panel:#FFFDF7; --panel2:#FBF7EC; --panel-solid:#FFFDF7;
+    --line:rgba(151,111,20,.25); --line-strong:rgba(151,111,20,.48);
+    --ink:#22352B; --dim:#5B6E62;
+    --gold:#C79A3D; --lav:#3F6350; --teal:#3F6350; --rose:#b5563a; --red:#b5432a;
+    --gold-deep:#A97F2A; --gold-light:#E7C878; --green-deep:#22352B;
+    --paper:#FFFDF7; --paperink:#22352B;
+    --radius:20px;
+    --ease:cubic-bezier(.4,0,.2,1);
+    font-family:'Cairo',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);min-height:100vh;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 520px at 15% -6%, rgba(201,152,47,.20), transparent 60%),
+      radial-gradient(ellipse 800px 540px at 105% 8%, rgba(47,93,67,.14), transparent 60%),
+      radial-gradient(ellipse 700px 480px at 50% 115%, rgba(201,152,47,.16), transparent 60%),
+      repeating-linear-gradient(45deg, rgba(151,111,20,.05) 0 2px, transparent 2px 34px),
+      repeating-linear-gradient(-45deg, rgba(151,111,20,.05) 0 2px, transparent 2px 34px),
+      linear-gradient(180deg, var(--bg), var(--bg2));
+    background-attachment:fixed;
+    min-height:100vh;
+  }
+  h1,h2,h3,.disp{font-family:'Aref Ruqaa',serif;font-weight:700;letter-spacing:-.01em;color:var(--ink);}
+  .wrap{max-width:600px;margin:0 auto;padding:22px 18px 70px;min-height:100vh;}
+
+  /* ===== Ornate hero (landing top identity) ===== */
+  .hero-frame{
+    position:relative;border:1.5px solid var(--line-strong);border-radius:26px;
+    padding:30px 22px 24px;margin-bottom:18px;text-align:center;overflow:hidden;
+    box-shadow:0 18px 44px rgba(90,66,10,.14), inset 0 1px 0 rgba(255,255,255,.6);
+    background-image:url('hero-bg.jpg'); background-size:cover; background-position:center 28%;
+  }
+  .hero-frame::before,.hero-frame::after{
+    content:'';position:absolute;top:10px;width:34px;height:34px;border-top:2px solid var(--gold);
+    opacity:.85;z-index:2;
+  }
+  .hero-frame::before{left:10px;border-right:2px solid var(--gold);border-top-right-radius:12px;}
+  .hero-frame::after{right:10px;border-left:2px solid var(--gold);border-top-left-radius:12px;}
+  .hero-fade{
+    position:absolute;inset:0;z-index:1;
+    background:
+      linear-gradient(90deg, transparent 0%, rgba(239,227,191,.5) 14%, rgba(239,227,191,.93) 26%, rgba(239,227,191,.93) 74%, rgba(239,227,191,.5) 86%, transparent 100%),
+      linear-gradient(180deg, rgba(239,227,191,.55) 0%, transparent 12%, transparent 88%, rgba(231,217,168,.6) 100%);
+  }
+  .hero-content{position:relative;z-index:2;}
+  .hero-seal{
+    width:76px;height:76px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;
+    font-size:34px;background:radial-gradient(circle at 35% 30%, #fff8e4, var(--panel2));
+    border:2.5px solid var(--gold); box-shadow:0 8px 20px rgba(169,122,28,.28);
+  }
+  .hero-title{font-family:'Aref Ruqaa',serif;font-weight:400;font-size:26px;color:var(--green-deep);margin-bottom:6px;line-height:1.5;}
+  .hero-sub{font-size:12.5px;color:var(--dim);margin-bottom:14px;}
+  .hero-pill{
+    display:inline-block;background:linear-gradient(135deg,var(--lav),var(--green-deep));color:#fdf8e4;
+    border-radius:999px;padding:7px 20px;font-size:13.5px;font-weight:600;box-shadow:0 6px 16px rgba(31,69,48,.28);
+  }
+  .hero-divider{margin-top:14px;color:var(--gold);letter-spacing:8px;font-size:13px;opacity:.8;}
+
+  /* ===== Hero icon with glow + flowing feature steps ===== */
+  .hero-icon-wrap{position:relative;width:110px;height:110px;margin:0 auto 4px;}
+  .hero-icon-glow{
+    position:absolute;inset:-14px;border-radius:36px;
+    background:radial-gradient(circle, rgba(63,125,92,.35), rgba(201,152,47,.28) 55%, transparent 75%);
+    filter:blur(10px);opacity:.9;animation:heroPulse 3.2s ease-in-out infinite;
+  }
+  @keyframes heroPulse{0%,100%{opacity:.7;transform:scale(1);}50%{opacity:1;transform:scale(1.06);}}
+  .hero-icon-img{
+    position:relative;width:110px;height:110px;border-radius:26px;display:block;
+    box-shadow:0 10px 26px rgba(90,66,10,.28), 0 0 0 1px rgba(255,255,255,.5) inset;
+  }
+  .hero-flow{
+    position:relative;width:2px;height:26px;margin:2px auto 0;
+    background:linear-gradient(180deg, var(--gold), var(--teal));
+    opacity:.7;
+  }
+  .hero-flow::before,.hero-flow::after{
+    content:'';position:absolute;top:0;width:1px;height:100%;
+    background:linear-gradient(180deg, rgba(201,152,47,.6), rgba(63,125,92,.5));
+    filter:blur(2px);
+  }
+  .hero-flow::before{left:-7px;} .hero-flow::after{right:-7px;}
+  .hero-steps{display:flex;flex-direction:column;gap:9px;margin:6px 0 16px;}
+  .hero-step{
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    background:linear-gradient(135deg, rgba(255,255,255,.55), rgba(251,241,214,.45));
+    border:1px solid rgba(151,111,20,.22);border-radius:14px;padding:10px 16px;
+    font-size:13.5px;font-weight:600;color:var(--green-deep);
+    box-shadow:0 6px 14px rgba(90,66,10,.08), inset 0 1px 0 rgba(255,255,255,.7);
+    backdrop-filter:blur(3px);
+  }
+  .hero-step-ico{font-size:16px;line-height:1;}
+  .hero-pitch{
+    font-size:13.5px;line-height:1.95;color:var(--ink);text-align:center;
+    background:linear-gradient(135deg, rgba(255,255,255,.55), rgba(251,241,214,.45));
+    border:1px solid rgba(151,111,20,.22);border-radius:14px;padding:15px 18px;margin:6px 0 16px;
+    box-shadow:0 6px 14px rgba(90,66,10,.08), inset 0 1px 0 rgba(255,255,255,.7);
+    backdrop-filter:blur(3px);
+  }
+  .hero-illustration{
+    background:linear-gradient(135deg, rgba(255,255,255,.55), rgba(251,241,214,.45));
+    border:1px solid rgba(151,111,20,.22);border-radius:16px;padding:14px 10px 10px;margin:6px 0 16px;
+    box-shadow:0 6px 14px rgba(90,66,10,.08), inset 0 1px 0 rgba(255,255,255,.7);
+    backdrop-filter:blur(3px);
+  }
+  .hero-illustration svg{display:block;width:100%;height:auto;}
+  .ill-spark{animation:illSpin 7s linear infinite;transform-origin:240px 75px;}
+  @keyframes illSpin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion: reduce){ .ill-spark{animation:none;} }
+
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:20px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .seal{
+    width:46px;height:46px;border-radius:50%;flex:none;position:relative;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:19px;color:var(--gold-deep);
+    background:radial-gradient(circle at 35% 30%, #fff8e4, var(--panel2));
+  }
+  .seal::before{
+    content:'';position:absolute;inset:-3px;border-radius:50%;padding:2px;
+    background:conic-gradient(from 0deg, var(--gold), var(--lav), var(--gold-light), var(--gold));
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude;
+    animation:sealspin 9s linear infinite;
+    z-index:-1;
+  }
+  .seal::after{
+    content:'';position:absolute;inset:-7px;border-radius:50%;
+    box-shadow:0 0 16px 2px rgba(201,152,47,.35);pointer-events:none;
+    z-index:-1;
+  }
+  @keyframes sealspin{to{transform:rotate(360deg);}}
+  .brand-name{font-family:'Aref Ruqaa',serif;font-weight:400;font-size:21px;color:var(--green-deep);letter-spacing:0;}
+  .brand-sub{
+    display:inline-block;margin-top:3px;font-size:11px;color:var(--panel-solid);letter-spacing:.02em;
+    background:var(--lav);border-radius:999px;padding:2px 11px;
+  }
+  .card{
+    background:var(--panel);
+    border:1.5px solid var(--line); border-top-color:var(--line-strong);
+    border-radius:var(--radius);padding:22px;margin-bottom:16px;
+    box-shadow:0 14px 36px rgba(90,66,10,.12), inset 0 1px 0 rgba(255,255,255,.55);
+  }
+  .btn{
+    font-family:'Cairo',sans-serif;font-weight:600;border:none;border-radius:999px;
+    padding:13px 22px;cursor:pointer;font-size:15px;
+    transition:transform .18s var(--ease), box-shadow .18s var(--ease), filter .18s var(--ease);
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn:hover{transform:translateY(-1px);filter:brightness(1.05);}
+  .btn:active{transform:scale(.97) translateY(0);}
+  .btn-primary{background:linear-gradient(135deg,var(--lav),var(--green-deep));color:#fdf8e4;box-shadow:0 8px 20px rgba(31,69,48,.32);}
+  .btn-gold{background:linear-gradient(135deg,var(--gold-light),var(--gold-deep));color:#3c2708;box-shadow:0 8px 20px rgba(169,122,28,.32);}
+  .btn-teal{background:linear-gradient(135deg,var(--teal),#2b5c41);color:#f4fbf6;box-shadow:0 8px 20px rgba(63,125,92,.28);}
+  .btn-ghost{background:var(--panel-solid);color:var(--ink);border:1.5px solid var(--line-strong);}
+  .btn-ghost:hover{border-color:var(--gold-deep);}
+  .btn-danger{background:rgba(181,67,42,.08);color:var(--red);border:1.5px solid rgba(181,67,42,.35);}
+  .btn:disabled{opacity:.42;cursor:not-allowed;transform:none;}
+  .btn-block{width:100%;justify-content:center;}
+  input[type=text],input[type=number],textarea,select{
+    width:100%;background:var(--panel-solid);border:1.5px solid var(--line);color:var(--ink);
+    border-radius:14px;padding:13px 15px;font-family:'Cairo',sans-serif;font-size:15px;
+    transition:border-color .18s var(--ease), box-shadow .18s var(--ease);
+  }
+  input[type=text]:focus,input[type=number]:focus,textarea:focus,select:focus{
+    outline:none;border-color:var(--gold-deep);box-shadow:0 0 0 3px rgba(201,152,47,.20);
+  }
+  textarea{resize:vertical;min-height:70px;}
+  label{display:block;font-size:13px;color:var(--dim);margin-bottom:7px;font-weight:600;letter-spacing:.01em;}
+  .field{margin-bottom:15px;}
+  .row{display:flex;gap:12px;flex-wrap:wrap;}
+  .row>*{flex:1;min-width:140px;}
+  .muted{color:var(--dim);font-size:13.5px;line-height:1.9;}
+  .pill{display:inline-block;background:rgba(47,93,67,.09);border:1px solid rgba(47,93,67,.30);color:var(--lav);border-radius:999px;padding:4px 13px;font-size:12px;font-weight:600;}
+  .center{text-align:center;}
+  .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:560px){.choice-grid{grid-template-columns:1fr;}}
+  .choice-card{
+    background:var(--panel);border:1.5px solid var(--line);border-radius:var(--radius);padding:30px 20px;text-align:center;cursor:pointer;
+    transition:transform .22s var(--ease), border-color .22s var(--ease), box-shadow .22s var(--ease);
+  }
+  .choice-card:hover{border-color:var(--gold-deep);transform:translateY(-4px);box-shadow:0 16px 40px rgba(169,122,28,.20);}
+  .choice-card .ico{font-size:34px;margin-bottom:10px;}
+
+  /* ===== exam feed grid (landing) — compact tiles, several per row, wrapping to new rows ===== */
+  #examsFeed{display:grid;grid-template-columns:repeat(auto-fill, minmax(128px,1fr));gap:10px;}
+  .exam-card{
+    background:var(--panel);border:1.5px solid var(--line);border-radius:14px;
+    padding:12px 10px;position:relative;cursor:pointer;text-align:center;
+    transition:transform .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease);
+  }
+  .exam-card:hover{border-color:var(--gold-deep);transform:translateY(-2px);box-shadow:0 10px 26px rgba(169,122,28,.16);}
+  .exam-card .ico{
+    width:36px;height:36px;margin:0 auto 8px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    font-size:17px;background:linear-gradient(135deg,var(--gold-light),var(--gold));box-shadow:inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  .exam-card .t{
+    font-weight:700;font-size:13px;color:var(--ink);line-height:1.3;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .exam-card .s{font-size:10.5px;color:var(--dim);margin-top:4px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .exam-card.active-topic{border-color:var(--gold-deep);box-shadow:0 0 0 2px rgba(201,152,47,.25);}
+  .exam-card .exam-hide{position:absolute;top:4px;left:4px;background:none;border:none;color:var(--dim);font-size:14px;cursor:pointer;padding:3px;line-height:1;}
+
+  /* ===== exam rows (used elsewhere, e.g. teacher's topic/result picker) — icon + title + badge ===== */
+  .exam-row{
+    display:flex;align-items:center;gap:14px;background:var(--panel);border:1.5px solid var(--line);
+    border-radius:16px;padding:14px 16px;margin-bottom:12px;position:relative;cursor:pointer;
+    transition:transform .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease);
+  }
+  .exam-row:hover{border-color:var(--gold-deep);transform:translateY(-2px);box-shadow:0 10px 26px rgba(169,122,28,.16);}
+  .exam-ico{
+    width:48px;height:48px;flex:none;border-radius:14px;display:flex;align-items:center;justify-content:center;
+    font-size:22px;background:linear-gradient(135deg,var(--gold-light),var(--gold));box-shadow:inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  .exam-info{flex:1;min-width:0;}
+  .exam-info .t{font-weight:700;font-size:15.5px;color:var(--ink);}
+  .exam-info .s{font-size:12px;color:var(--dim);margin-top:2px;}
+  .exam-row.active-topic{border-color:var(--gold-deep);box-shadow:0 0 0 2px rgba(201,152,47,.25);}
+  .exam-hide{background:none;border:none;color:var(--dim);font-size:17px;cursor:pointer;flex:none;padding:4px;}
+
+  .tabbar{display:flex;gap:8px;margin-bottom:16px;border-bottom:1.5px solid var(--line);}
+  .tabbtn{
+    background:none;border:none;cursor:pointer;padding:10px 4px;font-family:'Cairo',sans-serif;
+    font-weight:600;font-size:14.5px;color:var(--dim);position:relative;margin-left:18px;
+    transition:color .18s var(--ease);
+  }
+  .tabbtn::after{content:'';position:absolute;left:0;right:0;bottom:-1.5px;height:3px;border-radius:3px;background:transparent;transition:background .18s var(--ease);}
+  .tabbtn.active{color:var(--green-deep);}
+  .tabbtn.active::after{background:linear-gradient(90deg,var(--gold),var(--lav));}
+  .tabpanel{display:none;}
+  .tabpanel.active{display:block;}
+
+  .qcard{
+    background:var(--panel2);border:1.5px solid var(--line);border-radius:16px;padding:17px;margin-bottom:12px;position:relative;
+  }
+  .qhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .qnum{background:rgba(47,93,67,.12);border:1px solid rgba(47,93,67,.4);color:var(--lav);font-weight:700;border-radius:8px;padding:3px 11px;font-size:13px;}
+  .toolbar{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+  .divider{height:1px;background:var(--line);margin:20px 0;}
+  .spinner{width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--gold-deep);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:middle;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loadbox{display:flex;align-items:center;gap:12px;color:var(--dim);padding:16px 0;}
+  .toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    background:var(--panel-solid);border:1.5px solid var(--line-strong);color:var(--ink);padding:12px 20px;border-radius:14px;font-size:14px;z-index:999;
+    box-shadow:0 10px 30px rgba(90,66,10,.28);
+  }
+  .link-box{display:flex;gap:8px;background:rgba(201,152,47,.08);border:1px dashed rgba(201,152,47,.5);border-radius:12px;padding:11px 13px;align-items:center;}
+  .link-box input{border:none;background:transparent;color:var(--gold-deep);font-family:'Cairo',monospace;font-size:13px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th,td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--line);}
+  th{color:var(--dim);font-size:12px;font-weight:600;}
+  .rank1{color:var(--gold-deep);font-weight:800;}
+  .rank2{color:#6b6350;font-weight:700;}
+  .rank3{color:#9c7a3f;font-weight:700;}
+  .score-big{font-family:'Aref Ruqaa',serif;font-weight:400;font-size:54px;color:var(--gold-deep);text-align:center;text-shadow:0 2px 14px rgba(169,122,28,.25);}
+  .qa-block{border-right:3px solid var(--line);padding-right:13px;margin-bottom:14px;}
+  .qa-block.ok{border-color:var(--teal);}
+  .qa-block.mid{border-color:var(--gold-deep);}
+  .qa-block.bad{border-color:var(--red);}
+  .drop{border:2px dashed var(--line-strong);border-radius:14px;padding:20px;text-align:center;cursor:pointer;color:var(--dim);}
+  .drop.filled{border-color:var(--teal);color:var(--teal);}
+  .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .thumbs img{width:64px;height:64px;object-fit:cover;border-radius:12px;border:1px solid var(--line);}
+  .suggest-wrap{position:relative;}
+  .suggest-drop{
+    position:absolute;top:100%;right:0;left:0;background:var(--panel-solid);
+    border:1.5px solid var(--line-strong);border-radius:14px;margin-top:6px;max-height:220px;overflow-y:auto;z-index:50;
+    box-shadow:0 16px 36px rgba(90,66,10,.22);
+  }
+  .suggest-item{padding:11px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid var(--line);transition:background .15s var(--ease);}
+  .suggest-item:last-child{border-bottom:none;}
+  .suggest-item:hover, .suggest-item:active{background:rgba(47,93,67,.08);color:var(--lav);}
+  a.plain{color:var(--lav);text-decoration:none;font-weight:600;}
+  .backlink{
+    display:inline-flex;align-items:center;gap:6px;color:var(--dim);text-decoration:none;font-size:13px;
+    transition:color .15s var(--ease), border-color .15s var(--ease); background:var(--panel-solid);
+    border:1.5px solid var(--line);border-radius:999px;padding:8px 16px;
+  }
+  .backlink:hover{color:var(--green-deep);border-color:var(--gold-deep);}
+  .modal-bg{position:fixed;inset:0;background:rgba(60,47,22,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;}
+  .modal{background:var(--panel);border:1.5px solid var(--line-strong);border-radius:var(--radius);padding:24px;max-width:480px;width:100%;max-height:88vh;overflow:auto;}
+
+  :focus-visible{outline:2px solid var(--gold-deep);outline-offset:2px;border-radius:6px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+    .seal::before{animation:none;}
+  }
+
+  /* Printable exam sheet */
+  #printArea{position:fixed;top:0;left:-10000px;width:210mm;background:#fff;}
+  .sheet{background:#fff;color:var(--paperink);border-radius:10px;padding:30px 26px;position:relative;overflow:hidden;}
+  .sheet-brand-head{position:relative;z-index:1;display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .sheet-brand-logo{width:38px;height:38px;border-radius:9px;flex-shrink:0;}
+  .sheet-brand-name{font-family:'Aref Ruqaa','Cairo',serif;font-weight:700;font-size:14.5px;color:#22352B;}
+  .sheet-brand-sub{font-size:10.5px;color:#7a7188;margin-top:1px;}
+  .sheet-watermark{
+    position:absolute;inset:-20%;z-index:0;pointer-events:none;overflow:hidden;
+    display:flex;flex-wrap:wrap;align-content:flex-start;justify-content:center;
+    transform:rotate(-27deg);opacity:.055;
+  }
+  .sheet-watermark span{font-size:15px;font-weight:800;color:#22352B;white-space:nowrap;margin:26px 30px;font-family:'Cairo',sans-serif;}
+  .sheet-head,.sheet-passage,.sheet-q,.sheet-footer-brand{position:relative;z-index:1;}
+  .sheet-footer-brand{margin-top:24px;padding-top:10px;border-top:1px dashed #8b8299;display:flex;align-items:center;justify-content:center;gap:6px;font-size:10.5px;color:#7a7188;}
+  .sheet-footer-brand img{width:14px;height:14px;border-radius:4px;}
+  .sheet-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--paperink);padding-bottom:12px;margin-bottom:16px;}
+  .sheet-title{font-family:'Cairo',sans-serif;font-weight:700;font-size:23px;}
+  .sheet-meta{font-size:12px;color:#5a5170;}
+  .nameline{border-bottom:1px solid #8b8299;display:inline-block;min-width:180px;}
+  .sheet-q{margin-bottom:18px;page-break-inside:avoid;}
+  .sheet-qhead{display:flex;justify-content:space-between;font-weight:700;margin-bottom:6px;}
+  .sheet-qlabel{font-weight:700;font-size:13px;color:#5a5170;margin-bottom:5px;}
+  .sheet-qtext{font-weight:700;font-size:15px;line-height:1.7;margin-bottom:6px;}
+  .ruled{border-bottom:1px dotted #8b8299;height:26px;}
+  .sheet-passage{border:1px solid #8b8299;border-radius:8px;padding:12px 14px;margin-bottom:18px;page-break-inside:avoid;}
+  .sheet-passage-title{font-weight:700;margin-bottom:6px;}
+  .sheet-passage-text{font-size:14px;line-height:1.9;white-space:pre-wrap;}
+  .sheet-table{width:100%;border-collapse:collapse;margin:8px 0 4px;page-break-inside:avoid;}
+  .sheet-table th,.sheet-table td{border:1px solid #8b8299;padding:7px 8px;font-size:12.5px;text-align:center;vertical-align:top;}
+  .sheet-table th{background:rgba(139,130,153,.14);font-weight:700;}
+  .sheet-table td.blank{height:32px;}
+  .pcard{background:var(--panel2);border:1.5px solid var(--line);border-radius:16px;padding:17px;margin-bottom:12px;position:relative;}
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{display:block;position:absolute;top:0;left:0;width:100%;}
+    .sheet{background:#fff;color:#000;border-radius:0;padding:14mm;}
+    .sheet-head{border-color:#000;}
+    .ruled{border-color:#000;}
+    .sheet-passage{border-color:#000;}
+    .sheet-table th,.sheet-table td{border-color:#000;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div id="printArea"></div>
+
+<script>
+/* ============================= CONFIG / AI PROXY ============================= */
+// رابط Cloudflare Worker الخاص بهذه النسخة من التطبيق (كل زبون له Worker خاص به).
+// إذا كانت هذه نسخة "قالب" فارغة، اتركي القيمة فارغة "" — سيُطلب من المستخدم إدخالها
+// عبر شاشة الإعداد أول مرة يفتح التطبيق، وستُحفظ في متصفحه فقط.
+/* رابط Cloudflare Worker المُعدّ مسبقًا لهذه النسخة (كما كان في النسخة الأصلية المرفوعة) —
+   أعيد اعتماده بناءً على طلبك، بدل إجبارك على نشر Worker جديد بمفتاحك الخاص. */
+const DEFAULT_CLAUDE_API_URL = "https://bold-haze-0198.mehdinassima86.workers.dev/";
+const WORKER_URL_KEY = 'examPlatform_workerUrl_v1';
+function getClaudeApiUrl(){
+  return localStorage.getItem(WORKER_URL_KEY) || DEFAULT_CLAUDE_API_URL;
+}
+
+/* ============================= CONFIG / FIREBASE ============================= */
+const FB_KEY = 'examPlatform_firebaseConfig_v1';
+const TID_KEY = 'examPlatform_teacherId_v1';
+let db = null;
+
+// Baked in so this specific copy works without manual setup. For a blank sellable
+// template, set this to null — each buyer will then be guided through setup.
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyChgUdpjcXTHEAa1yHe5FdkEcus2p-pRWY",
+  authDomain: "youssef-saadi-arabe.firebaseapp.com",
+  projectId: "youssef-saadi-arabe",
+  storageBucket: "youssef-saadi-arabe.firebasestorage.app",
+  messagingSenderId: "206814644545",
+  appId: "1:206814644545:web:0165e4221c0cbd8718b9c0"
+};
+/* ملاحظة: هذا نفس مشروع Firebase المستعمَل في باقي منصة الأستاذ يوسف سعدي
+   (انظر firebase-config.js في الجذر) — دُمج "المعلّم الذكي" ليخزّن بياناته (الاختبارات
+   والتسليمات) في نفس القاعدة، تحت مجموعتين منفصلتين (exams) لا تتعارضان مع بيانات
+   التلاميذ والدروس الحالية (students, submissions, ...). */
+
+function getTeacherId(){
+  let t = localStorage.getItem(TID_KEY);
+  if(!t){ t = 'ust_' + Math.random().toString(36).slice(2,10); localStorage.setItem(TID_KEY, t); }
+  return t;
+}
+
+function isFullyConfigured(){
+  const raw = localStorage.getItem(FB_KEY);
+  const hasFirebase = !!raw || !!DEFAULT_FIREBASE_CONFIG;
+  const hasWorker = !!getClaudeApiUrl();
+  return hasFirebase && hasWorker;
+}
+
+function initFirebase(){
+  let cfg;
+  const raw = localStorage.getItem(FB_KEY);
+  if(raw){
+    try{ cfg = JSON.parse(raw); }catch(e){ cfg = null; }
+  }
+  if(!cfg) cfg = DEFAULT_FIREBASE_CONFIG;
+  if(!cfg) return false;
+  if(!getClaudeApiUrl()) return false;
+  try{
+    if(!firebase.apps.length){ firebase.initializeApp(cfg); }
+    db = firebase.firestore();
+    return true;
+  }catch(e){ console.error('firebase init failed', e); return false; }
+}
+// Encodes the saved config so it can travel inside a shareable link (Firebase web
+// config is not a secret key — it's meant to be public/client-side).
+function cfgToUrlParam(){
+  const raw = localStorage.getItem(FB_KEY);
+  if(!raw) return '';
+  return encodeURIComponent(btoa(unescape(encodeURIComponent(raw))));
+}
+function tryImportCfgFromUrl(){
+  const c = params.get('cfg');
+  if(!c) return false;
+  try{
+    const raw = decodeURIComponent(escape(atob(decodeURIComponent(c))));
+    JSON.parse(raw); // validate
+    localStorage.setItem(FB_KEY, raw);
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ============================= HELPERS ============================= */
+function el(html){
+  html = html.trim();
+  const m = /^<([a-zA-Z0-9-]+)/.exec(html);
+  const tag = m ? m[1].toLowerCase() : '';
+  const wrap = document.createElement('div');
+  if(tag === 'tr'){
+    wrap.innerHTML = `<table><tbody>${html}</tbody></table>`;
+    return wrap.firstChild.firstChild.firstChild;
+  }
+  if(tag === 'td' || tag === 'th'){
+    wrap.innerHTML = `<table><tbody><tr>${html}</tr></tbody></table>`;
+    return wrap.firstChild.firstChild.firstChild.firstChild;
+  }
+  if(tag === 'option'){
+    wrap.innerHTML = `<select>${html}</select>`;
+    return wrap.firstChild.firstChild;
+  }
+  wrap.innerHTML = html;
+  return wrap.firstChild;
+}
+function esc(s){ return (s??'').toString().replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// يوحّد الاختلافات الشائعة فكتابة العربية (الهمزات، التاء المربوطة، الألف المقصورة، التطويل،
+// الحركات، والمسافات الزائدة) باش البحث بالمادة/المستوى يخدم حتى لو كتب الأستاذ(ة) الصيغة
+// بشكل مختلف شوية عن الاختبار الأصلي (مثلاً "لغة عربية" بدل "اللغة العربية").
+function normalizeArabic(s){
+  return (s||'').toString()
+    .replace(/[\u064B-\u0652\u0670\u0640]/g, '') // حركات وتنوين وتطويل
+    .replace(/[إأآٱ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+function textMatches(haystack, needle){
+  const h = normalizeArabic(haystack), n = normalizeArabic(needle);
+  if(!n) return true;
+  return h.includes(n) || n.includes(h);
+}
+// مواد اللغات الأجنبية (فرنسية/إنجليزية): نصوصها ونصوص أسئلتها لازم تتصوّر من اليسار لليمين (LTR)
+// حتى لو كانت الصفحة كاملة RTL، وإلا كيبان الترتيب معكوسًا فالطباعة والتصحيح.
+function isLtrSubject(subject){
+  return /فرنس|إنجليز|انجليز|french|english/i.test(subject||'');
+}
+function dirAttr(subject){ return isLtrSubject(subject) ? ' dir="ltr"' : ''; }
+// كلمات مساعدة ("السؤال"، "ن" للنقطة، "الاسم"...) خاصها تتبدل بلغة الاختبار نفسها فورقة الطباعة/التصحيح
+// (فرنسية أو إنجليزية)، حتى لو كانت باقي واجهة التطبيق للأستاذ(ة) بالعربية.
+function examLabels(subject){
+  if(/فرنس|french/i.test(subject||'')) return { question:'Question', pt:'pt', nameLabel:'Nom :', outOf:'sur', points:'points' };
+  if(/إنجليز|انجليز|english/i.test(subject||'')) return { question:'Question', pt:'pt', nameLabel:'Name:', outOf:'out of', points:'points' };
+  return { question:'السؤال', pt:'ن', nameLabel:'الاسم:', outOf:'من', points:'نقطة' };
+}
+// يطبّع answerTable لصيغة موحّدة {headers, rows:[{cells:[...]}]} — يشتغل سواء كانت صفوف حقيقية
+// (خلايا معمّرة + فارغة)، أو الصيغة القديمة rowsCount فقط (اختبارات نُشرت قبل هاذ التحديث).
+// بدون هاذ التطبيع، فتح اختبار قديم للتعديل كان كيكسر رسم قائمة الأسئلة بالكامل.
+// يعيد ضغط صورة (data URL) موجودة أصلاً بجودة/أبعاد أصغر — كنستعملوها كـ"شفاء ذاتي" إلا رجع Firestore
+// خطأ تجاوز الحجم الأقصى (1MB) وقت النشر، بدل ما نخلّيو النشر يفشل مباشرة.
+function recompressDataUrl(dataUrl, maxDim, quality){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if(w>maxDim || h>maxDim){
+        const ratio = Math.min(maxDim/w, maxDim/h);
+        w = Math.round(w*ratio); h = Math.round(h*ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+function normalizeAnswerTable(at){
+  if(!at || !at.headers || !at.headers.length) return null;
+  const headers = at.headers;
+  let rows;
+  if(Array.isArray(at.rows) && at.rows.length){
+    rows = at.rows.map(r=>{
+      const cells = Array.isArray(r) ? r : (r?.cells || []);
+      return { cells: headers.map((h,ci)=> cells[ci] ?? '') };
+    });
+  } else {
+    const n = at.rowsCount || 1;
+    rows = Array.from({length:n}).map(()=>({ cells: headers.map(()=>'') }));
+  }
+  return { headers, rows };
+}
+// علامة مائية مدموجة فخلفية أي ورقة PDF مولّدة (اختبار أو تصحيح) + شريط تذييل بشعار التطبيق،
+// باش تبقى هاذ الملفات معروفة أنها صادرة من "المعلّم الذكي" ويصعب انتحالها أو التجارة بها.
+function sheetWatermarkHTML(){
+  return `<div class="sheet-watermark">${Array.from({length:32}).map(()=>'<span>منصة الأستاذ يوسف سعدي</span>').join('')}</div>`;
+}
+function sheetFooterBrandHTML(){
+  return `<div class="sheet-footer-brand"><img src="icon-192.png" alt=""> منصة الأستاذ يوسف سعدي — اللغة العربية</div>`;
+}
+function sheetHeaderBrandHTML(){
+  return `<div class="sheet-brand-head">
+    <img class="sheet-brand-logo" src="icon-512.png" alt="" onerror="this.style.display='none'">
+    <div class="sheet-brand-text">
+      <div class="sheet-brand-name">منصة الأستاذ يوسف سعدي</div>
+      <div class="sheet-brand-sub">لتدريس اللغة العربية — التعليم المتوسط</div>
+    </div>
+  </div>`;
+}
+// يبني بطاقة تفاصيل سؤال واحد فشاشة النتيجة (عند التلميذ(ة) وعند الأستاذ(ة)): إجابة التلميذ فسطر،
+// والإجابة الصحيحة (النموذجية) فسطر موالي بلون أخضر، ثم الملاحظة إن وُجدت.
+function qaBlockHTML(q, examData){
+  const byNumber = {};
+  (examData?.questions||[]).forEach(eq=>{ byNumber[eq.number] = eq; });
+  const modelAnswer = byNumber[q.number]?.modelAnswer || '';
+  const ratio = q.max? q.awarded/q.max : 0;
+  const cls = ratio>=0.8?'ok':ratio>=0.4?'mid':'bad';
+  return `<div class="qa-block ${cls}">
+    <b>سؤال ${q.number}</b> — ${q.awarded}/${q.max}
+    <div style="margin-top:6px;">إجابتك: ${esc(q.studentAnswerSummary||'')}</div>
+    ${modelAnswer? `<div style="margin-top:4px;color:var(--teal);font-weight:600;">الإجابة الصحيحة: ${esc(modelAnswer)}</div>` : ''}
+    ${q.feedback? `<div class="muted" style="margin-top:4px;">${esc(q.feedback)}</div>` : ''}
+  </div>`;
+}
+function uid(n=6){ const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<n;i++) s+=c[Math.floor(Math.random()*c.length)]; return s; }
+// كيلف أي Promise بمهلة زمنية: إلا طوّل (مثلاً بسبب مشكل CORS فـ Storage) نلغيو الانتظار
+// باش النشر مايبقاش واقف، ونكملو النشر بلا الملف الأصلي بدل ما نخليو الأستاذ(ة) ينتظر بلا حدود.
+function withTimeout(promise, ms, onTimeout){
+  return Promise.race([
+    promise,
+    new Promise((_, reject)=> setTimeout(()=>{ if(onTimeout) onTimeout(); reject(new Error('انتهت مهلة الانتظار')); }, ms))
+  ]);
+}
+function toast(msg, ms=3200){
+  const t = el(`<div class="toast">${esc(msg)}</div>`);
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), ms);
+}
+// يربط حقل إدخال بقائمة اقتراحات مخصصة تظهر تحته عند التركيز عليه (بديل موثوق أكثر لـ <datalist> على الهواتف)
+function attachSuggestions(inputEl, options, onPick){
+  const wrap = document.createElement('div');
+  wrap.className = 'suggest-wrap';
+  inputEl.parentNode.insertBefore(wrap, inputEl);
+  wrap.appendChild(inputEl);
+  const drop = document.createElement('div');
+  drop.className = 'suggest-drop';
+  drop.style.display = 'none';
+  wrap.appendChild(drop);
+
+  function renderDrop(filterText){
+    const f = (filterText||'').trim().toLowerCase();
+    const list = f ? options.filter(o=>o.toLowerCase().includes(f)) : options;
+    if(list.length===0){ drop.style.display='none'; return; }
+    drop.innerHTML = list.map(o=>`<div class="suggest-item" data-val="${esc(o)}">${esc(o)}</div>`).join('');
+    drop.style.display = 'block';
+    drop.querySelectorAll('.suggest-item').forEach(it=>{
+      it.addEventListener('mousedown', (e)=>{ // mousedown fires before blur
+        e.preventDefault();
+        inputEl.value = it.dataset.val;
+        drop.style.display = 'none';
+        if(onPick) onPick(it.dataset.val);
+      });
+    });
+  }
+  inputEl.addEventListener('focus', ()=> renderDrop(inputEl.value));
+  inputEl.addEventListener('input', ()=>{ renderDrop(inputEl.value); if(onPick) onPick(inputEl.value); });
+  inputEl.addEventListener('blur', ()=> setTimeout(()=>{ drop.style.display='none'; }, 150));
+}
+function fileToDataUrl(file){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+// downscale + return {base64, mediaType}
+function dataUrlToResizedBase64(dataUrl, maxDim=1100, mime='image/jpeg', quality=0.72){
+  return new Promise((res)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      let w=img.width, h=img.height;
+      if(w>maxDim || h>maxDim){
+        const ratio = Math.min(maxDim/w, maxDim/h);
+        w = Math.round(w*ratio); h = Math.round(h*ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const out = canvas.toDataURL(mime, quality);
+      res({ base64: out.split(',')[1], mediaType: mime });
+    };
+    img.src = dataUrl;
+  });
+}
+async function fileToImageBlock(file, maxDim=1100){
+  const durl = await fileToDataUrl(file);
+  const {base64, mediaType} = await dataUrlToResizedBase64(durl, maxDim);
+  return { type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } };
+}
+// يحوّل data URL جاهز (مثلاً رسم مقصوص من الاختبار الأصلي) لبلوك صورة بصيغة Claude API
+function dataUrlToImageBlock(dataUrl){
+  const m = /^data:([^;]+);base64,(.*)$/.exec(dataUrl||'');
+  if(!m) return null;
+  return { type:'image', source:{ type:'base64', media_type: m[1], data: m[2] } };
+}
+// نفس الفكرة، لكن كتقبل رابط Storage (https) أيضًا (كي كون الرسم متخزّن هناك بدل base64 مباشر) بجلبه وتحويله
+async function urlOrDataUrlToImageBlock(src){
+  if(!src) return null;
+  if(src.startsWith('data:')) return dataUrlToImageBlock(src);
+  try{
+    const resp = await fetch(src);
+    const blob = await resp.blob();
+    const durl = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(blob); });
+    return dataUrlToImageBlock(durl);
+  }catch(e){ console.error('تعذّر جلب صورة السند للتصحيح', e); return null; }
+}
+// يقص جزءًا من صورة صفحة كاملة حسب إحداثيات نسبية (0 إلى 1) — الناتج بكسلات حقيقية من المصدر الأصلي
+// (بلا أي إعادة رسم)، فقط حدود القص محسوبة تلقائيًا من تقدير الذكاء الاصطناعي لمكان الرسم.
+// نصدّرها كـ JPEG مضغوط (بدل PNG خام) بحد أقصى معقول للأبعاد، لأن كل الرسوم كتتخزن مباشرة داخل
+// مستند الاختبار على Firestore (بلا Storage) وحد المستند 1 ميغابايت بالخطة المجانية.
+function cropPageImage(pageDataUrl, box, maxDim=800){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const x = Math.max(0, (box.x||0)) * img.naturalWidth;
+      const y = Math.max(0, (box.y||0)) * img.naturalHeight;
+      let w = Math.min(1-(box.x||0), (box.width||0.3)) * img.naturalWidth;
+      let h = Math.min(1-(box.y||0), (box.height||0.3)) * img.naturalHeight;
+      if(w<=0 || h<=0){ reject(new Error('bad box')); return; }
+      let outW = w, outH = h;
+      if(outW>maxDim || outH>maxDim){
+        const ratio = Math.min(maxDim/outW, maxDim/outH);
+        outW = Math.round(outW*ratio); outH = Math.round(outH*ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(outW); canvas.height = Math.round(outH);
+      canvas.getContext('2d').drawImage(img, x, y, w, h, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.72));
+    };
+    img.onerror = reject;
+    img.src = pageDataUrl;
+  });
+}
+async function pdfFileToImageBlocks(file, maxPages=14){
+  const buf = await file.arrayBuffer();
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+  const blocks = [];
+  const n = Math.min(pdf.numPages, maxPages);
+  for(let i=1;i<=n;i++){
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({scale: 1.6});
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width; canvas.height = viewport.height;
+    await page.render({canvasContext: canvas.getContext('2d'), viewport}).promise;
+    const durl = canvas.toDataURL('image/png');
+    const {base64, mediaType} = await dataUrlToResizedBase64(durl, 1100, 'image/jpeg', 0.72);
+    blocks.push({ type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } });
+  }
+  return blocks;
+}
+
+function extractJSON(text){
+  let t = text.trim();
+  t = t.replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+  const start = t.indexOf('{'); const end = t.lastIndexOf('}');
+  if(start>=0 && end>start) t = t.slice(start, end+1);
+  return JSON.parse(t);
+}
+
+/* Calls Claude, auto-continuing if truncated by max_tokens, until stop_reason isn't max_tokens or cap hit. */
+async function callClaude(system, userContent, {maxLoops=8}={}){
+  let messages = [{ role:'user', content: userContent }];
+  let full = '';
+  for(let i=0;i<maxLoops;i++){
+    let resp;
+    try{
+      resp = await fetch(getClaudeApiUrl(), {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model:'claude-sonnet-4-6',
+          max_tokens: 1000,
+          system,
+          messages
+        })
+      });
+    }catch(networkErr){
+      if(i < maxLoops-1){
+        await new Promise(r=>setTimeout(r, 1800));
+        continue;
+      }
+      throw new Error('تعذّر الوصول إلى الخادم (' + getClaudeApiUrl() + ') بعد عدة محاولات. يرجى التأكد من استقرار الاتصال بالإنترنت. التفاصيل: ' + networkErr.message);
+    }
+    let data;
+    const rawText = await resp.text();
+    try{ data = JSON.parse(rawText); }
+    catch(parseErr){
+      throw new Error('الخادم رجع جواب غير متوقع (status ' + resp.status + '): ' + rawText.slice(0,300));
+    }
+    if(!resp.ok || data.error){
+      const msg = typeof data.error === 'string' ? data.error : (data.error?.message || JSON.stringify(data));
+      const transient = resp.status===503 || resp.status===429 || resp.status===500 || /high demand|overloaded|unavailable/i.test(msg);
+      if(transient && i < maxLoops-1){
+        await new Promise(r=>setTimeout(r, 1800));
+        continue;
+      }
+      throw new Error('خطأ من الخادم (status ' + resp.status + '): ' + msg);
+    }
+    const textPart = (data.content||[]).map(b=>b.type==='text'?b.text:'').join('');
+    full += textPart;
+    if(data.stop_reason === 'max_tokens'){
+      messages = [
+        { role:'user', content:userContent },
+        { role:'assistant', content: full },
+        { role:'user', content: 'تابع بالضبط من حيث توقفت، بلا ما تعيد شي حاجة سبق كتبتيها، وبلا مقدمات.' }
+      ];
+      continue;
+    }
+    break;
+  }
+  return full;
+}
+
+/* ============================= APP STATE / ROUTER ============================= */
+const app = document.getElementById('app');
+const params = new URLSearchParams(location.search);
+let state = { screen:'landing', examId: params.get('examId') || null };
+
+/* فئة المحتوى الحالية حسب رابط الدخول: ?cat=daily = تمارين يومية، بلا هذه الوسيطة = فروض واختبارات
+   العادية (كما كانت من قبل، توافقًا مع كل الروابط القديمة المنشورة). تُستعمل لتصفية اللائحة
+   المعروضة للتلاميذ ولوحة الأستاذ(ة)، ولوسم كل اختبار/تمرين جديد بفئته عند إنشائه. */
+const CONTENT_CATEGORY = params.get('cat') === 'daily' ? 'daily' : 'test';
+const isDailyMode = CONTENT_CATEGORY === 'daily';
+const CATEGORY_LABELS = {
+  test: { brand:'فروض واختبارات', single:'اختبار', singleWithAl:'الاختبار', plural:'اختبارات', heroSub:'اختبارك… تصحيحك… فورًا بالذكاء الاصطناعي', newBtn:'+ اختبار جديد', fileLabel:'ملف الاختبار (PDF)', filePdfHint:'يُستعمل فقط لاستخراج الأسئلة بالذكاء الاصطناعي، ولن يُخزَّن — التلميذ(ة) سيحصل على نسخة PDF مطابقة تُولَّد تلقائيًا.' },
+  daily: { brand:'تمارين يومية', single:'تمرين', singleWithAl:'التمرين', plural:'تمارين', heroSub:'تمرين اليوم… تصحيحه… فورًا بالذكاء الاصطناعي', newBtn:'+ تمرين يومي جديد', fileLabel:'ملف التمرين (PDF)', filePdfHint:'يُستعمل فقط لاستخراج الأسئلة بالذكاء الاصطناعي، ولن يُخزَّن — التلميذ(ة) سيحصل على نسخة PDF مطابقة تُولَّد تلقائيًا يمكنه طباعتها أو حلّها كتابةً مباشرة.' }
+};
+function catLabels(){ return CATEGORY_LABELS[CONTENT_CATEGORY]; }
+
+function go(screen, extra={}){
+  state = {...state, screen, ...extra};
+  render();
+  window.scrollTo(0,0);
+}
+
+function Header(sub){
+  return `
+  <header class="top">
+    <a href="${location.pathname}${isDailyMode ? '?cat=daily' : ''}" style="text-decoration:none;">
+      <div class="brand">
+        <div class="seal">${isDailyMode ? '📆' : '🪄'}</div>
+        <div>
+          <div class="brand-name">${isDailyMode ? 'التمارين اليومية' : 'المعلّم الذكي'}</div>
+          <div class="brand-sub">${esc(sub||'اختبار • تصحيح فوري')}</div>
+        </div>
+      </div>
+    </a>
+  </header>`;
+}
+
+const HIDDEN_KEY = 'examPlatform_hiddenExams_v1';
+function getHiddenExams(){ return JSON.parse(localStorage.getItem(HIDDEN_KEY)||'[]'); }
+
+/* يُفعَّل هذا العلَم على جهاز الأستاذ(ة) بعد أول دخول ناجح بالرقم السري، فيظهر عندها
+   زر "لوحة الأستاذ(ة)" تلقائيًا على هذا الجهاز فقط — أما التلاميذ فلا يرونه إطلاقًا. */
+const TEACHER_DEVICE_KEY = 'examPlatform_teacherDeviceAuthorized_v1';
+
+/* ============================= LANDING ============================= */
+async function renderLanding(){
+  app.innerHTML = `
+    <div style="display:flex;justify-content:flex-start;margin-bottom:14px;">
+      <a href="index.html" class="backlink">⟵ رجوع للمنصة</a>
+    </div>
+    <div class="hero-frame">
+      <div class="hero-fade"></div>
+      <div class="hero-content">
+      <div class="hero-icon-wrap">
+        <div class="hero-icon-glow"></div>
+        <img src="icon-512.png" class="hero-icon-img" alt="${esc(catLabels().brand)}">
+      </div>
+      <div class="hero-title" id="heroIconTrigger">${esc(catLabels().brand)}</div>
+      <div class="hero-sub">${esc(catLabels().heroSub)}</div>
+      <div class="hero-illustration">
+        <svg viewBox="0 0 480 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="اختبارك، تصحيح بالذكاء الاصطناعي، نتيجة فورية">
+          <defs>
+            <linearGradient id="aiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#3F6350"/>
+              <stop offset="100%" stop-color="#22352B"/>
+            </linearGradient>
+            <marker id="arrowHeadA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#A97F2A"/>
+            </marker>
+            <marker id="arrowHeadB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#3F6350"/>
+            </marker>
+          </defs>
+
+          <!-- Icon 1: exam paper -->
+          <rect x="46" y="29" width="68" height="92" rx="8" fill="#FFFDF7" stroke="#A97F2A" stroke-width="2.5"/>
+          <path d="M96,29 L114,29 L114,47 Z" fill="#E7C878" stroke="#A97F2A" stroke-width="1" stroke-linejoin="round"/>
+          <line x1="58" y1="50" x2="100" y2="50" stroke="#5B6E62" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+          <line x1="58" y1="64" x2="92" y2="64" stroke="#5B6E62" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+          <line x1="58" y1="78" x2="100" y2="78" stroke="#5B6E62" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+          <line x1="58" y1="92" x2="84" y2="92" stroke="#5B6E62" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+          <circle cx="104" cy="101" r="14" fill="#C79A3D" stroke="#FFFDF7" stroke-width="2"/>
+          <line x1="98" y1="107" x2="110" y2="95" stroke="#3c2708" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="110" cy="95" r="1.6" fill="#3c2708"/>
+
+          <!-- arrow 1 -->
+          <path d="M132,75 C155,60 170,60 192,75" fill="none" stroke="#A97F2A" stroke-width="2.5" stroke-dasharray="1 7" stroke-linecap="round" marker-end="url(#arrowHeadA)"/>
+
+          <!-- Icon 2: AI spark -->
+          <circle cx="240" cy="75" r="46" fill="url(#aiGrad)" stroke="#E7C878" stroke-width="2"/>
+          <g class="ill-spark">
+            <path d="M240,46 C242,63 252,73 269,75 C252,77 242,87 240,104 C238,87 228,77 211,75 C228,73 238,63 240,46 Z" fill="#E7C878"/>
+            <path d="M266,48 C266.8,52.5 271,55.5 275,56 C271,56.5 266.8,59.5 266,64 C265.2,59.5 261,56.5 257,56 C261,55.5 265.2,52.5 266,48 Z" fill="#E7C878" opacity="0.85"/>
+            <circle cx="214" cy="100" r="3" fill="#E7C878" opacity="0.85"/>
+          </g>
+
+          <!-- arrow 2 -->
+          <path d="M288,75 C310,60 330,60 352,75" fill="none" stroke="#3F6350" stroke-width="2.5" stroke-dasharray="1 7" stroke-linecap="round" marker-end="url(#arrowHeadB)"/>
+
+          <!-- Icon 3: instant result -->
+          <circle cx="400" cy="75" r="46" fill="#FFFDF7" stroke="#3F6350" stroke-width="3"/>
+          <circle cx="400" cy="75" r="39" fill="none" stroke="#C79A3D" stroke-width="4" stroke-dasharray="4 5" opacity="0.55"/>
+          <path d="M380,76 L394,90 L422,58" fill="none" stroke="#22352B" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- labels -->
+          <text x="80" y="139" text-anchor="middle" font-family="Cairo, sans-serif" font-size="12.5" font-weight="600" fill="#22352B">اختبارك</text>
+          <text x="240" y="139" text-anchor="middle" font-family="Cairo, sans-serif" font-size="12.5" font-weight="600" fill="#22352B">تصحيح ذكي</text>
+          <text x="400" y="139" text-anchor="middle" font-family="Cairo, sans-serif" font-size="12.5" font-weight="600" fill="#22352B">نتيجة فورية</text>
+        </svg>
+      </div>
+      <div class="hero-divider">✦ ⵜ ✦</div>
+      <div class="center" style="margin-top:16px;">${installButtonHTML()}</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0;">📋 ${isDailyMode ? 'تمارينك اليومية' : 'اختباراتك وتمارينك'}</h3>
+      <div id="examsFeed" class="loadbox"><div class="spinner"></div> جارٍ التحميل...</div>
+    </div>
+    <div class="center" style="margin-top:14px;">
+      <a href="#" id="showHidden" class="backlink" style="display:none;">إظهار الاختبارات المخفية</a>
+    </div>
+    <div class="center" style="margin-top:10px;">
+      <a href="#" id="teacherLink" class="backlink">🔑 دخول الأستاذ(ة)</a>
+    </div>
+  `;
+  document.getElementById('teacherLink').onclick = (e)=>{ e.preventDefault(); go('teacherGate'); };
+  wireInstallButton('installAppBtn');
+
+  if(!initFirebase()){ go('setup'); return; }
+  const feed = document.getElementById('examsFeed');
+  const showHiddenLink = document.getElementById('showHidden');
+  let hidden = getHiddenExams();
+  let allDocs = [];
+  let dataLoaded = false;
+
+  function renderFeed(){
+    showHiddenLink.style.display = hidden.length>0 ? 'inline' : 'none';
+    // إلا مازال التحميل الأول من قاعدة البيانات ماكملش، نبينو سبينر بدل "لا توجد نتائج" المضلّلة
+    if(!dataLoaded){
+      feed.innerHTML = '<div class="loadbox"><div class="spinner"></div> جارٍ تحميل الاختبارات...</div>';
+      return;
+    }
+    // تظهر كل الاختبارات والتمارين تلقائيًا فور إضافتها من طرف الأستاذ(ة)، بلا أي بحث أو تصفية،
+    // باستثناء تصفية الفئة (تمارين يومية / فروض واختبارات) حسب رابط الدخول.
+    const matched = allDocs;
+    const visibleDocs = matched.filter(d=>!hidden.includes(d.id));
+    if(matched.length===0){
+      feed.innerHTML = `<p class="muted">لا توجد ${isDailyMode?'تمارين يومية منشورة':'اختبارات أو تمارين منشورة'} حاليًا.</p>`;
+      return;
+    }
+    if(visibleDocs.length===0){
+      feed.innerHTML = '<p class="muted">لا توجد اختبارات ظاهرة (كلها مخفية).</p>';
+      return;
+    }
+    feed.innerHTML = visibleDocs.map(doc=>{
+      const ex = doc.data();
+      return `
+        <div class="exam-card" data-open="${doc.id}">
+          <button data-hide="${doc.id}" title="إخفاء من قائمتي" class="exam-hide">✕</button>
+          <div class="ico">${isDailyMode ? '📆' : '📘'}</div>
+          <div class="t">${esc(ex.title)}</div>
+          <div class="s">${ex.level?esc(ex.level)+' — ':''}${esc(ex.subject||'')}${ex.totalPoints?' — '+ex.totalPoints+' ن':''}</div>
+        </div>`;
+    }).join('');
+    feed.querySelectorAll('[data-open]').forEach(card=>{
+      card.onclick = ()=> go('studentExam', {examId: card.dataset.open});
+    });
+    feed.querySelectorAll('[data-hide]').forEach(btn=>{
+      btn.onclick = (e)=>{
+        e.stopPropagation();
+        const id = btn.dataset.hide;
+        if(!hidden.includes(id)){ hidden.push(id); localStorage.setItem(HIDDEN_KEY, JSON.stringify(hidden)); }
+        renderFeed();
+      };
+    });
+  }
+
+  showHiddenLink.onclick = (e)=>{
+    e.preventDefault();
+    hidden = [];
+    localStorage.setItem(HIDDEN_KEY, JSON.stringify([]));
+    renderFeed();
+  };
+
+  try{
+    let snap;
+    try{
+      // نجبرو القراءة من السيرفر مباشرة (مو الكاش المحلي) باش الاختبار الجديد المنشور يبان مباشرة
+      // بلا تقطّع، حتى لو كان الكاش المحلي قديم أو ناقص.
+      snap = await db.collection('exams').limit(200).get({source:'server'});
+    }catch(serverErr){
+      snap = await db.collection('exams').limit(200).get();
+    }
+    // مهم: الترتيب هنا يتم محليًا (وليس عبر orderBy داخل الاستعلام)، لأن orderBy فـ Firestore
+    // يستبعد تلقائيًا أي مستند ناقص فيه الحقل المرتَّب عليه (createdAt) — وهذا بالضبط ما كان
+    // يجعل بعض الاختبارات المنشورة حديثًا لا تظهر فهاد اللائحة رغم نجاح نشرها فعليًا.
+    allDocs = snap.docs.slice().filter(d=>{
+      const c = d.data().category === 'daily' ? 'daily' : 'test';
+      return c === CONTENT_CATEGORY;
+    }).sort((a,b)=>{
+      const ca = a.data().createdAt, cb = b.data().createdAt;
+      const ta = ca && ca.toMillis ? ca.toMillis() : Infinity;
+      const tb = cb && cb.toMillis ? cb.toMillis() : Infinity;
+      return tb - ta; // الأحدث أولاً؛ الاختبارات بلا تاريخ (نادرة) تُعتبر الأحدث فتظهر فالأعلى
+    });
+    dataLoaded = true;
+    renderFeed();
+  }catch(e){
+    feed.innerHTML = `<p style="color:var(--red);">تعذّر جلب قائمة الاختبارات (${esc(e.message||'')}).</p>`;
+  }
+}
+
+/* ============================= TEACHER PIN GATE ============================= */
+/* الرمز السري ثابت وموحّد (2580) على كل الأجهزة — نفس رمز دخول المشرف فالمنصة الرئيسية،
+   بلا حاجة لإنشاء رمز جديد فأول استعمال على كل جهاز. */
+const TEACHER_PIN = '2580';
+function renderTeacherGate(){
+  app.innerHTML = `
+    ${Header('لوحة الأستاذ(ة)')}
+    <div class="card">
+      <div class="field"><label>🔑 الرمز السري (PIN)</label>
+        <input type="text" id="pinIn" inputmode="numeric" maxlength="8" placeholder="••••"></div>
+      <button class="btn btn-primary btn-block" id="pinGo">دخول</button>
+      <div id="pinErr" style="color:var(--red);margin-top:10px;font-size:13px;"></div>
+    </div>
+    <a class="backlink" id="back" href="#">⟵ رجوع</a>
+  `;
+  document.getElementById('back').onclick=(e)=>{e.preventDefault(); go('landing');};
+  document.getElementById('pinGo').onclick = ()=>{
+    const v = document.getElementById('pinIn').value.trim();
+    if(v && v === TEACHER_PIN){
+      localStorage.setItem(TEACHER_DEVICE_KEY, 'true');
+      if(!initFirebase()){ go('setup'); return; }
+      go('teacherDashboard');
+    } else {
+      document.getElementById('pinErr').textContent = 'الرمز غير صحيح.';
+    }
+  };
+}
+
+/* ============================= FIREBASE / WORKER SETUP SCREEN ============================= */
+function renderSetup(){
+  const currentWorker = localStorage.getItem(WORKER_URL_KEY) || (DEFAULT_CLAUDE_API_URL ? '' : '');
+  app.innerHTML = `
+    ${Header('إعداد التطبيق (لمرة واحدة فقط)')}
+    <div class="card">
+      <h3>1️⃣ رابط خادم التصحيح (Cloudflare Worker)</h3>
+      <p class="muted">الصق هنا رابط الـ Worker الخاص بك (انظر ملف worker.js وتعليمات النشر على Cloudflare).</p>
+      <div class="field">
+        <label>رابط الـ Worker</label>
+        <input type="text" id="workerInput" value="${esc(currentWorker)}" placeholder="https://your-worker-name.your-account.workers.dev/">
+      </div>
+    </div>
+    <div class="card">
+      <h3>2️⃣ 🔥 قاعدة بياناتك (Firebase)</h3>
+      <p class="muted">
+        1. انتقل إلى <b>console.firebase.google.com</b> ⟵ أنشئ مشروعًا جديدًا<br>
+        2. Build ⟵ Firestore Database ⟵ Create database ⟵ Start in production mode<br>
+        3. Project settings ⟵ Your apps ⟵ أيقونة الويب <code>&lt;/&gt;</code> ⟵ Register app<br>
+        4. انسخ الكود الذي سيظهر (firebaseConfig = {...}) والصقه هنا أدناه<br>
+        <span style="color:var(--dim);">✅ هذا كافٍ تمامًا — التطبيق يشتغل بالكامل على الخطة المجانية (Spark)، بلا حاجة لتفعيل Storage أو أي خطة دفع.</span>
+      </p>
+      <div class="field">
+        <label>الصق إعدادات firebaseConfig كاملة هنا</label>
+        <textarea id="cfgInput" rows="8" placeholder='{
+  apiKey: "...",
+  authDomain: "...",
+  projectId: "...",
+  ...
+}'></textarea>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block" id="saveCfg">حفظ ومتابعة</button>
+    <div id="cfgErr" style="color:var(--red);margin-top:10px;font-size:13px;"></div>
+    <a class="backlink" href="${location.pathname}" style="display:block;margin-top:14px;">⟵ رجوع</a>
+  `;
+  document.getElementById('saveCfg').onclick = ()=>{
+    const workerUrl = document.getElementById('workerInput').value.trim();
+    const raw = document.getElementById('cfgInput').value.trim();
+    const errBox = document.getElementById('cfgErr');
+    if(!workerUrl){ errBox.textContent = 'يرجى إدخال رابط الـ Worker.'; return; }
+    if(!raw && !DEFAULT_FIREBASE_CONFIG){ errBox.textContent = 'يرجى لصق إعدادات Firebase.'; return; }
+    try{
+      localStorage.setItem(WORKER_URL_KEY, workerUrl);
+      if(raw){
+        // allow JS-object-literal paste (unquoted keys) by evaluating safely
+        const obj = Function('"use strict"; return (' + raw + ')')();
+        if(!obj || !obj.projectId || !obj.apiKey) throw new Error('bad');
+        localStorage.setItem(FB_KEY, JSON.stringify(obj));
+      }
+      if(initFirebase()){ toast('تم الربط بنجاح ✅'); go('landing'); }
+      else throw new Error('init failed');
+    }catch(e){
+      errBox.textContent = 'تعذّرت قراءة إعدادات Firebase، يرجى التأكد من نسخ المقطع كاملاً.';
+    }
+  };
+}
+
+/* ============================= TEACHER DASHBOARD ============================= */
+const STANDARD_SUBJECTS = ['اللغة العربية','الرياضيات','اللغة الفرنسية','اللغة الإنجليزية','العلوم الطبيعية','الفيزياء','الاجتماعيات','التربية المدنية','التربية الإسلامية'];
+const LEVEL_GROUPS = [
+  { label:'الابتدائي', levels:['السنة الأولى ابتدائي','السنة الثانية ابتدائي','السنة الثالثة ابتدائي','السنة الرابعة ابتدائي','السنة الخامسة ابتدائي'] },
+  { label:'المتوسط', levels:['السنة الأولى متوسط','السنة الثانية متوسط','السنة الثالثة متوسط','السنة الرابعة متوسط'] },
+  { label:'الثانوي', levels:['السنة الأولى ثانوي','السنة الثانية ثانوي','السنة الثالثة ثانوي'] }
+];
+const ALL_LEVELS = LEVEL_GROUPS.flatMap(g=>g.levels);
+function levelSelectHTML(id, selected){
+  return `<select id="${id}">
+    <option value="" ${!selected?'selected':''}>اختر المستوى...</option>
+    ${LEVEL_GROUPS.map(g=>`
+      <optgroup label="${esc(g.label)}">
+        ${g.levels.map(l=>`<option value="${esc(l)}" ${selected===l?'selected':''}>${esc(l)}</option>`).join('')}
+      </optgroup>
+    `).join('')}
+  </select>`;
+}
+function subjectSelectHTML(id, selected){
+  return `<select id="${id}">
+    <option value="" ${!selected?'selected':''}>اختر المادة...</option>
+    ${STANDARD_SUBJECTS.map(s=>`<option value="${esc(s)}" ${selected===s?'selected':''}>${esc(s)}</option>`).join('')}
+  </select>`;
+}
+
+async function renderTeacherDashboard(){
+  app.innerHTML = `
+    ${Header(isDailyMode ? 'لوحة التمارين اليومية' : 'لوحة الأستاذ(ة)')}
+    <div class="card">
+      <div class="tabbar">
+        <button class="tabbtn active" data-tab="exams">${isDailyMode ? 'تمارينـي' : 'اختباراتي'}</button>
+        <button class="tabbtn" data-tab="archive">📄 نتائج تلاميذي</button>
+      </div>
+
+      <div class="tabpanel active" id="tab-exams">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <h3 style="margin:0;">${isDailyMode ? 'تمارينـي اليومية' : 'اختباراتي'}</h3>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost" id="refreshExams" title="تحديث اللائحة" style="padding:10px 14px;">🔄</button>
+            <button class="btn btn-primary" id="newExam">${catLabels().newBtn}</button>
+          </div>
+        </div>
+        <p class="muted" style="margin-top:10px;">جميع ${isDailyMode?'تمارينك اليومية تظهر':'اختباراتك تظهر'} هنا بعناوينها. اضغط على أي ${catLabels().single} لمعاينته أو الحصول على رابط مشاركته أو حذفه.</p>
+        <div id="examsListMine" class="muted" style="margin-top:14px;">جارٍ التحميل...</div>
+      </div>
+
+      <div class="tabpanel" id="tab-archive">
+        <h3 style="margin-top:0;">📄 نتائج تلاميذي</h3>
+        <p class="muted">تظهر هنا حصريًا ${catLabels().plural} التي أجاب عنها تلميذ واحد على الأقل. اختر ${catLabels().singleWithAl} لعرض لائحة التلاميذ وأسماءهم ونقطهم وحلولهم.</p>
+        <div id="examsList" class="muted" style="margin-top:6px;">جارٍ التحميل...</div>
+        <div id="submissionsPanel" style="margin-top:8px;"></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('newExam').onclick = ()=> go('teacherCreate', {draft:newDraft()});
+  document.getElementById('refreshExams').onclick = ()=> loadAllExams();
+
+  const tabBtns = document.querySelectorAll('.tabbtn');
+  tabBtns.forEach(btn=>{
+    btn.onclick = ()=>{
+      tabBtns.forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    };
+  });
+
+  const listBoxMine = document.getElementById('examsListMine');
+  const listBox = document.getElementById('examsList');
+  const subPanel = document.getElementById('submissionsPanel');
+
+  let allExams = [];
+  let examsLoaded = false;
+
+  // تعرض قائمة مسطّحة بالاختبارات مرتبة بعناوينها أبجديًا، بلا أي تجميع أو تصفية بالمستوى/المادة.
+  function renderExamListHTML(list, extraBadge){
+    const sorted = list.slice().sort((a,b)=> (a.title||'').localeCompare(b.title||'', 'ar'));
+    return sorted.map(ex=>`
+      <div class="exam-row" data-topic="${ex.id}" style="cursor:pointer;">
+        <div class="exam-ico">📘</div>
+        <div class="exam-info">
+          <div class="t">${esc(ex.title)}</div>
+          <div class="s">${ex.questionsCount} سؤال — ${ex.totalPoints} نقطة${extraBadge ? extraBadge(ex) : ''}</div>
+        </div>
+        <button class="btn btn-ghost" data-manage="${ex.id}" style="padding:8px 12px;font-size:13px;" title="رابط المشاركة والحذف">⚙️</button>
+      </div>`).join('');
+  }
+
+  // تبويبة "اختباراتي": تعرض كل الاختبارات بلا استثناء وبلا تصفية، والضغط على أي واحد يفتح لوحة إدارته
+  function renderMineList(){
+    if(!examsLoaded){ listBoxMine.innerHTML = '<div class="loadbox"><div class="spinner"></div> جارٍ تحميل الاختبارات...</div>'; return; }
+    if(allExams.length===0){ listBoxMine.innerHTML = `<p class="muted">لا توجد ${catLabels().plural} بعد. اضغط على "${catLabels().newBtn}" للبدء.</p>`; return; }
+    listBoxMine.innerHTML = renderExamListHTML(allExams, ex => ex.submissionsCount ? ` — ✅ ${ex.submissionsCount} إجابة` : ' — لا إجابات بعد');
+    listBoxMine.querySelectorAll('[data-topic]').forEach(rowEl=>{
+      rowEl.onclick = (e)=>{
+        if(e.target.closest('[data-manage]')) return;
+        openExamPanel(rowEl.dataset.topic);
+      };
+    });
+    listBoxMine.querySelectorAll('[data-manage]').forEach(b=>{
+      b.onclick = (e)=>{ e.stopPropagation(); openExamPanel(b.dataset.manage); };
+    });
+  }
+
+  // تبويبة "نتائج تلاميذي": تعرض حصريًا الاختبارات التي لها إجابة واحدة على الأقل، بلا أي تصفية
+  function renderArchiveList(){
+    if(!examsLoaded){ listBox.innerHTML = '<div class="loadbox"><div class="spinner"></div> جارٍ تحميل الاختبارات...</div>'; return; }
+    // نبقي أيضًا الاختبارات اللي تعذّر التحقق من إجاباتها (submissionsLoadFailed) ظاهرة هنا
+    // بدل ما تختفي بصمت — قد يكون عندها إجابات فعلية ما قدرناش نأكدوها بسبب خطأ شبكة عابر.
+    const withSubs = allExams.filter(ex=>ex.submissionsCount>0 || ex.submissionsLoadFailed);
+    if(withSubs.length===0){ subPanel.innerHTML=''; listBox.innerHTML = '<p class="muted">لا توجد اختبارات أنجزها تلاميذ بعد.</p>'; return; }
+    listBox.innerHTML = renderExamListHTML(withSubs, ex => ex.submissionsLoadFailed ? ' — ⚠️ تعذر التحقق من الإجابات، اضغط لإعادة المحاولة' : ` — 👥 ${ex.submissionsCount} تلميذ`);
+    listBox.querySelectorAll('[data-topic]').forEach(rowEl=>{
+      rowEl.onclick = (e)=>{
+        if(e.target.closest('[data-manage]')) return;
+        listBox.querySelectorAll('.exam-row').forEach(r=>r.classList.remove('active-topic'));
+        rowEl.classList.add('active-topic');
+        const ex = allExams.find(x=>x.id===rowEl.dataset.topic);
+        if(ex) openTopicSubmissions(ex);
+      };
+    });
+    listBox.querySelectorAll('[data-manage]').forEach(b=>{
+      b.onclick = (e)=>{ e.stopPropagation(); openExamPanel(b.dataset.manage); };
+    });
+  }
+
+  // يعرض لائحة التلاميذ الذين أجابوا على موضوع معيّن، مع نقطهم وأزرار فتح/تنزيل تصحيحهم PDF
+  // الإجابات محمّلة مسبقًا مع باقي البيانات (انظر loadAllExams) فالعرض هنا فوري بلا أي استعلام إضافي.
+  function openTopicSubmissions(examEntry){
+    if(examEntry.submissionsLoadFailed && (!examEntry.submissions || examEntry.submissions.length===0)){
+      subPanel.innerHTML = `<div class="card">
+        <p style="color:var(--red);">تعذّر التحقق من إجابات "${esc(examEntry.title)}" (خطأ شبكة أو صلاحيات). هذا لا يعني بالضرورة عدم وجود إجابات.</p>
+        <button class="btn btn-ghost" id="retrySubs" style="padding:6px 12px;font-size:13px;">🔄 إعادة المحاولة</button>
+      </div>`;
+      document.getElementById('retrySubs').onclick = async ()=>{
+        subPanel.innerHTML = `<div class="card"><div class="loadbox"><div class="spinner"></div> جارٍ تحميل إجابات التلاميذ...</div></div>`;
+        try{
+          const subsSnap = await withTimeout(db.collection('exams').doc(examEntry.id).collection('submissions').orderBy('score','desc').get(), 15000);
+          examEntry.submissions = subsSnap.docs.map(d=>d.data());
+          examEntry.submissionsCount = examEntry.submissions.length;
+          examEntry.submissionsLoadFailed = false;
+          renderArchiveList();
+          openTopicSubmissions(examEntry);
+        }catch(e){
+          subPanel.innerHTML = `<div class="card"><span style="color:var(--red);">فشلت المحاولة مجددًا (${esc(e.message||'')}).</span> <button class="btn btn-ghost" id="retrySubs2" style="padding:6px 12px;font-size:13px;">🔄 إعادة المحاولة</button></div>`;
+          const b2 = document.getElementById('retrySubs2');
+          if(b2) b2.onclick = ()=> openTopicSubmissions(examEntry);
+        }
+      };
+      return;
+    }
+    if(!examEntry.submissions || examEntry.submissions.length===0){
+      subPanel.innerHTML = `<div class="card"><p class="muted">لا توجد إجابات مرسَلة بعد لموضوع "${esc(examEntry.title)}".</p></div>`;
+      return;
+    }
+    subPanel.innerHTML = `
+      <div class="card">
+        <h3 style="margin-top:0;">📋 ${esc(examEntry.title)} — إجابات التلاميذ (${examEntry.submissions.length})</h3>
+        <table>
+          <thead><tr><th>التلميذ(ة)</th><th>النقطة</th><th>التصحيح</th></tr></thead>
+          <tbody id="subRows"></tbody>
+        </table>
+      </div>`;
+    const tbody = subPanel.querySelector('#subRows');
+    examEntry.submissions.forEach((s,i)=>{
+      const cls = i===0?'rank1':i===1?'rank2':i===2?'rank3':'';
+      const tr = el(`<tr>
+        <td>${esc(s.studentName)}</td>
+        <td class="${cls}" dir="ltr">${s.score}/${s.totalPoints}</td>
+        <td>
+          <button class="btn btn-ghost" data-act="open" style="padding:6px 10px;font-size:13px;">👁️ فتح</button>
+          <button class="btn btn-gold" data-act="dl" style="padding:6px 10px;font-size:13px;">⬇️ تنزيل</button>
+        </td>
+      </tr>`);
+      tbody.appendChild(tr);
+      bindCorrectionButtons(tr, examEntry.examData, s);
+    });
+  }
+
+  // تحميل كل الاختبارات وإجاباتها دفعة واحدة، بمهلة زمنية على كل استعلام حتى لا يبقى العرض
+  // عالقًا فحالة "جارٍ التحميل..." إلى الأبد بسبب بطء أو انقطاع الشبكة. خطأ في اختبار واحد
+  // ما كيوقفش تحميل الباقي (try/catch لكل اختبار على حدة).
+  // مهم: نجيبو كل الاختبارات مباشرة من قاعدة البيانات (وليس من لائحة محفوظة محليًا فهاد
+  // الجهاز)، حتى تظهر جميع الاختبارات — حتى التي أُنشئت من جهاز آخر — بما أن الدخول للوحة
+  // الأستاذ(ة) أصبح بنفس الرمز السري على أي جهاز.
+  async function loadAllExams(){
+    examsLoaded = false;
+    listBoxMine.innerHTML = '<div class="loadbox"><div class="spinner"></div> جارٍ تحميل الاختبارات...</div>';
+    listBox.innerHTML = '<div class="loadbox"><div class="spinner"></div> جارٍ تحميل الاختبارات...</div>';
+    let hadPartialError = false;
+    try{
+      const examsSnap = await withTimeout(db.collection('exams').get(), 15000);
+      const results = await withTimeout(Promise.all(examsSnap.docs.filter(doc=>{
+        const c = doc.data().category === 'daily' ? 'daily' : 'test';
+        return c === CONTENT_CATEGORY;
+      }).map(async doc=>{
+        const id = doc.id;
+        const data = doc.data();
+        let submissions = [];
+        let submissionsLoadFailed = false;
+        try{
+          const subsSnap = await withTimeout(db.collection('exams').doc(id).collection('submissions').orderBy('score','desc').get(), 15000);
+          submissions = subsSnap.docs.map(d=>d.data());
+        }catch(e){
+          console.error('submissions load error', id, e);
+          submissionsLoadFailed = true;
+          hadPartialError = true;
+        }
+        return { id, title: data.title||id, level: data.level||'', subject: data.subject||'بلا مادة', questionsCount: data.questions?.length||0, totalPoints: data.totalPoints||0, examData: data, submissions, submissionsCount: submissions.length, submissionsLoadFailed };
+      })), 30000);
+      allExams = results.filter(Boolean);
+      examsLoaded = true;
+      if(hadPartialError) toast('تعذّر تحميل بعض الاختبارات، تحقق من الاتصال بالإنترنت.');
+    }catch(e){
+      console.error(e);
+      const retryHtml = `<div><span style="color:var(--red);">تعذّر تحميل الاختبارات (${esc(e.message||'')}).</span> <button class="btn btn-ghost" id="retryLoadExams" style="margin-right:8px;padding:6px 12px;font-size:13px;">🔄 إعادة المحاولة</button></div>`;
+      listBoxMine.innerHTML = retryHtml;
+      listBox.innerHTML = '';
+      subPanel.innerHTML = '';
+      const retryBtn = document.getElementById('retryLoadExams');
+      if(retryBtn) retryBtn.onclick = loadAllExams;
+      return;
+    }
+    renderMineList();
+    renderArchiveList();
+  }
+
+  loadAllExams();
+}
+
+// يحذف اختبارًا مع كل إجاباته المرسلة (لا يمكن التراجع عن هذا الإجراء)
+async function deleteExamCompletely(examId){
+  const subRef = db.collection('exams').doc(examId).collection('submissions');
+  const subDocs = await subRef.get();
+  const batchDeletes = subDocs.docs.map(d=>d.ref.delete());
+  await Promise.all(batchDeletes);
+  await db.collection('exams').doc(examId).delete();
+}
+/* ============================= TEACHER: CREATE EXAM WIZARD ============================= */
+function openExamPanel(examId){ go('teacherExamView', {examId}); }
+
+function newDraft(){
+  return { level:'', subject:'', title:'', examFiles:null, keyFiles:null, questions:null, step:1, extra:'', category: CONTENT_CATEGORY };
+}
+
+// أداة قص دقيقة: كتخلي الأستاذ(ة) يختار صفحة من ملف الاختبار الأصلي، ويسحب مربعًا حول الرسم/الشكل
+// المطلوب، ويحفظه كصورة حقيقية (بلا أي إعادة رسم من الذكاء الاصطناعي) — دقة 100% للرسوم العلمية.
+function openImageCropTool(d, onDone, opts={}){
+  const host = document.getElementById('cropModalHost');
+  if(!host) return;
+  let state2 = { pageIdx:null, dragging:false, startX:0, startY:0, curX:0, curY:0 };
+
+  function closeModal(){ host.innerHTML=''; }
+
+  function renderPagePicker(){
+    host.innerHTML = `
+      <div class="modal-bg">
+        <div class="modal" style="max-width:520px;">
+          <h3 style="margin-top:0;">🖼️ اختاري الصفحة التي فيها الرسم/الشكل</h3>
+          <div class="row" style="flex-wrap:wrap;gap:10px;">
+            ${d.examPageImages.map((src,i)=>`
+              <img data-page="${i}" src="${src}" style="width:90px;height:120px;object-fit:cover;border:2px solid var(--line);border-radius:8px;cursor:pointer;">
+            `).join('')}
+          </div>
+          <button class="btn btn-ghost btn-block" id="cropCancel1" style="margin-top:14px;">إلغاء</button>
+        </div>
+      </div>`;
+    host.querySelectorAll('[data-page]').forEach(img=>{
+      img.onclick = ()=>{ state2.pageIdx = +img.dataset.page; renderCropStep(); };
+    });
+    document.getElementById('cropCancel1').onclick = closeModal;
+  }
+
+  function renderCropStep(){
+    host.innerHTML = `
+      <div class="modal-bg">
+        <div class="modal" style="max-width:560px;">
+          <h3 style="margin-top:0;">اسحبي لتحديد مربع حول الرسم/الشكل</h3>
+          <p class="muted" style="font-size:12.5px;">حددي المنطقة بدقة — ستُنسخ كما هي بلا أي تعديل.</p>
+          <div id="cropWrap" style="position:relative;max-width:100%;border:1px solid var(--line);border-radius:8px;overflow:hidden;touch-action:none;">
+            <img id="cropImg" src="${d.examPageImages[state2.pageIdx]}" style="width:100%;display:block;user-select:none;-webkit-user-drag:none;">
+            <div id="cropRectBox" style="position:absolute;border:2px dashed var(--gold-deep);background:rgba(201,152,47,.18);display:none;"></div>
+          </div>
+          <div class="field" style="margin-top:12px;"><label>عنوان الرسم (اختياري)</label><input type="text" id="cropTitle" value="${esc(opts.defaultTitle||'')}" placeholder="مثلاً: الشكل 1"></div>
+          <div class="field"><label>يظهر قبل السؤال رقم</label><input type="number" min="1" id="cropBefore" value="${opts.defaultBefore || d.questions[0]?.number || 1}"></div>
+          <div class="row" style="margin-top:8px;">
+            <button class="btn btn-primary" id="cropConfirm" disabled>✅ استخدام هذا المقطع</button>
+            <button class="btn btn-ghost" id="cropBack">⟵ صفحة أخرى</button>
+          </div>
+        </div>
+      </div>`;
+    const wrap = document.getElementById('cropWrap');
+    const img = document.getElementById('cropImg');
+    const rectBox = document.getElementById('cropRectBox');
+    const confirmBtn = document.getElementById('cropConfirm');
+    document.getElementById('cropBack').onclick = renderPagePicker;
+
+    function getPos(e){
+      const r = wrap.getBoundingClientRect();
+      return { x: Math.min(Math.max(e.clientX - r.left,0), r.width), y: Math.min(Math.max(e.clientY - r.top,0), r.height) };
+    }
+    function onDown(e){
+      const p = getPos(e);
+      state2.dragging = true; state2.startX = p.x; state2.startY = p.y; state2.curX = p.x; state2.curY = p.y;
+      rectBox.style.display = 'block';
+      updateRectBox();
+      wrap.setPointerCapture && e.pointerId!=null && wrap.setPointerCapture(e.pointerId);
+    }
+    function onMove(e){
+      if(!state2.dragging) return;
+      const p = getPos(e);
+      state2.curX = p.x; state2.curY = p.y;
+      updateRectBox();
+    }
+    function onUp(){
+      state2.dragging = false;
+      const w = Math.abs(state2.curX-state2.startX), h = Math.abs(state2.curY-state2.startY);
+      confirmBtn.disabled = !(w>10 && h>10);
+    }
+    function updateRectBox(){
+      const x = Math.min(state2.startX,state2.curX), y = Math.min(state2.startY,state2.curY);
+      const w = Math.abs(state2.curX-state2.startX), h = Math.abs(state2.curY-state2.startY);
+      rectBox.style.left=x+'px'; rectBox.style.top=y+'px'; rectBox.style.width=w+'px'; rectBox.style.height=h+'px';
+    }
+    wrap.addEventListener('pointerdown', onDown);
+    wrap.addEventListener('pointermove', onMove);
+    wrap.addEventListener('pointerup', onUp);
+    wrap.addEventListener('pointerleave', onUp);
+
+    confirmBtn.onclick = ()=>{
+      // نحولو إحداثيات المربع من بيكسلات العرض على الشاشة لبيكسلات الصورة الحقيقية (natural)، باش القص يكون دقيق
+      const dispRect = wrap.getBoundingClientRect();
+      const scaleX = img.naturalWidth / dispRect.width;
+      const scaleY = img.naturalHeight / dispRect.height;
+      const x = Math.min(state2.startX,state2.curX)*scaleX;
+      const y = Math.min(state2.startY,state2.curY)*scaleY;
+      const w = Math.abs(state2.curX-state2.startX)*scaleX;
+      const h = Math.abs(state2.curY-state2.startY)*scaleY;
+      let outW = w, outH = h;
+      const maxDim = 800;
+      if(outW>maxDim || outH>maxDim){
+        const ratio = Math.min(maxDim/outW, maxDim/outH);
+        outW = Math.round(outW*ratio); outH = Math.round(outH*ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(outW); canvas.height = Math.round(outH);
+      canvas.getContext('2d').drawImage(img, x, y, w, h, 0, 0, canvas.width, canvas.height);
+      const imageData = canvas.toDataURL('image/jpeg', 0.72);
+      const title = document.getElementById('cropTitle').value.trim();
+      const beforeQuestion = parseInt(document.getElementById('cropBefore').value)||1;
+      if(opts.replaceIndex!=null){
+        d.passages[opts.replaceIndex] = { type:'image', title, imageData, beforeQuestion };
+      } else {
+        d.passages.push({ type:'image', title, imageData, beforeQuestion });
+      }
+      closeModal();
+      onDone();
+      toast('تمت إضافة الرسم ✅');
+    };
+  }
+
+  renderPagePicker();
+}
+
+function renderTeacherCreate(){
+  const d = state.draft;
+  const editing = !!d.editingExamId;
+  app.innerHTML = `
+    ${Header(editing? `تعديل ${catLabels().single}` : `${catLabels().single} جديد`)}
+    <div class="card">
+      <div class="pill">${editing? 'تعديل': 'الخطوة '+d.step+' من 3'}</div>
+      <div id="stepBox" style="margin-top:14px;"></div>
+    </div>
+    <a class="backlink" id="backDash" href="#">⟵ رجوع</a>
+  `;
+  document.getElementById('backDash').onclick = (e)=>{
+    e.preventDefault();
+    if(editing) go('teacherExamView', {examId: d.editingExamId});
+    else go('teacherDashboard');
+  };
+  const box = document.getElementById('stepBox');
+
+  if(d.step===1){
+    box.innerHTML = `
+      <div class="field"><label>عنوان ${catLabels().single}</label>
+        <input type="text" id="titleIn" value="${esc(d.title)}" placeholder="${isDailyMode ? 'مثلاً: تمرين يوم الاثنين — القواعد' : 'مثلاً: اختبار الفصل الثالث'}"></div>
+      <div class="field"><label>📄 ${catLabels().fileLabel}</label>
+        <p class="muted" style="margin-top:-4px;margin-bottom:8px;font-size:12px;">${catLabels().filePdfHint}</p>
+        <input type="file" id="examPdf" accept="application/pdf"></div>
+      <div class="field"><label>✅ ملف الحل النموذجي (PDF) (مع توزيع النقاط)</label>
+        <input type="file" id="keyPdf" accept="application/pdf"></div>
+      <button class="btn btn-primary btn-block" id="toStep2">استخراج الأسئلة بالذكاء الاصطناعي ⟵</button>
+    `;
+    document.getElementById('toStep2').onclick = async ()=>{
+      d.title = document.getElementById('titleIn').value.trim();
+      const examFile = document.getElementById('examPdf').files[0];
+      const keyFile = document.getElementById('keyPdf').files[0];
+      if(!d.title){ toast(`يرجى تعبئة حقل عنوان ${catLabels().single}`); return; }
+      if(!examFile || !keyFile){ toast(`يجب رفع ${catLabels().fileLabel} وملف الحل النموذجي`); return; }
+      d.examFile = examFile;
+      box.innerHTML = `<div class="loadbox"><div class="spinner"></div> جارٍ قراءة الملفات واستخراج الأسئلة، يرجى الانتظار قليلاً...</div>`;
+      try{
+        const examImgs = await pdfFileToImageBlocks(examFile);
+        const keyImgs = await pdfFileToImageBlocks(keyFile);
+        // نحتفظو بصور صفحات ملف الاختبار الأصلي (كيفما هي) باش يقدر الأستاذ(ة) يقص منها رسومًا/أشكالًا
+        // بدقة 100% (بلا أي إعادة رسم من الذكاء الاصطناعي، اللي كيبقى معرّض للأخطاء فالرسوم العلمية).
+        d.examPageImages = examImgs.map(b=>`data:${b.source.media_type};base64,${b.source.data}`);
+        const content = [
+          {type:'text', text:'هذه صور صفحات ملف الاختبار (الأسئلة):'},
+          ...examImgs,
+          {type:'text', text:'وهذه صور صفحات ملف الحل النموذجي وتوزيع النقاط:'},
+          ...keyImgs,
+          {type:'text', text:'استخرج البيانات بصيغة JSON فقط بلا أي مقدمة ولا علامات ```.'}
+        ];
+        const system = `أنت مساعد يستخرج بيانات الاختبارات المدرسية من الصور، ويجب أن يحافظ على نفس ترتيب الظهور الأصلي في ملف الاختبار (وضعية/سند ثم أسئلتها، ثم الوضعية التالية وأسئلتها، وهكذا) بالضبط كما هو مطبوع. أخرج JSON بهذا الشكل بالضبط:
+{"subject":"...","title":"...","totalPoints":20,"passages":[{"type":"text","title":"النص/الوثيقة","text":"النص كاملاً كما هو مكتوب","beforeQuestion":1}],"questions":[{"number":1,"text":"نص السؤال (أو النص التمهيدي المشترك إن كان للسؤال أجزاء)","points":2,"modelAnswer":"الحل النموذجي الكامل لهذا السؤال بكل أجزائه","expectedLines":3,"parts":[],"answerTable":null}]}
+- passage من نوع رسم/شكل/مخطط (مهم جدًا): إذا لاحظتِ رسمًا علميًا أو مخططًا أو شكلًا بيانيًا أو صورة (مثل رسم توضيحي فالعلوم الطبيعية أو دارة كهربائية فالفيزياء أو خريطة أو رسم بياني) لا يمكن نسخه كنص، **لا تحاولي وصفه أو إعادة رسمه أو تخمين محتواه إطلاقًا** لأن هذا معرّض لأخطاء خطيرة فمادة علمية. بدل ذلك حددي فقط مكانه فالصفحة (التطبيق سيقص الصورة الحقيقية تلقائيًا من نفس البكسلات الأصلية، بلا أي إعادة رسم): {"type":"image","title":"عنوان قصير للرسم إن وجد","pageIndex":0,"box":{"x":0.1,"y":0.2,"width":0.35,"height":0.25},"beforeQuestion":N}. حيث pageIndex هو رقم صفحة ملف الاختبار (0 = الصفحة الأولى) التي يظهر فيها الرسم، وbox إحداثيات نسبية من 0 إلى 1 (نسبة لأبعاد الصفحة الكاملة: x,y زاوية أعلى-يسار، width/height الأبعاد) تحيط بالرسم بأكمله بدقة. اجعلي المربع يشمل الرسم كاملاً مع هامش بسيط حوله (أفضل من اقتطاع جزء منه). إذا لم تكوني متأكدة إطلاقًا من موقعه استعملي {"type":"note","title":"يوجد رسم/شكل هنا يجب إضافته يدويًا","beforeQuestion":N} كحل احتياطي فقط.
+- passages: أي نص قرائي أو وثيقة أو مقطع (نص أدبي، وثيقة تاريخية، خريطة موصوفة نصيًا، وضعية إدماجية بسياقها وسندها...) يظهر في ملف الاختبار ويجب على التلميذ الاعتماد عليه للإجابة عن سؤال أو أكثر. انسخه حرفيًا وكاملاً كما هو مكتوب، بلا تلخيص ولا تغيير. إن لم يوجد أي نص من هذا النوع أرجع مصفوفة فارغة [].
+- passage من نوع جدول مرجعي (مثل جدول "Aide-toi du tableau" أو أي جدول معلومات معمّر مسبقًا يعتمد عليه التلميذ): استعملي {"type":"table","title":"...","headers":["عمود1","عمود2",...],"rows":[{"cells":["قيمة1","قيمة2",...]},...],"beforeQuestion":N} بدل الحقل text. لاحظي أن كل صف هو كائن فيه "cells" (وليس مصفوفة مباشرة). انسخي كل خلية حرفيًا كما هي مكتوبة فالجدول الأصلي، بنفس عدد الأعمدة والصفوف بالضبط.
+- beforeQuestion (إلزامي لكل passage): رقم أول سؤال يظهر مباشرة بعد هذا النص/الوثيقة/الجدول في الترتيب الأصلي للاختبار (أي أن هذا العنصر يجب أن يُطبع قبل السؤال رقم كذا). هذا الحقل أساسي جدًا للحفاظ على ترتيب الاختبار الأصلي: كل وضعية/سند لها أسئلتها الخاصة التي تليها مباشرة قبل الوضعية التالية — لا تجمّعي كل النصوص في مكان واحد ولا كل الأسئلة في مكان آخر.
+- answerTable (اختياري، للأسئلة فقط): إن كان السؤال عبارة عن جدول (مثل "أكمل الجدول التالي")، ضعي {"headers":["عمود1","عمود2",...],"rows":[{"cells":["محتوى الخلية أو فارغة"]}]}. **مهم جدًا:** انسخي محتوى كل خلية كما هو بالضبط من الجدول الأصلي — إن كانت الخلية معمّرة (مثلاً عمود "السؤال" فيه سؤال فرعي مكتوب) انسخي نصها حرفيًا، وإن كانت فارغة يخليها التلميذ يملؤها اتركيها سلسلة نصية فارغة "". لا تفترضي أن كل الخلايا فارغة — كثير من الجداول فيها عمود معمّر (كالسؤال) وعمود فارغ (مكان الجواب) بنفس الصف. عدد الخلايا فكل صف يطابق عدد الأعمدة بالضبط. إن كان السؤال عاديًا بلا جدول اتركي answerTable = null، ولا تستعملي parts وanswerTable معًا فنفس السؤال.
+- parts (اختياري): إن كان السؤال يتكون من جزءين أو أكثر منفصلين، كل جزء يحتاج فراغ إجابة مستقل (مثلاً تمارين اللغات: a) ... b) ...، أو "أعد ترتيب..." + "أكمل بـ..."، أو أي سؤال فيه بندين واضحين كل بند له مكان كتابة خاص به في الورقة الأصلية)، ضع كل جزء ككائن في المصفوفة: {"text":"نص الجزء","expectedLines":2}. اترك "text" الرئيسي للسؤال كنص تمهيدي مشترك فقط (أو فارغًا إن ما كانش هناك تمهيد)، ولا تكرري نص الأجزاء داخل الحقل text. مهم: احذفي أي ترقيم أو حرف أصلي فبداية كل جزء (مثل "a-" أو "a)" أو "1)" أو "-") لأن التطبيق سيرقّم الأجزاء تلقائيًا بحروف (a, b, c...) — اكتبي فقط نص الجزء بلا الترقيم الأصلي. إن كان السؤال بجزء واحد، اترك parts مصفوفة فارغة [] واستعملي text وexpectedLines العاديين.
+- text: نص السؤال بلا ترقيمه الأصلي فبدايته (مثل "1." أو "1)" أو "-")، لأن التطبيق كيعرض "السؤال N" فسطر منفصل تلقائيًا فوق النص.
+- expectedLines: عدد الأسطر المناسبة لكتابة الجواب يدويًا (بين 1 و8) حسب طول الحل النموذجي.
+- اربط كل سؤال بنقطته وحله من ملف الحل النموذجي بالترتيب ورقم السؤال.
+- لا تكتب أي نص خارج الـ JSON.`;
+        const raw = await callClaude(system, content);
+        const parsed = extractJSON(raw);
+        d.questions = (parsed.questions || []).map(q=>({ ...q, parts: q.parts || [], answerTable: normalizeAnswerTable(q.answerTable) }));
+        let rawPassages = (parsed.passages || []).map((p,i)=>({ ...p, type: p.type || 'text', beforeQuestion: p.beforeQuestion ?? 1 }));
+        // نطبّع صفوف الجداول لصيغة {cells:[...]} (بدل مصفوفة داخل مصفوفة) لأن Firestore ما كيقبلش
+        // مصفوفات متداخلة مباشرة؛ هاذ التطبيع يشتغل سواء رجّع الذكاء الاصطناعي الصيغة القديمة أو الجديدة.
+        rawPassages = rawPassages.map(p=>{
+          if(p.type==='table' && Array.isArray(p.rows)){
+            const normRows = p.rows.map(r=> Array.isArray(r) ? { cells: r } : { cells: r?.cells || [] });
+            return { ...p, rows: normRows };
+          }
+          return p;
+        });
+        // نقص تلقائيًا كل رسم/شكل حددو الذكاء الاصطناعي بإحداثياته من صورة الصفحة الأصلية —
+        // بلا أي تدخل يدوي، والمحتوى البصري نفسه حقيقي 100% (بكسلات من الملف الأصلي، بلا إعادة رسم).
+        if(d.examPageImages && d.examPageImages.length){
+          box.innerHTML = `<div class="loadbox"><div class="spinner"></div> جارٍ قص الرسوم والأشكال تلقائيًا...</div>`;
+          rawPassages = await Promise.all(rawPassages.map(async p=>{
+            if(p.type==='image' && p.box && d.examPageImages[p.pageIndex]!=null){
+              try{
+                const imageData = await cropPageImage(d.examPageImages[p.pageIndex], p.box);
+                return { type:'image', title:p.title||'', imageData, beforeQuestion:p.beforeQuestion };
+              }catch(e){
+                console.error('auto-crop failed, falling back to manual note', e);
+                return { type:'note', title:'تعذّر القص التلقائي لهذا الرسم — أضيفيه يدويًا', beforeQuestion:p.beforeQuestion };
+              }
+            }
+            return p;
+          }));
+        }
+        d.passages = rawPassages;
+        if(!d.subject) d.subject = parsed.subject || d.subject;
+        if(!d.title) d.title = parsed.title || d.title;
+        d.step = 2;
+        renderTeacherCreate();
+      }catch(e){
+        console.error(e);
+        box.innerHTML = `<div style="color:var(--red);background:var(--bg2);border:1px solid var(--red);border-radius:10px;padding:12px;font-size:13px;word-break:break-word;line-height:1.8;">
+          <b>تفاصيل الخطأ (يرجى إرسال لقطة شاشة لهذا الصندوق):</b><br>${esc(e.message||'خطأ غير معروف')}
+        </div>
+        <button class="btn btn-ghost" id="manualQ" style="margin-top:10px;">إدخال الأسئلة يدويًا</button>
+        <button class="btn btn-primary" id="retry" style="margin-top:10px;">إعادة المحاولة</button>`;
+        document.getElementById('retry').onclick = ()=>renderTeacherCreate();
+        document.getElementById('manualQ').onclick = ()=>{ d.questions=[]; d.passages=[]; d.step=2; renderTeacherCreate(); };
+      }
+    };
+  }
+
+  else if(d.step===2){
+    if(!d.questions) d.questions = [];
+    if(!d.passages) d.passages = [];
+    box.innerHTML = `
+      <h3>النصوص والوثائق المرفقة</h3>
+      <p class="muted">النصوص أو الوثائق التي يجب على التلميذ(ة) الاعتماد عليها للإجابة — ستظهر في ورقة الاختبار قبل الأسئلة.</p>
+      <div id="plist"></div>
+      <div class="row">
+        <button class="btn btn-ghost" id="addP">+ إضافة نص/وثيقة يدويًا</button>
+        ${d.examPageImages && d.examPageImages.length ? `<button class="btn btn-gold" id="addImgBtn">🖼️ إضافة رسم/شكل من الملف الأصلي</button>` : ''}
+      </div>
+      <div id="cropModalHost"></div>
+      <div class="divider"></div>
+      <h3>مراجعة وتعديل الأسئلة</h3>
+      <p class="muted">يمكنك تعديل النص أو النقطة أو الحل النموذجي، أو إضافة/حذف سؤال.</p>
+      <div id="qlist"></div>
+      <button class="btn btn-ghost" id="addQ">+ إضافة سؤال يدويًا</button>
+      <div class="divider"></div>
+      <div class="field">
+        <label>🤖 أو اطلب من الذكاء الاصطناعي إعداد سؤال/تمرين معيّن</label>
+        <textarea id="aiExtra" rows="2" placeholder="مثلاً: أضف سؤالاً عن جمع المؤنث السالم بنقطة 2"></textarea>
+        <button class="btn btn-gold" id="genQ" style="margin-top:8px;">توليد السؤال</button>
+      </div>
+      <div class="divider"></div>
+      <div class="row">
+        <div><label>مجموع النقاط الحالي</label><div class="pill" id="totalPts">0</div></div>
+      </div>
+      <button class="btn btn-primary btn-block" id="toStep3" style="margin-top:16px;">التالي: النشر ⟵</button>
+    `;
+    renderPList();
+    renderQList();
+    function renderPList(){
+      const plist = document.getElementById('plist');
+      const ltr = dirAttr(d.subject);
+      plist.innerHTML = d.passages.map((p,i)=>{
+        if(p.type==='note'){
+          return `
+        <div class="pcard" data-i="${i}" style="border-color:var(--red);background:rgba(181,67,42,.06);">
+          <div class="qhead">
+            <span class="qnum" style="background:rgba(181,67,42,.15);border-color:var(--red);color:var(--red);">⚠️ رسم/شكل مفقود ${i+1}</span>
+            <button class="btn btn-danger" data-delp="${i}" style="padding:6px 12px;">حذف</button>
+          </div>
+          <p class="muted" style="color:var(--red);">${esc(p.title||'يوجد رسم/شكل هنا فالاختبار الأصلي يجب إضافته يدويًا كصورة.')}</p>
+          <div class="row">
+            ${d.examPageImages && d.examPageImages.length ? `<button class="btn btn-gold" data-resolvenote="${i}">🖼️ أضيفي الصورة الآن</button>`:''}
+          </div>
+          <div class="field" style="margin-top:10px;"><label>يظهر قبل السؤال رقم</label><input type="number" min="1" class="p-before" value="${p.beforeQuestion??1}"></div>
+        </div>`;
+        }
+        if(p.type==='image'){
+          return `
+        <div class="pcard" data-i="${i}">
+          <div class="qhead">
+            <span class="qnum">🖼️ رسم/شكل ${i+1} (تلقائي)</span>
+            <button class="btn btn-danger" data-delp="${i}" style="padding:6px 12px;">حذف</button>
+          </div>
+          <div class="field"><label>عنوان الرسم (اختياري)</label><input type="text" class="p-title"${ltr} value="${esc(p.title||'')}" placeholder="مثلاً: الشكل 1"></div>
+          <img src="${p.imageData}" style="max-width:100%;border-radius:8px;border:1px solid var(--line);margin-bottom:10px;">
+          ${d.examPageImages && d.examPageImages.length ? `<button class="btn btn-ghost" data-recrop="${i}" style="padding:6px 12px;font-size:12.5px;margin-bottom:10px;">✂️ القص ناقص دقة؟ صححيه يدويًا</button>`:''}
+          <div class="field"><label>يظهر قبل السؤال رقم</label><input type="number" min="1" class="p-before" value="${p.beforeQuestion??1}"></div>
+        </div>`;
+        }
+        const isTable = p.type==='table';
+        return `
+        <div class="pcard" data-i="${i}">
+          <div class="qhead">
+            <span class="qnum">${isTable?'جدول':'نص/وثيقة'} ${i+1}</span>
+            <button class="btn btn-danger" data-delp="${i}" style="padding:6px 12px;">حذف</button>
+          </div>
+          <div class="field"><label>عنوان النص/الوثيقة (اختياري)</label><input type="text" class="p-title"${ltr} value="${esc(p.title||'')}" placeholder="مثلاً: النص القرائي"></div>
+          <button class="btn btn-ghost" data-toggletype="${i}" style="padding:6px 12px;font-size:12.5px;margin-bottom:10px;">${isTable? '↩️ تحويل لنص عادي':'⊞ تحويل لجدول'}</button>
+          ${isTable? `
+            <div class="table-editor" style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+                <thead><tr>
+                  ${(p.headers||[]).map((h,ci)=>`<th style="padding:3px;"><input type="text"${ltr} class="p-head" data-ci="${ci}" value="${esc(h)}" style="width:100%;font-size:12.5px;padding:6px;" placeholder="عمود ${ci+1}"></th>`).join('')}
+                  <th style="width:1%;"><button class="btn btn-danger" data-delcol style="padding:4px 8px;font-size:11px;">✕عمود</button></th>
+                </tr></thead>
+                <tbody>
+                  ${(p.rows||[]).map((row,ri)=>`
+                    <tr data-ri="${ri}">
+                      ${(p.headers||[]).map((h,ci)=>`<td style="padding:3px;"><input type="text"${ltr} class="p-cell" data-ri="${ri}" data-ci="${ci}" value="${esc(row.cells?.[ci]??'')}" style="width:100%;font-size:12.5px;padding:6px;"></td>`).join('')}
+                      <td><button class="btn btn-danger" data-delrow="${ri}" style="padding:4px 8px;font-size:11px;">✕صف</button></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+              <div class="row">
+                <button class="btn btn-ghost" data-addrow="${i}" style="padding:7px 12px;font-size:12.5px;">+ صف</button>
+                <button class="btn btn-ghost" data-addcol="${i}" style="padding:7px 12px;font-size:12.5px;">+ عمود</button>
+              </div>
+            </div>
+          `: `
+            <div class="field"><label>النص كاملاً</label><textarea class="p-text"${ltr} rows="5">${esc(p.text||'')}</textarea></div>
+          `}
+          <div class="field" style="margin-top:10px;"><label>يظهر قبل السؤال رقم (لضبط ترتيبه كما في الاختبار الأصلي)</label><input type="number" min="1" class="p-before" value="${p.beforeQuestion??1}"></div>
+        </div>
+      `;
+      }).join('') || `<p class="muted">لا يوجد أي نص أو وثيقة بعد.</p>`;
+      plist.querySelectorAll('.pcard').forEach(card=>{
+        const i = +card.dataset.i;
+        const titleEl = card.querySelector('.p-title');
+        if(titleEl) titleEl.oninput = e=>d.passages[i].title = e.target.value;
+        const textEl = card.querySelector('.p-text');
+        if(textEl) textEl.oninput = e=>d.passages[i].text = e.target.value;
+        card.querySelector('.p-before').oninput = e=>d.passages[i].beforeQuestion = parseInt(e.target.value)||1;
+        card.querySelectorAll('.p-head').forEach(inp=>{
+          inp.oninput = e=>{ d.passages[i].headers[+inp.dataset.ci] = e.target.value; };
+        });
+        card.querySelectorAll('.p-cell').forEach(inp=>{
+          inp.oninput = e=>{ d.passages[i].rows[+inp.dataset.ri].cells[+inp.dataset.ci] = e.target.value; };
+        });
+        const toggleBtn = card.querySelector('[data-toggletype]');
+        if(toggleBtn) toggleBtn.onclick = ()=>{
+          const p = d.passages[i];
+          if(p.type==='table'){ p.type='text'; if(!p.text) p.text=''; }
+          else { p.type='table'; if(!p.headers) p.headers=['عمود 1','عمود 2']; if(!p.rows) p.rows=[{cells:['','']}]; }
+          renderPList();
+        };
+        const addRowBtn = card.querySelector('[data-addrow]');
+        if(addRowBtn) addRowBtn.onclick = ()=>{
+          const p = d.passages[i];
+          p.rows.push({cells: p.headers.map(()=>'')});
+          renderPList();
+        };
+        const addColBtn = card.querySelector('[data-addcol]');
+        if(addColBtn) addColBtn.onclick = ()=>{
+          const p = d.passages[i];
+          p.headers.push('عمود '+(p.headers.length+1));
+          p.rows.forEach(r=>r.cells.push(''));
+          renderPList();
+        };
+        const delColBtn = card.querySelector('[data-delcol]');
+        if(delColBtn) delColBtn.onclick = ()=>{
+          const p = d.passages[i];
+          if(p.headers.length<=1) return;
+          p.headers.pop();
+          p.rows.forEach(r=>r.cells.pop());
+          renderPList();
+        };
+        card.querySelectorAll('[data-delrow]').forEach(btn=>{
+          btn.onclick = ()=>{
+            const p = d.passages[i];
+            if(p.rows.length<=1) return;
+            p.rows.splice(+btn.dataset.delrow,1);
+            renderPList();
+          };
+        });
+      });
+      plist.querySelectorAll('[data-delp]').forEach(btn=>{
+        btn.onclick = ()=>{ d.passages.splice(+btn.dataset.delp,1); renderPList(); };
+      });
+      plist.querySelectorAll('[data-resolvenote]').forEach(btn=>{
+        btn.onclick = ()=>{
+          const idx = +btn.dataset.resolvenote;
+          openImageCropTool(d, ()=>{ d.passages.splice(idx,1); renderPList(); });
+        };
+      });
+      plist.querySelectorAll('[data-recrop]').forEach(btn=>{
+        btn.onclick = ()=>{
+          const idx = +btn.dataset.recrop;
+          const p = d.passages[idx];
+          openImageCropTool(d, renderPList, { replaceIndex: idx, defaultTitle: p.title, defaultBefore: p.beforeQuestion });
+        };
+      });
+    }
+    function renderQList(){
+      const qlist = document.getElementById('qlist');
+      const ltr = dirAttr(d.subject);
+      qlist.innerHTML = d.questions.map((q,i)=>{
+        const parts = q.parts||[];
+        const hasParts = parts.length>0;
+        const hasTable = !!(q.answerTable && q.answerTable.headers && Array.isArray(q.answerTable.rows) && q.answerTable.rows.length);
+        return `
+        <div class="qcard" data-i="${i}">
+          <div class="qhead">
+            <span class="qnum">سؤال ${i+1}</span>
+            <button class="btn btn-danger" data-del="${i}" style="padding:6px 12px;">حذف</button>
+          </div>
+          <div class="field"><label>${hasParts? 'نص تمهيدي مشترك (اختياري)':'نص السؤال'}</label><textarea class="q-text"${ltr} rows="2">${esc(q.text||'')}</textarea></div>
+          <div class="row">
+            <div class="field"><label>النقطة</label><input type="number" step="0.25" class="q-points" value="${q.points??1}"></div>
+            ${(hasParts||hasTable)? '' : `<div class="field"><label>عدد أسطر الإجابة (للطباعة)</label><input type="number" class="q-lines" value="${q.expectedLines??3}"></div>`}
+          </div>
+          <div class="field"><label>الحل النموذجي</label><textarea class="q-answer"${ltr} rows="2">${esc(q.modelAnswer||'')}</textarea></div>
+          ${hasTable? `
+          <div class="field">
+            <label>جدول السؤال (اتركي أي خلية فارغة لتكون مكان كتابة إجابة التلميذ، أو عمّريها بنص ثابت كسؤال فرعي)</label>
+            <div style="background:var(--panel-solid);border:1px solid var(--line);border-radius:12px;padding:10px;overflow-x:auto;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span class="pill">أعمدة وصفوف الجدول</span>
+                <button class="btn btn-danger" data-deltable="${i}" style="padding:4px 10px;font-size:12px;">🗑️ حذف الجدول</button>
+              </div>
+              <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+                <thead><tr>
+                  ${q.answerTable.headers.map((h,ci)=>`<th style="padding:3px;"><input type="text"${ltr} class="at-head" data-ci="${ci}" value="${esc(h)}" style="width:100%;font-size:12.5px;padding:6px;" placeholder="عمود ${ci+1}"></th>`).join('')}
+                  <th style="width:1%;"><button class="btn btn-danger" data-atdelcol style="padding:4px 8px;font-size:11px;">✕عمود</button></th>
+                </tr></thead>
+                <tbody>
+                  ${q.answerTable.rows.map((row,ri)=>`
+                    <tr data-ri="${ri}">
+                      ${q.answerTable.headers.map((h,ci)=>`<td style="padding:3px;"><input type="text"${ltr} class="at-cell" data-ri="${ri}" data-ci="${ci}" value="${esc(row.cells?.[ci]??'')}" placeholder="فارغ = مكان الإجابة" style="width:100%;font-size:12.5px;padding:6px;"></td>`).join('')}
+                      <td><button class="btn btn-danger" data-atdelrow="${ri}" style="padding:4px 8px;font-size:11px;">✕صف</button></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+              <div class="row">
+                <button class="btn btn-ghost" data-ataddrow="${i}" style="padding:7px 12px;font-size:12.5px;">+ صف</button>
+                <button class="btn btn-ghost" data-ataddcol="${i}" style="padding:7px 12px;font-size:12.5px;">+ عمود</button>
+              </div>
+            </div>
+          </div>
+          ` : `
+          <button class="btn btn-ghost" data-addtable="${i}" style="padding:6px 12px;font-size:12.5px;margin-bottom:6px;">⊞ هذا السؤال فيه جدول (سؤال فرعي وجواب)</button>
+          `}
+          <div class="field">
+            <label>أجزاء السؤال (كل جزء بمكان إجابة مستقل فالطباعة)</label>
+            <div class="parts-box">
+              ${parts.map((pt,pi)=>`
+                <div class="part-row" data-pi="${pi}" style="background:var(--panel-solid);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span class="pill">جزء ${String.fromCharCode(97+pi)}</span>
+                    <button class="btn btn-danger" data-delpart="${pi}" style="padding:4px 10px;font-size:12px;">حذف الجزء</button>
+                  </div>
+                  <textarea class="part-text"${ltr} rows="2" placeholder="نص هذا الجزء">${esc(pt.text||'')}</textarea>
+                  <div class="field" style="margin-top:6px;margin-bottom:0;"><label style="margin-bottom:4px;">عدد أسطر إجابة هذا الجزء</label><input type="number" class="part-lines" value="${pt.expectedLines??2}"></div>
+                </div>
+              `).join('')}
+            </div>
+            <button class="btn btn-ghost" data-addpart="${i}" style="padding:7px 12px;font-size:13px;">+ إضافة جزء (سؤال بجزء ${parts.length+1})</button>
+          </div>
+        </div>
+      `;
+      }).join('') || `<p class="muted">لا يوجد أي سؤال بعد.</p>`;
+      qlist.querySelectorAll('.qcard').forEach(card=>{
+        const i = +card.dataset.i;
+        card.querySelector('.q-text').oninput = e=>d.questions[i].text = e.target.value;
+        card.querySelector('.q-points').oninput = e=>{d.questions[i].points = parseFloat(e.target.value)||0; updateTotal();};
+        const linesInput = card.querySelector('.q-lines');
+        if(linesInput) linesInput.oninput = e=>d.questions[i].expectedLines = parseInt(e.target.value)||1;
+        card.querySelector('.q-answer').oninput = e=>d.questions[i].modelAnswer = e.target.value;
+        card.querySelectorAll('.part-row').forEach(row=>{
+          const pi = +row.dataset.pi;
+          row.querySelector('.part-text').oninput = e=>{ d.questions[i].parts[pi].text = e.target.value; };
+          row.querySelector('.part-lines').oninput = e=>{ d.questions[i].parts[pi].expectedLines = parseInt(e.target.value)||1; };
+        });
+        card.querySelectorAll('[data-delpart]').forEach(btn=>{
+          btn.onclick = ()=>{ d.questions[i].parts.splice(+btn.dataset.delpart,1); renderQList(); };
+        });
+        const addBtn = card.querySelector('[data-addpart]');
+        if(addBtn) addBtn.onclick = ()=>{
+          if(!d.questions[i].parts) d.questions[i].parts = [];
+          d.questions[i].parts.push({text:'', expectedLines:2});
+          renderQList();
+        };
+        // محرر جدول السؤال: تعديل الخلايا (فارغة = مكان إجابة التلميذ)، والأعمدة والصفوف
+        card.querySelectorAll('.at-cell').forEach(inp=>{
+          inp.oninput = e=>{ d.questions[i].answerTable.rows[+inp.dataset.ri].cells[+inp.dataset.ci] = e.target.value; };
+        });
+        card.querySelectorAll('.at-head').forEach(inp=>{
+          inp.oninput = e=>{ d.questions[i].answerTable.headers[+inp.dataset.ci] = e.target.value; };
+        });
+        const addColBtn = card.querySelector('[data-ataddcol]');
+        if(addColBtn) addColBtn.onclick = ()=>{
+          const at = d.questions[i].answerTable;
+          at.headers.push('عمود '+(at.headers.length+1));
+          at.rows.forEach(r=>r.cells.push(''));
+          renderQList();
+        };
+        const delColBtn = card.querySelector('[data-atdelcol]');
+        if(delColBtn) delColBtn.onclick = ()=>{
+          const at = d.questions[i].answerTable;
+          if(at.headers.length<=1) return;
+          at.headers.pop();
+          at.rows.forEach(r=>r.cells.pop());
+          renderQList();
+        };
+        const addRowBtn = card.querySelector('[data-ataddrow]');
+        if(addRowBtn) addRowBtn.onclick = ()=>{
+          const at = d.questions[i].answerTable;
+          at.rows.push({cells: at.headers.map(()=>'')});
+          renderQList();
+        };
+        card.querySelectorAll('[data-atdelrow]').forEach(btn=>{
+          btn.onclick = ()=>{
+            const at = d.questions[i].answerTable;
+            if(at.rows.length<=1) return;
+            at.rows.splice(+btn.dataset.atdelrow,1);
+            renderQList();
+          };
+        });
+        const delTableBtn = card.querySelector('[data-deltable]');
+        if(delTableBtn) delTableBtn.onclick = ()=>{ d.questions[i].answerTable = null; renderQList(); };
+        const addTableBtn = card.querySelector('[data-addtable]');
+        if(addTableBtn) addTableBtn.onclick = ()=>{
+          d.questions[i].answerTable = { headers:['عمود 1','عمود 2'], rows:[{cells:['','']}] };
+          renderQList();
+        };
+      });
+      qlist.querySelectorAll('[data-del]').forEach(btn=>{
+        btn.onclick = ()=>{ d.questions.splice(+btn.dataset.del,1); renumberAndRender(); };
+      });
+      updateTotal();
+    }
+    function renumberAndRender(){
+      d.questions.forEach((q,i)=>q.number=i+1);
+      renderQList();
+    }
+    function updateTotal(){
+      const t = d.questions.reduce((s,q)=>s+(parseFloat(q.points)||0),0);
+      const box2 = document.getElementById('totalPts');
+      if(box2) box2.textContent = t;
+    }
+    document.getElementById('addQ').onclick = ()=>{
+      d.questions.push({number:d.questions.length+1, text:'', points:1, modelAnswer:'', expectedLines:3, parts:[], answerTable:null});
+      renderQList();
+    };
+    document.getElementById('addP').onclick = ()=>{
+      d.passages.push({type:'text', title:'', text:'', beforeQuestion: (d.questions[0]?.number)||1});
+      renderPList();
+    };
+    const addImgBtn = document.getElementById('addImgBtn');
+    if(addImgBtn) addImgBtn.onclick = ()=> openImageCropTool(d, ()=>renderPList());
+    document.getElementById('genQ').onclick = async ()=>{
+      const prompt = document.getElementById('aiExtra').value.trim();
+      if(!prompt){ toast('يرجى كتابة وصف للسؤال المطلوب'); return; }
+      const btn = document.getElementById('genQ');
+      btn.disabled = true; btn.innerHTML = `<span class="spinner"></span> جارٍ التوليد...`;
+      try{
+        const system = `أنت مساعد يُعِدّ أسئلة اختبارات مدرسية. أخرج JSON فقط بهذا الشكل: {"text":"نص السؤال","points":1,"modelAnswer":"الحل النموذجي","expectedLines":3}. المادة: ${d.subject}. لا تكتب أي شيء خارج الـ JSON.`;
+        const raw = await callClaude(system, [{type:'text', text: prompt}]);
+        const q = extractJSON(raw);
+        d.questions.push({number:d.questions.length+1, text:q.text||'', points:q.points??1, modelAnswer:q.modelAnswer||'', expectedLines:q.expectedLines??3, parts:[], answerTable:null});
+        document.getElementById('aiExtra').value='';
+        renderQList();
+        toast('تمت إضافة السؤال ✅');
+      }catch(e){ toast('تعذّر توليد السؤال، يرجى إعادة المحاولة'); }
+      btn.disabled=false; btn.innerHTML='توليد السؤال';
+    };
+    document.getElementById('toStep3').onclick = ()=>{
+      if(d.questions.length===0){ toast('يرجى إضافة سؤال واحد على الأقل'); return; }
+      d.step = 3; renderTeacherCreate();
+    };
+  }
+
+  else if(d.step===3){
+    const total = d.questions.reduce((s,q)=>s+(parseFloat(q.points)||0),0);
+    const pendingNotes = (d.passages||[]).filter(p=>p.type==='note').length;
+    const editing = !!d.editingExamId;
+    box.innerHTML = `
+      <h3>${editing? 'جاهزة لحفظ التعديلات':'جاهز للنشر'}</h3>
+      <p class="muted"><b>${esc(d.title)}</b>${d.subject?' — '+esc(d.subject):''} — ${d.questions.length} سؤال — من ${total} نقطة</p>
+      ${pendingNotes>0? `<p style="color:var(--red);font-size:13.5px;">⚠️ عندك ${pendingNotes} رسم/شكل مفقود لم تتم إضافته بعد كصورة (راجعي قسم النصوص/الوثائق). هذا الرسم لن يظهر فالاختبار المنشور إلا إذا أضفتيه.</p>`:''}
+      <button class="btn btn-primary btn-block" id="publish">${editing? '💾 حفظ التعديلات':'🖋️ نشر'}</button>
+      <button class="btn btn-ghost btn-block" id="backEdit" style="margin-top:10px;">⟵ رجوع للتعديل</button>
+      <div id="pubMsg" style="margin-top:12px;"></div>
+    `;
+    document.getElementById('backEdit').onclick = ()=>{ d.step=2; renderTeacherCreate(); };
+    document.getElementById('publish').onclick = async ()=>{
+      const btn = document.getElementById('publish');
+      const busyLabel = editing? 'جاري الحفظ...':'جاري النشر...';
+      btn.disabled = true; btn.innerHTML = `<span class="spinner"></span> ${busyLabel}`;
+      try{
+        const examId = d.editingExamId || uid(6);
+        // التطبيق كيخدم بالكامل على الخطة المجانية (Firestore فقط، بلا Firebase Storage) — كل شيء
+        // (نصوص، جداول، رسوم) كيتخزن مباشرة داخل مستند الاختبار، فحد أقصى 1 ميغابايت لكل اختبار.
+        let passagesToSave = d.passages || [];
+        function buildExamData(passages){
+          return {
+            level: d.level, subject: d.subject, title: d.title,
+            category: d.category === 'daily' ? 'daily' : 'test',
+            passages,
+            questions: d.questions.map((q,i)=>({...q, number:i+1})),
+            totalPoints: total,
+            examPdfUrl: d.examPdfUrl || null // ملف PDF الأصلي غير مخزّن (يحتاج Storage)؛ الأستاذ(ة)/التلميذ(ة) يستعملو نسخة PDF المولّدة تلقائيًا
+          };
+        }
+        async function saveExamData(passages){
+          const examData = buildExamData(passages);
+          if(editing){
+            // merge:true كيحافظ على createdAt وteacherId الأصليين بلا ما نكتبهم من جديد
+            await db.collection('exams').doc(examId).set(examData, {merge:true});
+          } else {
+            await db.collection('exams').doc(examId).set({
+              ...examData,
+              teacherId: getTeacherId(),
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          }
+        }
+        const isSizeError = (msg)=> /exceeds the maximum allowed size|maximum.*1.?048.?576/i.test(msg||'');
+        // مستويات ضغط متدرجة: كل مستوى كيصغّر الأبعاد وكيقلل الجودة أكثر من لي قبلو
+        const compressionLevels = [ {maxDim:700, quality:0.6}, {maxDim:500, quality:0.42}, {maxDim:360, quality:0.3} ];
+        let lastErr = null;
+        let saved = false;
+        for(let level=-1; level<compressionLevels.length && !saved; level++){
+          try{
+            if(level>=0){
+              const {maxDim, quality} = compressionLevels[level];
+              btn.innerHTML = `<span class="spinner"></span> الحجم كبير — جارٍ ضغط الرسوم أكثر (محاولة ${level+1})...`;
+              passagesToSave = await Promise.all(passagesToSave.map(async p=>{
+                if(p.type==='image' && p.imageData?.startsWith('data:')){
+                  try{ return {...p, imageData: await recompressDataUrl(p.imageData, maxDim, quality)}; }
+                  catch(_){ return p; }
+                }
+                return p;
+              }));
+            }
+            await saveExamData(passagesToSave);
+            saved = true;
+          }catch(e1){
+            lastErr = e1;
+            const hasImages = passagesToSave.some(p=>p.type==='image' && p.imageData?.startsWith('data:'));
+            if(!isSizeError(e1.message) || !hasImages) throw e1; // خطأ آخر غير متعلق بالحجم، أو ماكاينش صور نضغطوها أكثر
+          }
+        }
+        if(!saved) throw lastErr;
+        if(!editing){
+          const mine = JSON.parse(localStorage.getItem('myExams_v1')||'[]');
+          mine.unshift(examId);
+          localStorage.setItem('myExams_v1', JSON.stringify(mine));
+        }
+        toast(editing? 'تم حفظ التعديلات ✅':'تم النشر ✅');
+        go('teacherExamView', {examId});
+      }catch(e){
+        const msg = e.message || '';
+        let friendly = msg;
+        if(isSizeErrorSafe(msg)){
+          friendly = 'حجم الاختبار أكبر من 1 ميغابايت حتى بعد ضغط الرسوم لأقصى درجة ممكنة. يرجى حذف بعض الرسوم/الأشكال أو تقسيم الاختبار لجزئين، لأن هذا هو الحد الأقصى للخطة المجانية.';
+        }
+        document.getElementById('pubMsg').innerHTML = `<span style="color:var(--red);">صار خطأ: ${esc(friendly)}</span>`;
+        btn.disabled=false; btn.innerHTML = editing? '💾 حفظ التعديلات':'🖋️ نشر';
+      }
+    };
+  }
+}
+function isSizeErrorSafe(msg){ return /exceeds the maximum allowed size|maximum.*1.?048.?576/i.test(msg||''); }
+
+/* ============================= TEACHER: EXAM VIEW + LIVE LEADERBOARD ============================= */
+let unsubLeaderboard = null;
+let unsubExamListener = null; // ربط مباشر لصفحة الاختبار عند التلميذ(ة)، باش أي تعديل ديال الأستاذ(ة) يبان تلقائيًا
+async function renderTeacherExamView(){
+  if(unsubLeaderboard){ unsubLeaderboard(); unsubLeaderboard=null; }
+  const examId = state.examId;
+  app.innerHTML = `${Header('لوحة الاختبار')}<div class="card"><div class="loadbox"><div class="spinner"></div> جاري التحميل...</div></div>`;
+  const doc = await db.collection('exams').doc(examId).get();
+  if(!doc.exists){ app.innerHTML = `${Header()}<div class="card">هذا الاختبار غير موجود.</div>`; return; }
+  const ex = doc.data();
+  const link = `${location.origin}${location.pathname}?examId=${examId}`;
+  app.innerHTML = `
+    ${Header(ex.title)}
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+        <div>
+          <h2 style="margin:0;">${esc(ex.title)}</h2>
+          ${ex.level?`<span class="pill">🎓 ${esc(ex.level)}</span>`:''}
+          <span class="pill">${esc(ex.subject)}</span>
+          <span class="pill">${ex.questions.length} سؤال</span>
+          <span class="pill">${ex.totalPoints} نقطة</span>
+        </div>
+        <div class="seal">${esc(examId[0])}</div>
+      </div>
+      <div class="divider"></div>
+      <label>رابط الاختبار (يظهر مباشرةً في قائمة الاختبارات المتاحة للتلاميذ، ويمكن أيضًا مشاركته مباشرة)</label>
+      <div class="link-box">
+        <input type="text" readonly value="${link}" id="linkField">
+        <button class="btn btn-ghost" id="copyLink" style="padding:8px 12px;">نسخ</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>📄 نسخة الأسئلة (PDF)</h3>
+      <p class="muted">نسخة PDF جاهزة للطباعة من الأسئلة والنصوص المرفقة، كما تظهر للتلميذ(ة).</p>
+      <div class="row">
+        <button class="btn btn-ghost" id="openQPdf" style="flex:1;">👁️ فتح</button>
+        <button class="btn btn-gold" id="dlQPdf" style="flex:1;">⬇️ تحميل</button>
+      </div>
+      <p class="muted" style="margin-top:12px;font-size:12.5px;">📌 راجعي نسخة الأسئلة قبل بعث الرابط للتلاميذ. لقيتي خطأ؟ رجعي عدّلي مباشرة:</p>
+      <button class="btn btn-ghost btn-block" id="editExamBtn">✏️ رجوع لتعديل الأسئلة</button>
+    </div>
+    <div class="card">
+      <h3>🏆 لوحة النتائج المباشرة</h3>
+      <div id="board" class="muted">لم تصل أي إجابة بعد...</div>
+    </div>
+    <button class="btn btn-danger btn-block" id="deleteExamBtn">🗑️ حذف هذا الاختبار نهائيًا</button>
+    <a class="backlink" id="backDash" href="#" style="display:block;margin-top:14px;">⟵ رجوع للوحة</a>
+  `;
+  document.getElementById('backDash').onclick=(e)=>{e.preventDefault(); go('teacherDashboard');};
+  document.getElementById('editExamBtn').onclick = ()=>{
+    const draft = {
+      level: ex.level||'', subject: ex.subject||'', title: ex.title||'',
+      category: ex.category === 'daily' ? 'daily' : 'test',
+      questions: JSON.parse(JSON.stringify(ex.questions||[])).map(q=>({
+        ...q, parts: q.parts || [], answerTable: normalizeAnswerTable(q.answerTable)
+      })),
+      passages: JSON.parse(JSON.stringify(ex.passages||[])),
+      examPdfUrl: ex.examPdfUrl||null,
+      examFile: null, examPageImages: null,
+      step: 2, editingExamId: examId
+    };
+    go('teacherCreate', {draft});
+  };
+  wireExamPdfButtons('openQPdf', 'dlQPdf', ex);
+  document.getElementById('deleteExamBtn').onclick = async ()=>{
+    if(!confirm(`هل أنت متأكدة من حذف اختبار "${ex.title}"؟ سيُحذف نهائيًا مع كل الإجابات المرسلة له، ولا يمكن التراجع.`)) return;
+    const btn = document.getElementById('deleteExamBtn');
+    btn.disabled = true; btn.innerHTML = `<span class="spinner"></span> جارٍ الحذف...`;
+    try{
+      await deleteExamCompletely(examId);
+      const stored = JSON.parse(localStorage.getItem('myExams_v1')||'[]').filter(x=>x!==examId);
+      localStorage.setItem('myExams_v1', JSON.stringify(stored));
+      toast('تم حذف الاختبار ✅');
+      go('teacherDashboard');
+    }catch(e){
+      toast('تعذّر حذف الاختبار: ' + (e.message||''));
+      btn.disabled = false; btn.innerHTML = '🗑️ حذف هذا الاختبار نهائيًا';
+    }
+  };
+  document.getElementById('copyLink').onclick = ()=>{
+    navigator.clipboard.writeText(link);
+    toast('تم نسخ الرابط ✅');
+  };
+  unsubLeaderboard = db.collection('exams').doc(examId).collection('submissions')
+    .orderBy('score','desc')
+    .onSnapshot(snap=>{
+      const board = document.getElementById('board');
+      if(!board) return;
+      if(snap.empty){ board.innerHTML = 'لم تصل أي إجابة بعد...'; return; }
+      let rows = '';
+      let i=0;
+      snap.forEach(d=>{
+        i++;
+        const s = d.data();
+        const cls = i===1?'rank1':i===2?'rank2':i===3?'rank3':'';
+        rows += `<tr data-sub="${d.id}" style="cursor:pointer;"><td class="${cls}">#${i}</td><td>${esc(s.studentName)}</td><td class="${cls}" dir="ltr">${s.score}/${s.totalPoints}</td><td>${s.submittedAt&&s.submittedAt.toDate?s.submittedAt.toDate().toLocaleString('ar'):'—'}</td></tr>`;
+      });
+      board.innerHTML = `<table><thead><tr><th>الرتبة</th><th>التلميذ(ة)</th><th>النقطة</th><th>الوقت</th></tr></thead><tbody>${rows}</tbody></table>
+      <p class="muted" style="margin-top:8px;font-size:12px;">اضغط على أي تلميذ(ة) لعرض تفاصيل إجابته وتنزيل تصحيحه PDF</p>`;
+      board.querySelectorAll('[data-sub]').forEach(tr=>{
+        tr.onclick = async ()=>{
+          const subDoc = await db.collection('exams').doc(examId).collection('submissions').doc(tr.dataset.sub).get();
+          if(!subDoc.exists) return;
+          go('teacherStudentResult', { examData: ex, result: subDoc.data() });
+        };
+      });
+    }, err=>{ console.error(err); });
+}
+
+/* ============================= TEACHER: VIEW ONE STUDENT'S RESULT ============================= */
+function renderTeacherStudentResult(){
+  const {result, examData} = state;
+  const pct = examData.totalPoints? (result.score/examData.totalPoints*100):0;
+  app.innerHTML = `
+    ${Header(examData.title)}
+    <div class="card">
+      <span class="pill">${esc(examData.subject)}</span>
+      <span class="pill">${esc(examData.title)}</span>
+    </div>
+    <div class="card center">
+      <div class="muted">${esc(result.studentName)}</div>
+      <div class="score-big" dir="ltr">${result.score} / ${result.totalPoints}</div>
+      <div class="pill">${pct.toFixed(0)}%</div>
+      ${result.overallFeedback?`<p class="muted" style="margin-top:14px;">${esc(result.overallFeedback)}</p>`:''}
+      <div class="row" style="margin-top:16px;">
+        <button class="btn btn-ghost" id="openCorrection">👁️ فتح PDF</button>
+        <button class="btn btn-gold" id="downloadCorrection">⬇️ تنزيل PDF</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>تفاصيل التصحيح</h3>
+      ${(result.perQuestion||[]).map(q=> qaBlockHTML(q, examData)).join('')}
+    </div>
+    <a class="backlink" id="backPanel" href="#">⟵ رجوع للوحة الاختبار</a>
+  `;
+  document.getElementById('backPanel').onclick=(e)=>{e.preventDefault(); go('teacherExamView', {examId: state.examId});};
+  wireCorrectionPdfButtons('openCorrection', 'downloadCorrection', examData, result);
+}
+
+/* ============================= STUDENT: EXAM VIEW / PRINT / SUBMIT ============================= */
+async function renderStudentExam(){
+  if(!initFirebase()){ go('setup'); return; }
+  if(unsubExamListener){ unsubExamListener(); unsubExamListener=null; }
+  const examId = state.examId;
+  app.innerHTML = `${Header('الاختبار')}<div class="card"><div class="loadbox"><div class="spinner"></div> جارٍ التحميل...</div></div>`;
+
+  let ex; // ربط مباشر (onSnapshot): هاذ المتغيّر كيتحدّث تلقائيًا مع كل تعديل ينشره الأستاذ(ة)، بلا حاجة التلميذ(ة) يعاود تحميل الصفحة
+  let firstLoad = true;
+
+  await new Promise((resolve)=>{
+    unsubExamListener = db.collection('exams').doc(examId).onSnapshot(snap=>{
+      if(!snap.exists){
+        if(unsubExamListener){ unsubExamListener(); unsubExamListener=null; }
+        app.innerHTML = `${Header()}<div class="card">رمز الاختبار هذا غير موجود. يرجى التأكد منه مع الأستاذ(ة).</div>
+        <a class="backlink" id="b" href="#">⟵ رجوع</a>`;
+        document.getElementById('b').onclick=(e)=>{e.preventDefault(); go('landing');};
+        resolve();
+        return;
+      }
+      ex = snap.data();
+      state.examData = ex;
+      if(firstLoad){
+        firstLoad = false;
+        buildPage();
+        resolve();
+      } else {
+        // الأستاذ(ة) بدّل شي حاجة فالاختبار بعد ما التلميذ(ة) فتح الصفحة — نبينو تنبيه بلا ما نمسحو النموذج
+        // (الاسم والصور لي بدا يرفعها التلميذ(ة) تبقى كيفما هي، وبيانات الاختبار ديال الطباعة/التصحيح كتكون محدّثة تلقائيًا)
+        toast('🔄 حدّث الأستاذ(ة) هذا الاختبار — البيانات تحدّثت تلقائيًا');
+      }
+    }, err=>{
+      console.error(err);
+      if(firstLoad){
+        app.innerHTML = `${Header()}<div class="card">تعذّر الوصول إلى قاعدة البيانات.</div>`;
+        resolve();
+      }
+    });
+  });
+  if(!ex) return; // توقف الدالة إلا فشل التحميل الأول (الرسالة بانت فوق مسبقًا)
+
+  function buildPage(){
+  const alreadyKey = `submitted_${examId}`;
+  const already = localStorage.getItem(alreadyKey);
+  // اسم التلميذ(ة) وحسابه كما دخل به من الصفحة الرئيسية للمنصة (نفس المتصفح/الأصل، فبالتالي
+  // localStorage مشترك). إذا كان موجودًا، نعرض الاسم مقفلاً وغير قابل للتعديل، ونربط التسليم
+  // بمعرّف حسابه (studentId) مباشرة بدل الاعتماد على الاسم المكتوب فقط — هذا يضمن أن نتيجة
+  // الفرض/الاختبار تُحسب لنفس حساب التلميذ في تمارين الدروس دون أي التباس بين الأسماء المتشابهة.
+  let loggedInStudentName = '';
+  let loggedInStudentId = '';
+  try{
+    const raw = localStorage.getItem('student_name');
+    const v = raw ? JSON.parse(raw) : null;
+    if(v && typeof v === 'string') loggedInStudentName = v.trim();
+    const rawId = localStorage.getItem('student_id');
+    const vId = rawId ? JSON.parse(rawId) : null;
+    if(vId && typeof vId === 'string') loggedInStudentId = vId;
+  }catch(e){}
+
+  app.innerHTML = `
+    ${Header(ex.title)}
+    <div class="card">
+      <h2 style="margin-top:0;">${esc(ex.title)}</h2>
+      ${ex.level?`<span class="pill">🎓 ${esc(ex.level)}</span>`:''}
+      <span class="pill">${esc(ex.subject)}</span>
+      ${ex.passages && ex.passages.length ? `<span class="pill">📄 ${ex.passages.length} نص/وثيقة</span>` : ''}
+      <span class="pill">${ex.questions.length} سؤال</span>
+      <span class="pill">${ex.totalPoints} نقطة</span>
+      <p class="muted" style="margin-top:14px;">
+        1️⃣ اطبعي الاختبار، أو حمّلي نسخة PDF للكتابة عليها بقلم إلكتروني 📄<br>
+        2️⃣ أجيبي كتابيًا (على الورقة أو داخل ملف الـ PDF)<br>
+        3️⃣ صوّري إجاباتك (أو أرسلي ملف الـ PDF المكتوب) للتصحيح الفوري
+      </p>
+      <button class="btn btn-gold btn-block" id="printBtn">🖨️ طباعة الاختبار</button>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn btn-ghost" id="openWritablePdf" style="flex:1;">👁️ معاينة PDF</button>
+        <button class="btn btn-ghost" id="dlWritablePdf" style="flex:1;">⬇️ تحميل PDF للكتابة بالقلم</button>
+      </div>
+      <p class="muted" style="margin-top:8px;font-size:12px;">
+        💡 عندك قلم إلكتروني (Stylus)؟ حمّلي نسخة الـ PDF، افتحيها فتطبيق الكتابة عندك (مثل GoodNotes أو Xodo أو Samsung Notes)، أجيبي مباشرة فوقها، ثم احفظي الملف وارفعيه أدناه بدل الصور.
+      </p>
+      ${ex.examPdfUrl ? `
+      <div class="row" style="margin-top:10px;">
+        <button class="btn btn-ghost" id="openOrigPdf" style="flex:1;">👁️ فتح ملف الاختبار الأصلي</button>
+        <button class="btn btn-ghost" id="dlOrigPdf" style="flex:1;">⬇️ تحميل الملف الأصلي</button>
+      </div>` : ''}
+      <p class="muted" style="margin-top:12px;font-size:12.5px;">
+        📓 تعذّر عليك الطباعة؟ يمكنك الإجابة على ورقة عادية من كراستك: اكتبي رقم كل سؤال قبل إجابته مباشرةً (مثلاً: "1-" ثم الإجابة)، بلا حاجة لنسخ نص الأسئلة، ثم صوّري الورقة وأرسليها كما هو موضح أدناه.
+      </p>
+    </div>
+    <div class="card" id="submitSection">
+      ${already ? `<p class="muted">📌 نتيجتك وصلت مسبقًا لهذا الاختبار. <a class="plain" href="#" id="viewAgain">عرض النتيجة</a></p>` : ''}
+      <h3>تسليم الإجابة</h3>
+      <div class="field"><label>الاسم الكامل</label>
+        ${loggedInStudentName ? `
+          <input type="text" id="studentName" value="${esc(loggedInStudentName)}" readonly style="background:var(--panel-solid);color:var(--dim);cursor:not-allowed;">
+          <p class="muted" style="margin-top:4px;font-size:12px;">🔒 هذا اسمك المسجَّل في المنصة، ولا يمكن تغييره هنا${loggedInStudentId ? '. النتيجة ستُربط مباشرة بنفس حسابك وتُحسب معه في ترتيبك الشامل' : ''}.</p>
+        ` : `
+          <input type="text" id="studentName" placeholder="مثلاً: ياسمين بلعيد">
+          <p class="muted" style="margin-top:4px;font-size:12px;">⚠️ يُرجى الدخول أولاً باسمك من الصفحة الرئيسية للمنصة، ثم العودة إلى هذا الاختبار، حتى يُسجَّل اسمك تلقائيًا هنا.</p>
+        `}
+      </div>
+      <div class="field">
+        <label>📷 صور ورقة الإجابة، أو 📄 ملف PDF مكتوب بالقلم الإلكتروني (يمكن أكثر من ملف)</label>
+        <input type="file" id="answerPhotos" accept="image/*,application/pdf" capture="environment" multiple>
+        <div class="thumbs" id="thumbs"></div>
+      </div>
+      <button class="btn btn-teal btn-block" id="submitBtn">✅ تسليم للتصحيح</button>
+      <div id="subMsg" style="margin-top:10px;"></div>
+    </div>
+    <a class="backlink" id="back" href="${location.pathname}">⟵ رجوع للرئيسية</a>
+  `;
+  if(already){
+    document.getElementById('viewAgain').onclick = (e)=>{
+      e.preventDefault();
+      const cached = JSON.parse(already);
+      go('studentResult', {result: cached, examData: ex});
+    };
+  }
+  document.getElementById('printBtn').onclick = async ()=>{
+    buildPrintSheet(ex);
+    await waitForFontsAndLayout();
+    await waitForImagesIn(document.getElementById('printArea'));
+    window.print();
+  };
+  wireExamPdfButtons('openWritablePdf', 'dlWritablePdf', ex);
+  if(ex.examPdfUrl){
+    document.getElementById('openOrigPdf').onclick = ()=>{ window.open(ex.examPdfUrl, '_blank'); };
+    document.getElementById('dlOrigPdf').onclick = ()=>{
+      const a = document.createElement('a');
+      a.href = ex.examPdfUrl; a.download = `${sanitizeFileName(ex.title)}.pdf`; a.target = '_blank';
+      document.body.appendChild(a); a.click(); a.remove();
+    };
+  }
+
+  let photoFiles = [];
+  document.getElementById('answerPhotos').onchange = async (e)=>{
+    photoFiles = Array.from(e.target.files);
+    const thumbs = document.getElementById('thumbs');
+    thumbs.innerHTML = '';
+    for(const f of photoFiles){
+      if(f.type==='application/pdf'){
+        thumbs.appendChild(el(`<div style="width:64px;height:64px;border-radius:12px;border:1px solid var(--line);background:var(--panel-solid);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;">📄<span style="font-size:9px;color:var(--dim);max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.name)}</span></div>`));
+      } else {
+        const url = await fileToDataUrl(f);
+        thumbs.appendChild(el(`<img src="${url}">`));
+      }
+    }
+  };
+
+  document.getElementById('submitBtn').onclick = async ()=>{
+    const name = document.getElementById('studentName').value.trim();
+    const msg = document.getElementById('subMsg');
+    if(!name){ toast('يرجى إدخال اسمك الكامل'); return; }
+    if(photoFiles.length===0){ toast('يرجى إرفاق صور أو ملف PDF لإجاباتك قبل التسليم'); return; }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.innerHTML = `<span class="spinner"></span> جارٍ التصحيح...`;
+    msg.innerHTML = '';
+    try{
+      const dupCheck = loggedInStudentId
+        ? await db.collection('exams').doc(examId).collection('submissions')
+            .where('studentId','==', loggedInStudentId).limit(1).get()
+        : await db.collection('exams').doc(examId).collection('submissions').get();
+      const nameNorm = name.trim().toLowerCase();
+      const alreadySubmitted = loggedInStudentId
+        ? !dupCheck.empty
+        : dupCheck.docs.some(d => (d.data().studentName||'').trim().toLowerCase() === nameNorm);
+      if(alreadySubmitted){
+        toast('يوجد تلميذ بنفس الاسم سلّم مسبقًا. يرجى إضافة اللقب أو التواصل مع الأستاذ(ة).');
+        btn.disabled=false; btn.innerHTML='✅ تسليم للتصحيح';
+        return;
+      }
+      const imgBlocks = [];
+      for(const f of photoFiles){
+        if(f.type==='application/pdf'){
+          const pages = await pdfFileToImageBlocks(f);
+          imgBlocks.push(...pages);
+        } else {
+          imgBlocks.push(await fileToImageBlock(f));
+        }
+      }
+      const examContentBlocks = [];
+      for(const item of orderedExamItems(ex)){
+        if(item.type==='passage'){
+          const p = item.data;
+          if(p.type==='note') continue; // تنبيه داخلي غير محلول، ما كيتبعتش للتصحيح
+          if(p.type==='image' && p.imageData){
+            examContentBlocks.push({type:'text', text: (p.title? p.title+' ' : '') + '(رسم/شكل مرفق كصورة أدناه):'});
+            const blk = await urlOrDataUrlToImageBlock(p.imageData);
+            if(blk) examContentBlocks.push(blk);
+            continue;
+          }
+          if(p.type==='table' && p.headers){
+            const rowsTxt = (p.rows||[]).map(r=>(r.cells||[]).join(' | ')).join('\n');
+            examContentBlocks.push({type:'text', text:`${p.title?p.title+':\n':''}${p.headers.join(' | ')}\n${rowsTxt}`});
+            continue;
+          }
+          examContentBlocks.push({type:'text', text:`${p.title?p.title+':\n':''}${p.text}`});
+          continue;
+        }
+        const q = item.data;
+        const partsTxt = (q.parts&&q.parts.length>0) ? '\n' + q.parts.map((pt,pi)=>`${String.fromCharCode(97+pi)}) ${pt.text}`).join('\n') : '';
+        let tableTxt = '';
+        if(q.answerTable && q.answerTable.headers){
+          const rows = q.answerTable.rows && q.answerTable.rows.length ? q.answerTable.rows : Array.from({length:q.answerTable.rowsCount||1}).map(()=>({cells:q.answerTable.headers.map(()=>'')}));
+          const rowsTxt = rows.map(r=> q.answerTable.headers.map((h,ci)=> r.cells?.[ci] ? r.cells[ci] : '[فارغ يملؤه التلميذ]').join(' | ')).join('\n');
+          tableTxt = `\n(جدول: ${q.answerTable.headers.join(' | ')}\n${rowsTxt})`;
+        }
+        examContentBlocks.push({type:'text', text:`سؤال ${q.number} (${q.points} نقطة): ${q.text}${partsTxt}${tableTxt}\nالحل النموذجي: ${q.modelAnswer}`});
+      }
+      const content = [
+        {type:'text', text:`هذا محتوى الاختبار (نصوص/جداول/رسوم وأسئلته، بنفس ترتيب ظهورها فالاختبار الأصلي):`},
+        ...examContentBlocks,
+        {type:'text', text:`وهذه صور ورقة إجابة التلميذ(ة) "${name}" عن هذا الاختبار:\n\nملاحظة: قد تكون الإجابة مكتوبة إما على نسخة مطبوعة من الاختبار، أو على ورقة عادية (كراسة) يسبق كل إجابة فيها رقم السؤال فقط بلا نص السؤال — في الحالتين اربطي كل إجابة برقم السؤال المكتوب يدويًا. صحح كل سؤال بمقارنة إجابة التلميذ بالحل النموذجي (وبالنصوص/الوثائق/الرسوم أعلاه إن كان السؤال يستند إليها)، وأعطه نقطة من نقطة السؤال (يمكن نقطة جزئية)، واكتب في studentAnswerSummary نصًا رقميًا واضحًا يلخّص أو ينسخ ما كتبه التلميذ فعليًا (تفريغ رقمي للإجابة اليدوية).`},
+        ...imgBlocks,
+        {type:'text', text:'أخرج JSON فقط بهذا الشكل بلا أي مقدمة:\n{"perQuestion":[{"number":1,"studentAnswerSummary":"تفريغ رقمي دقيق لما كتبه التلميذ","awarded":1.5,"max":2,"feedback":"ملاحظة قصيرة توضح الخطأ أو الصواب"}],"totalScore":0,"overallFeedback":"تعليق عام قصير ومشجع"}'}
+      ];
+      const system = 'أنت أستاذ مصحح دقيق ومنصف. اكتب فقط JSON صالح بدون أي نص إضافي ولا علامات ```.';
+      const raw = await callClaude(system, content, {maxLoops:10});
+      const graded = extractJSON(raw);
+      const totalScore = graded.perQuestion.reduce((s,q)=>s+(parseFloat(q.awarded)||0),0);
+      const result = {
+        studentName: name,
+        studentId: loggedInStudentId || null, /* يربط النتيجة بنفس حساب التلميذ في المنصة، إن كان مسجَّل دخوله */
+        score: Math.round(totalScore*100)/100,
+        totalPoints: ex.totalPoints,
+        perQuestion: graded.perQuestion,
+        overallFeedback: graded.overallFeedback||''
+      };
+      await db.collection('exams').doc(examId).collection('submissions').add({
+        ...result,
+        submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      localStorage.setItem(alreadyKey, JSON.stringify(result));
+      go('studentResult', {result, examData: ex});
+    }catch(e){
+      console.error(e);
+      msg.innerHTML = `<div style="color:var(--red);background:var(--bg2);border:1px solid var(--red);border-radius:10px;padding:12px;font-size:13px;word-break:break-word;line-height:1.8;">
+        <b>تفاصيل الخطأ (يرجى إرسال لقطة شاشة لهذا الصندوق):</b><br>${esc(e.message||'خطأ غير معروف')}
+      </div>`;
+      btn.disabled=false; btn.innerHTML='✅ تسليم للتصحيح';
+    }
+  };
+  } // end buildPage
+}
+
+// نفس منطق wireCorrectionPdfButtons لكن يشتغل مباشرة على عنصر (صف جدول مثلاً) بلا الحاجة لِمعرّفات id
+function bindCorrectionButtons(containerEl, ex, result){
+  let cachedBlob = null;
+  async function ensureBlob(){
+    if(cachedBlob) return cachedBlob;
+    cachedBlob = await generateCorrectionPdfBlob(ex, result);
+    return cachedBlob;
+  }
+  const openBtn = containerEl.querySelector('[data-act="open"]');
+  const dlBtn = containerEl.querySelector('[data-act="dl"]');
+  if(openBtn) openBtn.onclick = async ()=>{
+    openBtn.disabled = true; const orig = openBtn.innerHTML; openBtn.innerHTML = '<span class="spinner"></span>';
+    try{
+      const blob = await ensureBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }catch(e){ toast('تعذّر فتح الملف: ' + (e.message||'')); }
+    openBtn.disabled = false; openBtn.innerHTML = orig;
+  };
+  if(dlBtn) dlBtn.onclick = async ()=>{
+    dlBtn.disabled = true; const orig = dlBtn.innerHTML; dlBtn.innerHTML = '<span class="spinner"></span>';
+    try{
+      const blob = await ensureBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `تصحيح-${sanitizeFileName(result.studentName)}-${sanitizeFileName(ex.title)}.pdf`;
+      document.body.appendChild(a); a.click(); a.remove();
+    }catch(e){ toast('تعذّر تنزيل الملف: ' + (e.message||'')); }
+    dlBtn.disabled = false; dlBtn.innerHTML = orig;
+  };
+}
+
+// يرتب النصوص/الوثائق والأسئلة بنفس ترتيب ظهورها في الاختبار الأصلي: كل نص/وثيقة كيتحط
+// مباشرة قبل أول سؤال يعتمد عليه (حسب p.beforeQuestion)، بدل ما تتجمع كل النصوص فوق وكل
+// الأسئلة تحت. النصوص اللي beforeQuestion ديالها ما كيطابقش رقم أي سؤال (نادر) كيتزادو فالأخير.
+function orderedExamItems(ex){
+  const passages = (ex.passages||[]).map((p,i)=>({...p, _idx:i}));
+  const questions = (ex.questions||[]).slice().sort((a,b)=>a.number-b.number);
+  const used = new Set();
+  const items = [];
+  questions.forEach(q=>{
+    passages.forEach(p=>{
+      if(!used.has(p._idx) && (p.beforeQuestion??1)===q.number){
+        items.push({type:'passage', data:p});
+        used.add(p._idx);
+      }
+    });
+    items.push({type:'question', data:q});
+  });
+  passages.forEach(p=>{
+    if(!used.has(p._idx)) items.push({type:'passage', data:p});
+  });
+  return items;
+}
+
+function buildPrintSheet(ex){
+  const area = document.getElementById('printArea');
+  const ltr = dirAttr(ex.subject);
+  const L = examLabels(ex.subject);
+  const bodyHtml = orderedExamItems(ex).map(item=>{
+    if(item.type==='passage'){
+      const p = item.data;
+      if(p.type==='note') return ''; // تنبيه داخلي للأستاذ(ة) فقط، لا يُطبع أبدًا
+      if(p.type==='image' && p.imageData){
+        return `
+    <div class="sheet-passage">
+      ${p.title?`<div class="sheet-passage-title"${ltr}>${esc(p.title)}</div>`:''}
+      <img src="${p.imageData}" style="max-width:100%;display:block;margin:0 auto;">
+    </div>
+  `;
+      }
+      if(p.type==='table' && p.headers){
+        return `
+    <div class="sheet-passage">
+      ${p.title?`<div class="sheet-passage-title"${ltr}>${esc(p.title)}</div>`:''}
+      <table class="sheet-table"${ltr}>
+        <thead><tr>${p.headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead>
+        <tbody>${(p.rows||[]).map(row=>`<tr>${p.headers.map((h,ci)=>`<td>${esc(row.cells?.[ci]??'')}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table>
+    </div>
+  `;
+      }
+      return `
+    <div class="sheet-passage">
+      ${p.title?`<div class="sheet-passage-title"${ltr}>${esc(p.title)}</div>`:''}
+      <div class="sheet-passage-text"${ltr}>${esc(p.text)}</div>
+    </div>
+  `;
+    }
+    const q = item.data;
+    const parts = q.parts||[];
+    const labelHtml = `<div class="sheet-qlabel"${ltr}>${L.question} ${q.number} (${q.points} ${L.pt})</div>`;
+    if(q.answerTable && q.answerTable.headers){
+      const rows = q.answerTable.rows && q.answerTable.rows.length ? q.answerTable.rows : Array.from({length:q.answerTable.rowsCount||1}).map(()=>({cells:q.answerTable.headers.map(()=>'')}));
+      const introHtml = q.text ? `<div class="sheet-qtext"${ltr}>${esc(q.text)}</div>` : '';
+      const tableHtml = `
+      <table class="sheet-table"${ltr}>
+        <thead><tr>${q.answerTable.headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead>
+        <tbody>${rows.map(row=>`<tr>${q.answerTable.headers.map((h,ci)=>{
+          const val = row.cells?.[ci] ?? '';
+          return val ? `<td>${esc(val)}</td>` : `<td class="blank">&nbsp;</td>`;
+        }).join('')}</tr>`).join('')}</tbody>
+      </table>`;
+      return `<div class="sheet-q">${labelHtml}${introHtml}${tableHtml}</div>`;
+    }
+    if(parts.length>0){
+      const introHtml = q.text ? `<div class="sheet-qtext"${ltr}>${esc(q.text)}</div>` : '';
+      const partsHtml = parts.map((pt,pi)=>`
+        <div class="sheet-qtext" style="margin-top:6px;"${ltr}>${String.fromCharCode(97+pi)}) ${esc(pt.text)}</div>
+        ${Array.from({length: pt.expectedLines||2}).map(()=>'<div class="ruled"></div>').join('')}
+      `).join('');
+      return `<div class="sheet-q">${labelHtml}${introHtml}${partsHtml}</div>`;
+    }
+    return `
+    <div class="sheet-q">
+      ${labelHtml}
+      <div class="sheet-qtext"${ltr}>${esc(q.text)}</div>
+      ${Array.from({length: q.expectedLines||3}).map(()=>'<div class="ruled"></div>').join('')}
+    </div>
+  `;
+  }).join('');
+  area.innerHTML = `
+    <div class="sheet">
+      ${sheetWatermarkHTML()}
+      ${sheetHeaderBrandHTML()}
+      <div class="sheet-head">
+        <div>
+          <div class="sheet-title">${esc(ex.title)}</div>
+          <div class="sheet-meta"${ltr}>${ex.level?esc(ex.level)+' — ':''}${esc(ex.subject)} — ${L.outOf} ${ex.totalPoints} ${L.points}</div>
+        </div>
+        <div class="sheet-meta"${ltr}>${L.nameLabel} <span class="nameline">&nbsp;</span></div>
+      </div>
+      ${bodyHtml}
+      ${sheetFooterBrandHTML()}
+    </div>
+  `;
+}
+
+// ينتظر تحميل كل الخطوط فعليًا قبل أي التقاط بـ html2canvas، وإلا كيلتقط صورة بخط بديل
+// (fallback) — خصوصًا فأول استعمال للتطبيق قبل ما يتخزّنو الخطوط فذاكرة المتصفح (cache).
+async function waitForFontsAndLayout(){
+  try{ if(document.fonts && document.fonts.ready) await document.fonts.ready; }catch(e){}
+  await new Promise(r=>setTimeout(r, 150)); // هامش أمان إضافي للتخطيط النهائي بعد جاهزية الخطوط
+}
+// ينتظر اكتمال تحميل/فك ترميز كل الصور داخل عنصر معيّن (مثل صور الأشكال) قبل الطباعة أو
+// الالتقاط — وإلا فقد يُحسب ارتفاع الصورة بشكل خاطئ (كأنها بارتفاع صفر لحظة القياس)، فتنقسم
+// الصورة بشكل غير متوقع بين صفحتين رغم page-break-inside:avoid على حاويتها.
+async function waitForImagesIn(container){
+  if(!container) return;
+  const imgs = Array.from(container.querySelectorAll('img'));
+  await Promise.all(imgs.map(img=>{
+    if(img.complete && img.naturalWidth>0) return Promise.resolve();
+    if(img.decode) return img.decode().catch(()=>{});
+    return new Promise(resolve=>{ img.onload = img.onerror = resolve; });
+  }));
+}
+// يحسب (بوحدة بيكسل الـcanvas) المجالات العمودية للعناصر اللي ما ينبغيش تتقطع بين صفحتين
+// (كل سؤال، كل نص/وثيقة، رأس الورقة...)، عن طريق قياس مواقعها الحقيقية فالصفحة
+// (getBoundingClientRect) وضربها فنفس معامل التكبير (scale) اللي تستعمل مع html2canvas.
+function getNoBreakRanges(sheetEl, scale){
+  const sheetRect = sheetEl.getBoundingClientRect();
+  const toRange = (el)=>{
+    const r = el.getBoundingClientRect();
+    return { top: (r.top - sheetRect.top) * scale, bottom: (r.bottom - sheetRect.top) * scale };
+  };
+  const blockEls = sheetEl.querySelectorAll('.sheet-q, .sheet-passage, .sheet-head, .sheet-footer-brand');
+  const ranges = Array.from(blockEls).map(toRange);
+  const sectionEls = Array.from(sheetEl.querySelectorAll('.sheet-section'));
+  const sheetBottom = sheetRect.height * scale;
+  const groupRanges = sectionEls.map((el, i)=>{
+    const top = toRange(el).top;
+    const bottom = sectionEls[i+1] ? toRange(sectionEls[i+1]).top : sheetBottom;
+    return { top, bottom };
+  });
+  return { ranges, groupRanges };
+}
+// يقطّع صورة (canvas) طويلة كاملة لملف PDF حقيقي متعدد الصفحات بمقاس A4 القياسي (210×297mm)
+// بدل صفحة واحدة طويلة بلا حدود — هذا هو الشكل المناسب للطباعة الفعلية على ورق A4 عادي.
+// noBreak (اختياري): {ranges, groupRanges} من getNoBreakRanges — كيرجّع خط القطع لبداية
+// أقرب عنصر (سؤال/نص/تمرين كامل) بدل ما يقطعو فالمنتصف، ما دام العنصر قادر يدخل فصفحة وحدة.
+async function canvasToA4PdfBlob(canvas, noBreak){
+  const { jsPDF } = window.jspdf;
+  const PAGE_W_MM = 210, PAGE_H_MM = 297;
+  const pxPerMm = canvas.width / PAGE_W_MM;
+  const pageHeightPx = Math.round(PAGE_H_MM * pxPerMm);
+  const ranges = ((noBreak&&noBreak.ranges)||[]).slice().sort((a,b)=>a.top-b.top);
+  const groupRanges = ((noBreak&&noBreak.groupRanges)||[]).slice().sort((a,b)=>a.top-b.top);
+  const pdf = new jsPDF({ unit:'mm', format:'a4' });
+  let y = 0, pageIndex = 0;
+  while(y < canvas.height - 1){
+    let sliceEnd = Math.min(y + pageHeightPx, canvas.height);
+    for(const g of groupRanges){
+      if(g.top > y && g.top < sliceEnd && g.bottom > sliceEnd && (g.bottom - g.top) <= pageHeightPx){
+        sliceEnd = g.top;
+      }
+    }
+    for(const rng of ranges){
+      if(rng.top > y && rng.top < sliceEnd && rng.bottom > sliceEnd){
+        sliceEnd = rng.top;
+      }
+    }
+    if(sliceEnd <= y) sliceEnd = Math.min(y + pageHeightPx, canvas.height); // حماية من حلقة لا نهائية
+    const sliceHeightPx = sliceEnd - y;
+    const pageCanvas = document.createElement('canvas');
+    pageCanvas.width = canvas.width;
+    pageCanvas.height = pageHeightPx; // ارتفاع الصفحة كامل دائمًا (بياض فارغ فآخر صفحة إن قصرت)
+    const ctx = pageCanvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+    ctx.drawImage(canvas, 0, y, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+    const imgData = pageCanvas.toDataURL('image/jpeg', 0.92);
+    if(pageIndex>0) pdf.addPage();
+    pdf.addImage(imgData, 'JPEG', 0, 0, PAGE_W_MM, PAGE_H_MM);
+    y = sliceEnd;
+    pageIndex++;
+  }
+  return pdf.output('blob');
+}
+// يجهّز عنصر الورقة للالتقاط: ينتظر الخطوط والصور، يقيس حدود الأسئلة/النصوص، ويرجّع الـcanvas
+// الكامل مع تلك الحدود (noBreakRanges) لاستعمالها فتقطيع الصفحات.
+async function captureSheetCanvas(){
+  const sheetEl = document.querySelector('#printArea .sheet');
+  const SCALE = 2;
+  await waitForFontsAndLayout();
+  await waitForImagesIn(sheetEl);
+  const noBreakRanges = getNoBreakRanges(sheetEl, SCALE);
+  const canvas = await html2canvas(sheetEl, {scale:SCALE, backgroundColor:'#ffffff', useCORS:true});
+  return { canvas, noBreakRanges };
+}
+
+// ينشئ ملف PDF حقيقي من ورقة التصحيح (باستخدام html2canvas + jsPDF)، بصفحات A4 بيضاء حقيقية
+// (بدل صفحة واحدة طويلة)، ويرجعه كـ Blob
+async function generateCorrectionPdfBlob(ex, result){
+  buildCorrectionSheet(ex, result);
+  const { canvas, noBreakRanges } = await captureSheetCanvas();
+  return canvasToA4PdfBlob(canvas, noBreakRanges);
+}
+
+// نفس المبدأ ديال generateCorrectionPdfBlob لكن كيولّد PDF لنسخة الأسئلة والنصوص (بلا نتيجة تلميذ)
+async function generateExamPdfBlob(ex){
+  buildPrintSheet(ex);
+  const { canvas, noBreakRanges } = await captureSheetCanvas();
+  return canvasToA4PdfBlob(canvas, noBreakRanges);
+}
+
+// يجهّز زوج أزرار "فتح PDF" و"تنزيل PDF" لنسخة الأسئلة (للأستاذ(ة))
+function wireExamPdfButtons(openBtnId, downloadBtnId, ex){
+  let cachedBlob = null;
+  async function ensureBlob(){
+    if(cachedBlob) return cachedBlob;
+    cachedBlob = await generateExamPdfBlob(ex);
+    return cachedBlob;
+  }
+  const openBtn = document.getElementById(openBtnId);
+  const dlBtn = document.getElementById(downloadBtnId);
+  if(openBtn) openBtn.onclick = async ()=>{
+    openBtn.disabled = true; const orig = openBtn.innerHTML; openBtn.innerHTML = '<span class="spinner"></span> جارٍ التجهيز...';
+    try{
+      const blob = await ensureBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }catch(e){ toast('تعذّر فتح الملف: ' + (e.message||'')); }
+    openBtn.disabled = false; openBtn.innerHTML = orig;
+  };
+  if(dlBtn) dlBtn.onclick = async ()=>{
+    dlBtn.disabled = true; const orig = dlBtn.innerHTML; dlBtn.innerHTML = '<span class="spinner"></span> جارٍ التجهيز...';
+    try{
+      const blob = await ensureBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `أسئلة-${sanitizeFileName(ex.title)}.pdf`;
+      document.body.appendChild(a); a.click(); a.remove();
+    }catch(e){ toast('تعذّر تنزيل الملف: ' + (e.message||'')); }
+    dlBtn.disabled = false; dlBtn.innerHTML = orig;
+  };
+}
+
+function sanitizeFileName(s){
+  return (s||'ملف').replace(/[\\/:*?"<>|]/g,'').trim().slice(0,60) || 'ملف';
+}
+
+// يجهّز زوج أزرار "فتح PDF" و"تنزيل PDF" ويربطهما بمنطق التوليد
+function wireCorrectionPdfButtons(openBtnId, downloadBtnId, ex, result){
+  let cachedBlob = null;
+  async function ensureBlob(){
+    if(cachedBlob) return cachedBlob;
+    cachedBlob = await generateCorrectionPdfBlob(ex, result);
+    return cachedBlob;
+  }
+  const openBtn = document.getElementById(openBtnId);
+  const dlBtn = document.getElementById(downloadBtnId);
+  if(openBtn) openBtn.onclick = async ()=>{
+    openBtn.disabled = true; const orig = openBtn.innerHTML; openBtn.innerHTML = '<span class="spinner"></span> جارٍ التجهيز...';
+    try{
+      const blob = await ensureBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }catch(e){ toast('تعذّر فتح الملف: ' + (e.message||'')); }
+    openBtn.disabled = false; openBtn.innerHTML = orig;
+  };
+  if(dlBtn) dlBtn.onclick = async ()=>{
+    dlBtn.disabled = true; const orig = dlBtn.innerHTML; dlBtn.innerHTML = '<span class="spinner"></span> جارٍ التجهيز...';
+    try{
+      const blob = await ensureBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `تصحيح-${sanitizeFileName(result.studentName)}-${sanitizeFileName(ex.title)}.pdf`;
+      document.body.appendChild(a); a.click(); a.remove();
+    }catch(e){ toast('تعذّر تنزيل الملف: ' + (e.message||'')); }
+    dlBtn.disabled = false; dlBtn.innerHTML = orig;
+  };
+}
+
+function buildCorrectionSheet(ex, result){
+  const area = document.getElementById('printArea');
+  const ltr = dirAttr(ex.subject);
+  const L = examLabels(ex.subject);
+  const byNumber = {};
+  (ex.questions||[]).forEach(q=>{ byNumber[q.number] = q; });
+  const qHtml = (result.perQuestion||[]).map(r=>{
+    const q = byNumber[r.number] || {};
+    const ratio = r.max ? r.awarded/r.max : 0;
+    const mark = ratio>=0.99 ? '✓' : ratio<=0.01 ? '✗' : '~';
+    return `
+    <div class="sheet-q">
+      <div class="sheet-qlabel"${ltr}>${L.question} ${r.number} — ${mark} ${r.awarded}/${r.max}</div>
+      <div class="sheet-qtext"${ltr}>${esc(q.text||'')}</div>
+      <div style="font-size:13px;margin:4px 0;"><b>إجابتك (مفرَّغة رقميًا):</b> ${esc(r.studentAnswerSummary||'—')}</div>
+      ${q.modelAnswer ? `<div style="font-size:13px;margin:4px 0;color:#22352B;font-weight:700;"${ltr}><b>الإجابة الصحيحة:</b> ${esc(q.modelAnswer)}</div>` : ''}
+      ${r.feedback ? `<div style="font-size:12.5px;color:#5a5170;"><b>الملاحظة:</b> ${esc(r.feedback)}</div>` : ''}
+    </div>`;
+  }).join('');
+  area.innerHTML = `
+    <div class="sheet">
+      ${sheetWatermarkHTML()}
+      ${sheetHeaderBrandHTML()}
+      <div class="sheet-head">
+        <div>
+          <div class="sheet-title">تصحيح: ${esc(ex.title)}</div>
+          <div class="sheet-meta">${ex.level?esc(ex.level)+' — ':''}${esc(ex.subject)} — النتيجة: ${result.score} / ${result.totalPoints}</div>
+        </div>
+        <div class="sheet-meta">الاسم: ${esc(result.studentName)}</div>
+      </div>
+      ${result.overallFeedback ? `<p style="font-size:13px;margin-bottom:14px;">${esc(result.overallFeedback)}</p>` : ''}
+      ${qHtml}
+      ${sheetFooterBrandHTML()}
+    </div>
+  `;
+}
+
+/* ============================= STUDENT: RESULT ============================= */
+function renderStudentResult(){
+  const {result, examData} = state;
+  const pct = examData.totalPoints? (result.score/examData.totalPoints*100):0;
+  app.innerHTML = `
+    ${Header('نتيجتك')}
+    <div class="card center">
+      <div class="muted">${esc(result.studentName)}</div>
+      <div class="score-big" dir="ltr">${result.score} / ${result.totalPoints}</div>
+      <div class="pill">${pct.toFixed(0)}%</div>
+      ${result.overallFeedback?`<p class="muted" style="margin-top:14px;">${esc(result.overallFeedback)}</p>`:''}
+      <div class="row" style="margin-top:16px;">
+        <button class="btn btn-ghost" id="openCorrection">👁️ فتح PDF</button>
+        <button class="btn btn-gold" id="downloadCorrection">⬇️ تنزيل PDF</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>تفاصيل التصحيح</h3>
+      ${result.perQuestion.map(q=> qaBlockHTML(q, examData)).join('')}
+    </div>
+    <a class="backlink" href="${location.pathname}">⟵ الرئيسية</a>
+  `;
+  wireCorrectionPdfButtons('openCorrection', 'downloadCorrection', examData, result);
+}
+
+/* ============================= RENDER ROUTER ============================= */
+function render(){
+  document.getElementById('printArea').innerHTML='';
+  if(state.screen!=='studentExam' && unsubExamListener){ unsubExamListener(); unsubExamListener=null; }
+  switch(state.screen){
+    case 'landing': renderLanding(); break;
+    case 'teacherGate': renderTeacherGate(); break;
+    case 'setup': renderSetup(); break;
+    case 'teacherDashboard': renderTeacherDashboard(); break;
+    case 'teacherCreate': renderTeacherCreate(); break;
+    case 'teacherExamView': renderTeacherExamView(); break;
+    case 'teacherStudentResult': renderTeacherStudentResult(); break;
+    case 'studentExam': renderStudentExam(); break;
+    case 'studentResult': renderStudentResult(); break;
+    default: renderLanding();
+  }
+}
+
+/* ============================= PWA / SERVICE WORKER (تحديث تلقائي) ============================= */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{ /* نفس Service Worker العام للمنصة */
+      // كل ما فتحنا الصفحة، نفحصو يدويًا واش كاين تحديث جديد (بجانب الفحص التلقائي للمتصفح)
+      reg.update().catch(()=>{});
+      // نفحصو دوريًا (كل 60 ثانية) طالما الصفحة مفتوحة، باش التحديث يوصل بسرعة بلا حاجة التلميذ يسكر التطبيق
+      setInterval(()=>{ reg.update().catch(()=>{}); }, 60000);
+    }).catch(()=>{});
+  });
+  // كي يفعّل Service Worker جديد (نسخة محدثة)، نعاودو تحميل الصفحة تلقائيًا مرة وحدة باش يبان آخر تحديث فورًا
+  let swRefreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if(swRefreshing) return;
+    swRefreshing = true;
+    window.location.reload();
+  });
+}
+
+/* ============================= PWA / زر تثبيت التطبيق ============================= */
+let deferredInstallPrompt = null;
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  document.querySelectorAll('.install-app-btn').forEach(b=> b.style.display = 'inline-flex');
+});
+window.addEventListener('appinstalled', ()=>{
+  deferredInstallPrompt = null;
+  document.querySelectorAll('.install-app-btn').forEach(b=> b.style.display = 'none');
+  toast('تم تثبيت التطبيق ✅');
+});
+async function triggerInstallPrompt(){
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  document.querySelectorAll('.install-app-btn').forEach(b=> b.style.display = 'none');
+}
+// يبني زر التثبيت، ويبقى مخفيًا تلقائيًا إلا كان التطبيق مثبت أصلاً أو المتصفح ما كيدعمش الميزة
+function installButtonHTML(){
+  if(isStandalone) return '';
+  return `<button class="btn btn-gold install-app-btn" id="installAppBtn" style="display:none;">📲 تثبيت التطبيق</button>`;
+}
+function wireInstallButton(id){
+  const btn = document.getElementById(id);
+  if(!btn) return;
+  if(deferredInstallPrompt) btn.style.display = 'inline-flex';
+  btn.onclick = triggerInstallPrompt;
+}
+
+/* ============================= BOOT ============================= */
+(function boot(){
+  tryImportCfgFromUrl();
+  if(state.examId){
+    if(initFirebase()){ go('studentExam', {examId: state.examId}); }
+    else {
+      app.innerHTML = `${Header()}<div class="card">
+        <p class="muted">هذا الرابط غير مكتمل من الناحية التقنية. يرجى التأكد من فتح الرابط الكامل الذي أرسله الأستاذ(ة)، وليس رمزًا مقتطعًا منه.</p>
+        <button class="btn btn-primary" id="tryManual">العودة إلى قائمة الاختبارات</button>
+      </div>`;
+      document.getElementById('tryManual').onclick = ()=> go('landing');
+    }
+  } else {
+    render();
+  }
+})();
+</script>
+</body>
+</html>
