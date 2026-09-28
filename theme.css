@@ -154,3 +154,92 @@ body{
 .hub .badge.cat-anmat b { color:#3F3334; }
 .hub .badge.cat-itisaq   { border-color:#8A3B5E; box-shadow:6px 6px 0 rgba(138,59,94,0.20); }
 .hub .badge.cat-itisaq b { color:#5C2340; }
+
+
+/* =========================================================================================
+   نافذة دخول / تسجيل التلميذ — تصميم مستوحى من شعار المنصة (ماروني + فحمي + ذهبي)
+   خاص بـ #loginModal فقط، ولا يمسّ نافذة دخول الأستاذ/المشرف.
+   ========================================================================================= */
+#loginModal{
+  background:
+    radial-gradient(circle at 50% 0%, rgba(122,34,41,0.55), transparent 60%),
+    rgba(20,13,14,0.82);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  overflow-y:auto; padding:16px;
+}
+.auth-card{
+  position:relative; width:100%; max-width:340px; margin:auto;
+  padding:56px 22px 22px; border-radius:26px; text-align:center; color:#F7F1E6;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(232,206,133,0.16), transparent 55%),
+    repeating-linear-gradient(45deg, rgba(232,206,133,0.035) 0 2px, transparent 2px 14px),
+    linear-gradient(165deg, #2B1517 0%, #4E1218 55%, #2A1214 100%);
+  border:1.6px solid #C9A24B;
+  box-shadow:0 22px 50px rgba(0,0,0,0.55), 0 0 0 5px rgba(122,34,41,0.35), inset 0 1px 0 rgba(232,206,133,0.25);
+  margin-top:48px;
+}
+.auth-card::before{ /* إطار ذهبي داخلي رفيع */
+  content:''; position:absolute; inset:7px; border-radius:20px; pointer-events:none;
+  border:1px solid rgba(232,206,133,0.30);
+}
+.auth-medallion{
+  position:absolute; top:-46px; left:50%; transform:translateX(-50%);
+  width:92px; height:92px; border-radius:50%; padding:3px;
+  background:linear-gradient(145deg,#F3D9A4,#C9A24B 50%,#8A6420);
+  box-shadow:0 10px 24px rgba(0,0,0,0.5), 0 0 0 4px #2B1517;
+}
+.auth-medallion img{ width:100%; height:100%; border-radius:50%; object-fit:cover; display:block; background:#1B1718; }
+.auth-title{
+  font-family:'Aref Ruqaa', serif; font-weight:700; font-size:24px; line-height:1.5;
+  color:#F3D9A4; text-shadow:0 2px 10px rgba(0,0,0,0.4);
+}
+.auth-orn{ display:flex; align-items:center; justify-content:center; gap:10px; margin:2px 0 10px; color:#C9A24B; font-size:9px; }
+.auth-orn::before, .auth-orn::after{
+  content:''; width:56px; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(201,162,75,0.85));
+}
+.auth-orn::after{ transform:scaleX(-1); }
+.auth-sub{ font-size:12.5px; line-height:1.9; color:rgba(247,241,230,0.78); margin-bottom:18px; font-weight:600; }
+
+.auth-btn{
+  display:block; width:100%; border-radius:14px; padding:13px 14px; margin-top:10px;
+  font-family:'Cairo',sans-serif; font-weight:800; font-size:15px; cursor:pointer;
+  transition:transform .12s ease, box-shadow .2s ease, filter .2s ease;
+}
+.auth-btn:active{ transform:scale(0.98); }
+.auth-btn:disabled{ opacity:.6; cursor:default; }
+.auth-btn-gold{
+  border:1px solid #F3D9A4; color:#3A0F14;
+  background:linear-gradient(145deg,#F3D9A4 0%, #D8AE52 55%, #B98A2F 100%);
+  box-shadow:0 8px 18px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.auth-btn-ghost{
+  border:1.5px solid rgba(232,206,133,0.75); color:#F3D9A4; background:rgba(255,252,246,0.05);
+}
+.auth-btn-ghost:hover{ background:rgba(232,206,133,0.12); }
+
+.auth-label{
+  display:block; text-align:right; font-size:12px; font-weight:800; color:#E8CE85;
+  margin:12px 4px 6px;
+}
+.auth-input{
+  width:100%; box-sizing:border-box; padding:12px 14px; border-radius:13px;
+  font-family:'Cairo',sans-serif; font-size:16px; font-weight:600; color:#FFFCF6;
+  background:rgba(0,0,0,0.28); border:1.4px solid rgba(201,162,75,0.65);
+  outline:none; transition:border-color .2s, box-shadow .2s, background .2s;
+}
+.auth-input::placeholder{ color:rgba(247,241,230,0.38); font-weight:500; }
+.auth-input:focus{
+  border-color:#F3D9A4; background:rgba(0,0,0,0.38);
+  box-shadow:0 0 0 3px rgba(232,206,133,0.20);
+}
+.auth-input-phone{ direction:ltr; text-align:center; letter-spacing:.06em; }
+
+.auth-recalled{ margin-top:12px; font-size:12px; line-height:1.9; font-weight:700; color:rgba(247,241,230,0.85); }
+.auth-recalled b{ color:#F3D9A4; }
+.auth-recalled a{ color:#E8CE85; text-decoration:underline; font-weight:800; }
+.auth-msg{ margin-top:12px; font-size:12.5px; line-height:1.9; font-weight:700; color:#F6C9A0; }
+.auth-msg:empty{ display:none; }
+.auth-back{ margin-top:14px; }
+.auth-back a{ color:rgba(232,206,133,0.9); font-size:12.5px; font-weight:700; text-decoration:none; }
+.auth-back a:hover{ text-decoration:underline; }

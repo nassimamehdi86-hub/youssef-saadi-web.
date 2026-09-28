@@ -352,44 +352,43 @@
 
 <!-- ============ نافذة تسجيل دخول التلميذ ============ -->
 <div class="modal-overlay" id="loginModal">
-  <div class="admin-login-mock" style="max-width:320px">
+  <div class="auth-card">
+    <div class="auth-medallion"><img src="logo-circle.webp" alt="" width="84" height="84"></div>
 
     <!-- ===== خطوة 1: شاشة الترحيب — اختيار تسجيل الدخول أو إنشاء حساب جديد ===== -->
     <div id="loginWelcomeStep">
-      <div class="al-icon"><span class="icon-glyph">👋</span></div>
-      <div class="al-title">مرحباً بك في المنصة</div>
-      <div class="al-sub">اختر ما تريد من الخيارات أدناه للبدء في التعلم والمراجعة — سجّل الدخول أو أنشئ حساباً جديداً للوصول إلى المحتوى</div>
-      <button class="install-btn" id="loginGoSigninBtn" style="width:100%;justify-content:center;margin-bottom:10px">🔐 تسجيل الدخول</button>
-      <button class="install-btn" id="loginGoSignupBtn" style="width:100%;justify-content:center;background:#A97F2A">✨ إنشاء حساب جديد</button>
+      <div class="auth-title">مرحباً بك في المنصة</div>
+      <div class="auth-orn"><span>◆</span></div>
+      <div class="auth-sub">سجّل الدخول أو أنشئ حساباً جديداً للوصول إلى الدروس والتمارين والمراجعة</div>
+      <button class="auth-btn auth-btn-gold" id="loginGoSigninBtn">تسجيل الدخول</button>
+      <button class="auth-btn auth-btn-ghost" id="loginGoSignupBtn">إنشاء حساب جديد</button>
     </div>
 
     <!-- ===== خطوة 2: نموذج تسجيل الدخول / إنشاء الحساب ===== -->
     <div id="loginFormStep" style="display:none">
-      <div class="al-icon"><span class="icon-glyph">🔒</span></div>
-      <div class="al-title" id="loginFormTitle">تسجيل الدخول</div>
-      <div class="al-sub" id="loginFormSub">أدخل رقم هاتفك واسمك ولقبك</div>
+      <div class="auth-title" id="loginFormTitle">تسجيل الدخول</div>
+      <div class="auth-orn"><span>◆</span></div>
+      <div class="auth-sub" id="loginFormSub">أدخل رقم هاتفك واسمك ولقبك</div>
 
-      <div style="font-size:11px;font-weight:700;color:#5B6E62;margin-bottom:5px;text-align:right">رقم الهاتف</div>
-      <input type="tel" id="loginPhoneInput" placeholder="0X XX XX XX XX" style="width:100%;padding:11px 14px;border-radius:11px;border:1.4px solid #A97F2A;font-family:'Cairo';font-size:14px;margin-bottom:10px;background:#FFFDF7;color:#22352B">
+      <label class="auth-label" for="loginPhoneInput">رقم الهاتف</label>
+      <input class="auth-input auth-input-phone" type="tel" id="loginPhoneInput" placeholder="0X XX XX XX XX" autocomplete="tel">
 
-      <div style="font-size:11px;font-weight:700;color:#5B6E62;margin-bottom:5px;text-align:right">الاسم</div>
-      <input type="text" id="loginFirstNameInput" placeholder="......." style="width:100%;padding:11px 14px;border-radius:11px;border:1.4px solid #A97F2A;font-family:'Cairo';font-size:14px;margin-bottom:10px;background:#FFFDF7;color:#22352B">
-      <div style="font-size:11px;font-weight:700;color:#5B6E62;margin-bottom:5px;text-align:right">اللقب</div>
-      <input type="text" id="loginLastNameInput" placeholder="......." style="width:100%;padding:11px 14px;border-radius:11px;border:1.4px solid #A97F2A;font-family:'Cairo';font-size:14px;margin-bottom:10px;background:#FFFDF7;color:#22352B">
+      <label class="auth-label" for="loginFirstNameInput">الاسم</label>
+      <input class="auth-input" type="text" id="loginFirstNameInput" placeholder="اكتب اسمك" autocomplete="given-name">
 
-      <div id="loginRecalledBox" style="display:none;font-size:12px;font-weight:700;color:#5B6E62;text-align:center;margin-bottom:10px">
-        تم استرجاع معلوماتك المحفوظة: <span id="loginRecalledName"></span><br>
-        <a href="#" id="loginNotMeLink" style="color:#2E6DA4;text-decoration:underline;font-weight:700">ليست معلوماتي</a>
+      <label class="auth-label" for="loginLastNameInput">اللقب</label>
+      <input class="auth-input" type="text" id="loginLastNameInput" placeholder="اكتب لقبك" autocomplete="family-name">
+
+      <div id="loginRecalledBox" class="auth-recalled" style="display:none">
+        تم استرجاع معلوماتك المحفوظة: <b id="loginRecalledName"></b><br>
+        <a href="#" id="loginNotMeLink">ليست معلوماتي</a>
       </div>
 
-      <button class="install-btn" id="loginSubmitBtn" style="width:100%;justify-content:center">دخول</button>
-      <div id="loginMsg" style="margin-top:12px;font-size:12px;font-weight:700;color:#5B6E62"></div>
+      <button class="auth-btn auth-btn-gold" id="loginSubmitBtn">دخول</button>
+      <div id="loginMsg" class="auth-msg"></div>
 
-      <div style="margin-top:14px;text-align:center">
-        <a href="#" id="loginBackToWelcomeLink" style="color:#5B6E62;text-decoration:underline;font-size:12px;font-weight:700">→ رجوع</a>
-      </div>
+      <div class="auth-back"><a href="#" id="loginBackToWelcomeLink">→ رجوع</a></div>
     </div>
-
   </div>
 </div>
 
