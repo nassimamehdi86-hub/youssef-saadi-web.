@@ -31,7 +31,6 @@ const WisdomQuotes = {
   quoteInterval: null,
   displayElement: null,
   textEl: null,
-  indicatorEl: null,
   /* مدة حركة الـ Fade Out بالميلي ثانية — يجب أن تطابق مدة الانتقال (transition) في CSS
      لخاصية .wisdom-text.wisdom-fade كي يتم تبديل النص بعد اكتمال الاختفاء تماماً لا قبله */
   FADE_MS: 380,
@@ -51,13 +50,11 @@ const WisdomQuotes = {
           <div class="wisdom-text-wrap">
             <div class="wisdom-text" id="wisdomTextEl"></div>
           </div>
-          <span class="wisdom-indicator" id="wisdomIndicatorEl"></span>
         </div>
       </div>
     `;
 
     this.textEl = containerElement.querySelector('#wisdomTextEl');
-    this.indicatorEl = containerElement.querySelector('#wisdomIndicatorEl');
     this.renderQuote(false);
 
     /* تغيير الأمثال كل 6 ثوانٍ */
@@ -66,20 +63,17 @@ const WisdomQuotes = {
 
   /* عرض المثل الحالي — animate=true يشغّل حركة اختفاء/ظهور سلسة قبل تبديل النص */
   renderQuote(animate) {
-    if (!this.textEl || !this.indicatorEl) return;
+    if (!this.textEl) return;
     const quote = this.quotes[this.currentIndex];
-    const indicator = `${this.currentIndex + 1}/${this.quotes.length}`;
 
     if (!animate) {
       this.textEl.textContent = quote;
-      this.indicatorEl.textContent = indicator;
       return;
     }
 
     this.textEl.classList.add('wisdom-fade');
     setTimeout(() => {
       this.textEl.textContent = quote;
-      this.indicatorEl.textContent = indicator;
       this.textEl.classList.remove('wisdom-fade');
     }, this.FADE_MS);
   },

@@ -7,11 +7,11 @@
    يُستخدم التخزين المؤقت فقط كخطة بديلة عند انقطاع الإنترنت تمامًا (وضع عدم الاتصال).
    ========================================================================================= */
 
-const CACHE_NAME = 'abou-chaker-lâabbadi-v20'; /* رُفع الرقم لتظهر ألوان الشعار الجديدة في theme.css */
+const CACHE_NAME = 'abou-chaker-lâabbadi-v21'; /* رُفع الرقم لتظهر ألوان الشعار الجديدة في theme.css */
 const CORE_ASSETS = [
   './index.html', './style.css', './theme.css', './modern.css', './app.js', './lessons-data.js', './irab-data.js',
   './firebase-config.js', './manifest.json', './icon-192.png', './icon-512.png',
-  './teacher-avatar.jpg', './teacher-watermark.jpg', './smart-teacher.html',
+  './teacher-avatar.jpg', './logo-circle.webp', './teacher-watermark.jpg', './smart-teacher.html',
   './certificate-generator.js', './exercise-pdf-generator.js'
 ];
 
