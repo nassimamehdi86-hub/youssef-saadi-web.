@@ -335,6 +335,12 @@
   .sheet-qlabel{font-weight:700;font-size:13px;color:#5a5170;margin-bottom:5px;}
   .sheet-qtext{font-weight:700;font-size:15px;line-height:1.7;margin-bottom:6px;}
   .ruled{border-bottom:1px dotted #8b8299;height:26px;}
+  .sheet-item{display:flex;align-items:flex-end;gap:8px;margin:5px 0;font-size:14.5px;line-height:1.8;}
+  .sheet-item .it-text{font-weight:600;flex:0 1 auto;max-width:62%;}
+  .sheet-item .it-blank{flex:1 1 auto;border-bottom:1px dotted #8b8299;min-height:26px;}
+  .sheet-item.stack{display:block;}
+  .sheet-item.stack .it-text{display:block;max-width:100%;}
+  .u-target{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1.5px;}
   .sheet-passage{border:1px solid #8b8299;border-radius:8px;padding:12px 14px;margin-bottom:18px;page-break-inside:avoid;}
   .sheet-passage-title{font-weight:700;margin-bottom:6px;}
   .sheet-passage-text{font-size:14px;line-height:1.9;white-space:pre-wrap;}
@@ -349,7 +355,7 @@
     #printArea{display:block;position:absolute;top:0;left:0;width:100%;}
     .sheet{background:#fff;color:#000;border-radius:0;padding:14mm;}
     .sheet-head{border-color:#000;}
-    .ruled{border-color:#000;}
+    .ruled,.sheet-item .it-blank{border-color:#000;}
     .sheet-passage{border-color:#000;}
     .sheet-table th,.sheet-table td{border-color:#000;}
   }
@@ -514,6 +520,20 @@ function recompressDataUrl(dataUrl, maxDim, quality){
     img.src = dataUrl;
   });
 }
+// [[كلمة]] داخل نص الجملة = الكلمة المطلوب إعرابها/تحديدها (تُطبع مسطّرة كما في الأصل)
+function markHTML(str){ return esc(str).replace(/\[\[(.+?)\]\]/g,'<span class="u-target">$1</span>'); }
+function stripMarks(str){ return (str||'').replace(/\[\[(.+?)\]\]/g,'$1'); }
+function normalizeItems(items){
+  if(!Array.isArray(items)) return [];
+  return items.map(it=> typeof it==='string' ? {text:it, expectedLines:1} : {text: it?.text||'', expectedLines: it?.expectedLines||1}).filter(it=>it.text);
+}
+function itemsHTML(items){
+  return normalizeItems(items).map(it=>{
+    const n = it.expectedLines||1;
+    if(n<=1) return `<div class="sheet-item"><span class="it-text">${markHTML(it.text)}</span><span class="it-blank"></span></div>`;
+    return `<div class="sheet-item stack"><span class="it-text">${markHTML(it.text)}</span>${Array.from({length:n}).map(()=>'<div class="ruled"></div>').join('')}</div>`;
+  }).join('');
+}
 function normalizeAnswerTable(at){
   if(!at || !at.headers || !at.headers.length) return null;
   const headers = at.headers;
@@ -557,7 +577,7 @@ function qaBlockHTML(q, examData){
   return `<div class="qa-block ${cls}">
     <b>سؤال ${q.number}</b> — ${q.awarded}/${q.max}
     <div style="margin-top:6px;">إجابتك: ${esc(q.studentAnswerSummary||'')}</div>
-    ${modelAnswer? `<div style="margin-top:4px;color:var(--teal);font-weight:600;">الإجابة الصحيحة: ${esc(modelAnswer)}</div>` : ''}
+    ${modelAnswer? `<div style="margin-top:4px;color:var(--teal);font-weight:600;white-space:pre-line;">الإجابة الصحيحة: ${esc(modelAnswer)}</div>` : ''}
     ${q.feedback? `<div class="muted" style="margin-top:4px;">${esc(q.feedback)}</div>` : ''}
   </div>`;
 }
@@ -1475,20 +1495,23 @@ function renderTeacherCreate(){
           {type:'text', text:'استخرج البيانات بصيغة JSON فقط بلا أي مقدمة ولا علامات ```.'}
         ];
         const system = `أنت مساعد يستخرج بيانات الاختبارات المدرسية من الصور، ويجب أن يحافظ على نفس ترتيب الظهور الأصلي في ملف الاختبار (وضعية/سند ثم أسئلتها، ثم الوضعية التالية وأسئلتها، وهكذا) بالضبط كما هو مطبوع. أخرج JSON بهذا الشكل بالضبط:
-{"subject":"...","title":"...","totalPoints":20,"passages":[{"type":"text","title":"النص/الوثيقة","text":"النص كاملاً كما هو مكتوب","beforeQuestion":1}],"questions":[{"number":1,"text":"نص السؤال (أو النص التمهيدي المشترك إن كان للسؤال أجزاء)","points":2,"modelAnswer":"الحل النموذجي الكامل لهذا السؤال بكل أجزائه","expectedLines":3,"parts":[],"answerTable":null}]}
+{"subject":"...","title":"...","totalPoints":20,"passages":[{"type":"text","title":"النص/الوثيقة","text":"النص كاملاً كما هو مكتوب","beforeQuestion":1}],"questions":[{"number":1,"text":"نص السؤال (أو النص التمهيدي المشترك إن كان للسؤال أجزاء)","points":2,"modelAnswer":"الحل النموذجي الكامل لهذا السؤال بكل أجزائه","expectedLines":3,"parts":[],"items":[],"answerTable":null}]}
 - passage من نوع رسم/شكل/مخطط (مهم جدًا): إذا لاحظتِ رسمًا علميًا أو مخططًا أو شكلًا بيانيًا أو صورة (مثل رسم توضيحي فالعلوم الطبيعية أو دارة كهربائية فالفيزياء أو خريطة أو رسم بياني) لا يمكن نسخه كنص، **لا تحاولي وصفه أو إعادة رسمه أو تخمين محتواه إطلاقًا** لأن هذا معرّض لأخطاء خطيرة فمادة علمية. بدل ذلك حددي فقط مكانه فالصفحة (التطبيق سيقص الصورة الحقيقية تلقائيًا من نفس البكسلات الأصلية، بلا أي إعادة رسم): {"type":"image","title":"عنوان قصير للرسم إن وجد","pageIndex":0,"box":{"x":0.1,"y":0.2,"width":0.35,"height":0.25},"beforeQuestion":N}. حيث pageIndex هو رقم صفحة ملف الاختبار (0 = الصفحة الأولى) التي يظهر فيها الرسم، وbox إحداثيات نسبية من 0 إلى 1 (نسبة لأبعاد الصفحة الكاملة: x,y زاوية أعلى-يسار، width/height الأبعاد) تحيط بالرسم بأكمله بدقة. اجعلي المربع يشمل الرسم كاملاً مع هامش بسيط حوله (أفضل من اقتطاع جزء منه). إذا لم تكوني متأكدة إطلاقًا من موقعه استعملي {"type":"note","title":"يوجد رسم/شكل هنا يجب إضافته يدويًا","beforeQuestion":N} كحل احتياطي فقط.
 - passages: أي نص قرائي أو وثيقة أو مقطع (نص أدبي، وثيقة تاريخية، خريطة موصوفة نصيًا، وضعية إدماجية بسياقها وسندها...) يظهر في ملف الاختبار ويجب على التلميذ الاعتماد عليه للإجابة عن سؤال أو أكثر. انسخه حرفيًا وكاملاً كما هو مكتوب، بلا تلخيص ولا تغيير. إن لم يوجد أي نص من هذا النوع أرجع مصفوفة فارغة [].
 - passage من نوع جدول مرجعي (مثل جدول "Aide-toi du tableau" أو أي جدول معلومات معمّر مسبقًا يعتمد عليه التلميذ): استعملي {"type":"table","title":"...","headers":["عمود1","عمود2",...],"rows":[{"cells":["قيمة1","قيمة2",...]},...],"beforeQuestion":N} بدل الحقل text. لاحظي أن كل صف هو كائن فيه "cells" (وليس مصفوفة مباشرة). انسخي كل خلية حرفيًا كما هي مكتوبة فالجدول الأصلي، بنفس عدد الأعمدة والصفوف بالضبط.
 - beforeQuestion (إلزامي لكل passage): رقم أول سؤال يظهر مباشرة بعد هذا النص/الوثيقة/الجدول في الترتيب الأصلي للاختبار (أي أن هذا العنصر يجب أن يُطبع قبل السؤال رقم كذا). هذا الحقل أساسي جدًا للحفاظ على ترتيب الاختبار الأصلي: كل وضعية/سند لها أسئلتها الخاصة التي تليها مباشرة قبل الوضعية التالية — لا تجمّعي كل النصوص في مكان واحد ولا كل الأسئلة في مكان آخر.
-- answerTable (اختياري، للأسئلة فقط): إن كان السؤال عبارة عن جدول (مثل "أكمل الجدول التالي")، ضعي {"headers":["عمود1","عمود2",...],"rows":[{"cells":["محتوى الخلية أو فارغة"]}]}. **مهم جدًا:** انسخي محتوى كل خلية كما هو بالضبط من الجدول الأصلي — إن كانت الخلية معمّرة (مثلاً عمود "السؤال" فيه سؤال فرعي مكتوب) انسخي نصها حرفيًا، وإن كانت فارغة يخليها التلميذ يملؤها اتركيها سلسلة نصية فارغة "". لا تفترضي أن كل الخلايا فارغة — كثير من الجداول فيها عمود معمّر (كالسؤال) وعمود فارغ (مكان الجواب) بنفس الصف. عدد الخلايا فكل صف يطابق عدد الأعمدة بالضبط. إن كان السؤال عاديًا بلا جدول اتركي answerTable = null، ولا تستعملي parts وanswerTable معًا فنفس السؤال.
+- answerTable (اختياري، للأسئلة فقط): إن كان السؤال عبارة عن جدول (مثل "أكمل الجدول التالي")، ضعي {"headers":["عمود1","عمود2",...],"rows":[{"cells":["محتوى الخلية أو فارغة"]}]}. **مهم جدًا:** انسخي محتوى كل خلية كما هو بالضبط من الجدول الأصلي — إن كانت الخلية معمّرة (مثلاً عمود "السؤال" فيه سؤال فرعي مكتوب) انسخي نصها حرفيًا، وإن كانت فارغة يخليها التلميذ يملؤها اتركيها سلسلة نصية فارغة "". لا تفترضي أن كل الخلايا فارغة — كثير من الجداول فيها عمود معمّر (كالسؤال) وعمود فارغ (مكان الجواب) بنفس الصف. عدد الخلايا فكل صف يطابق عدد الأعمدة بالضبط. إن كان السؤال عاديًا بلا جدول اتركي answerTable = null، ولا تستعملي parts وanswerTable معًا فنفس السؤال. ولا تدمجي أبدًا جملًا متعددة داخل text.
+- items (مهم جدًا، للتمارين التي فيها جمل/عبارات متتالية): إذا كان السؤال في الأصل قائمة جمل أو عبارات كل واحدة في سطر (مثل «أعرب ما تحته خط»، «حدد نوع البدل في الشواهد التالية»، «استخرج…»، «ميّز التابع»، «املأ الفراغات…»، «حدد صحة أو خطأ كل عبارة»، «حوّل الجمل…»)، فلا تدمجي الجمل في حقل text أبدًا. ضعي كل جملة كعنصر مستقل بالترتيب الأصلي بالضبط: {"text":"الجملة كما هي","expectedLines":1}. يبقى text للتعليمة فقط (مثل «حدد نوع البدل في الشواهد التالية:»). التطبيق سيطبع كل جملة في سطر مستقل تحت الأخرى وأمامها فراغ الإجابة (نفس مكان الإجابة الذي يظهر في ملف الحل النموذجي). expectedLines=1 إذا كان الجواب قصيرًا يكتب أمام الجملة (نوع البدل، صح/خطأ، كلمة)، و2 أو 3 إذا كان الجواب طويلًا يحتاج أسطرًا تحت الجملة (إعراب تام مفصل، تعليل). انسخي الجمل حرفيًا بترتيبها ولا تحذفي أي واحدة. الكلمة المطلوب إعرابها أو تحديدها (المسطّرة أو التي بين قوسين أو المعيّنة في ملف الحل) ضعيها داخل [[ ]] مثل: دخل الأستاذ [[محمد]] إلى القسم — لأن التسطير قد لا يظهر في الصورة، فاستنتجي الكلمة من ملف الحل النموذجي. استعملي items بدل parts في هذه الحالة. اكتبي في modelAnswer حل كل جملة في سطر مرقّم بنفس الترتيب.
+- جدول الحل: إذا كان الحل النموذجي لتمرين معروضًا في جدول (مثل «استخرج … في جدول»)، فاجعلي مكان الجواب جدولًا: answerTable بأعمدة الحل (مثل «البدل» و«المبدل منه») وبصف لكل جملة، مع الاحتفاظ بأعمدة الجمل معمّرة (عمود «الجملة» فيه الجملة كما هي) وأعمدة الجواب فارغة "". في هذه الحالة اترك text للتعليمة فقط ولا تكرري الجمل فيه ولا تستعملي items معه.
 - parts (اختياري): إن كان السؤال يتكون من جزءين أو أكثر منفصلين، كل جزء يحتاج فراغ إجابة مستقل (مثلاً تمارين اللغات: a) ... b) ...، أو "أعد ترتيب..." + "أكمل بـ..."، أو أي سؤال فيه بندين واضحين كل بند له مكان كتابة خاص به في الورقة الأصلية)، ضع كل جزء ككائن في المصفوفة: {"text":"نص الجزء","expectedLines":2}. اترك "text" الرئيسي للسؤال كنص تمهيدي مشترك فقط (أو فارغًا إن ما كانش هناك تمهيد)، ولا تكرري نص الأجزاء داخل الحقل text. مهم: احذفي أي ترقيم أو حرف أصلي فبداية كل جزء (مثل "a-" أو "a)" أو "1)" أو "-") لأن التطبيق سيرقّم الأجزاء تلقائيًا بحروف (a, b, c...) — اكتبي فقط نص الجزء بلا الترقيم الأصلي. إن كان السؤال بجزء واحد، اترك parts مصفوفة فارغة [] واستعملي text وexpectedLines العاديين.
+- ترتيب الأسئلة: اجعلي الأسئلة بنفس عدد وترتيب التمارين في الأصل بالضبط (التمرين 01 = سؤال 1، …) دون دمج تمرينين أو تقسيم تمرين، وخذي النقطة من توزيع النقاط في ملف الحل إن وُجد وإلا وزّعي المجموع بالتساوي.
 - text: نص السؤال بلا ترقيمه الأصلي فبدايته (مثل "1." أو "1)" أو "-")، لأن التطبيق كيعرض "السؤال N" فسطر منفصل تلقائيًا فوق النص.
 - expectedLines: عدد الأسطر المناسبة لكتابة الجواب يدويًا (بين 1 و8) حسب طول الحل النموذجي.
 - اربط كل سؤال بنقطته وحله من ملف الحل النموذجي بالترتيب ورقم السؤال.
 - لا تكتب أي نص خارج الـ JSON.`;
         const raw = await callClaude(system, content);
         const parsed = extractJSON(raw);
-        d.questions = (parsed.questions || []).map(q=>({ ...q, parts: q.parts || [], answerTable: normalizeAnswerTable(q.answerTable) }));
+        d.questions = (parsed.questions || []).map(q=>({ ...q, parts: q.parts || [], items: normalizeItems(q.items), answerTable: normalizeAnswerTable(q.answerTable) }));
         let rawPassages = (parsed.passages || []).map((p,i)=>({ ...p, type: p.type || 'text', beforeQuestion: p.beforeQuestion ?? 1 }));
         // نطبّع صفوف الجداول لصيغة {cells:[...]} (بدل مصفوفة داخل مصفوفة) لأن Firestore ما كيقبلش
         // مصفوفات متداخلة مباشرة؛ هاذ التطبيع يشتغل سواء رجّع الذكاء الاصطناعي الصيغة القديمة أو الجديدة.
@@ -1751,6 +1774,11 @@ function renderTeacherCreate(){
           <button class="btn btn-ghost" data-addtable="${i}" style="padding:6px 12px;font-size:12.5px;margin-bottom:6px;">⊞ هذا السؤال فيه جدول (سؤال فرعي وجواب)</button>
           `}
           <div class="field">
+            <label>الجمل (كل جملة في سطر، تُطبع تحت بعضها وأمامها فراغ الجواب — ضعي الكلمة المطلوبة بين [[ ]] لتُسطَّر)</label>
+            <textarea class="q-items"${ltr} rows="5" placeholder="جملة في كل سطر">${esc(normalizeItems(q.items).map(it=>it.text).join('\n'))}</textarea>
+            <div class="field" style="margin-top:6px;margin-bottom:0;"><label style="margin-bottom:4px;">أسطر جواب كل جملة (1 = أمام الجملة، 2+ = تحتها)</label><input type="number" min="1" class="q-item-lines" value="${normalizeItems(q.items)[0]?.expectedLines||1}"></div>
+          </div>
+          <div class="field">
             <label>أجزاء السؤال (كل جزء بمكان إجابة مستقل فالطباعة)</label>
             <div class="parts-box">
               ${parts.map((pt,pi)=>`
@@ -1775,6 +1803,12 @@ function renderTeacherCreate(){
         card.querySelector('.q-points').oninput = e=>{d.questions[i].points = parseFloat(e.target.value)||0; updateTotal();};
         const linesInput = card.querySelector('.q-lines');
         if(linesInput) linesInput.oninput = e=>d.questions[i].expectedLines = parseInt(e.target.value)||1;
+        const applyItems = ()=>{
+          const lines = Math.max(1, parseInt(card.querySelector('.q-item-lines').value)||1);
+          d.questions[i].items = card.querySelector('.q-items').value.split('\n').map(t=>t.trim()).filter(Boolean).map(t=>({text:t, expectedLines:lines}));
+        };
+        card.querySelector('.q-items').oninput = applyItems;
+        card.querySelector('.q-item-lines').oninput = applyItems;
         card.querySelector('.q-answer').oninput = e=>d.questions[i].modelAnswer = e.target.value;
         card.querySelectorAll('.part-row').forEach(row=>{
           const pi = +row.dataset.pi;
@@ -1849,7 +1883,7 @@ function renderTeacherCreate(){
       if(box2) box2.textContent = t;
     }
     document.getElementById('addQ').onclick = ()=>{
-      d.questions.push({number:d.questions.length+1, text:'', points:1, modelAnswer:'', expectedLines:3, parts:[], answerTable:null});
+      d.questions.push({number:d.questions.length+1, text:'', points:1, modelAnswer:'', expectedLines:3, parts:[], items:[], answerTable:null});
       renderQList();
     };
     document.getElementById('addP').onclick = ()=>{
@@ -2027,7 +2061,7 @@ async function renderTeacherExamView(){
       level: ex.level||'', subject: ex.subject||'', title: ex.title||'',
       category: ex.category === 'daily' ? 'daily' : 'test',
       questions: JSON.parse(JSON.stringify(ex.questions||[])).map(q=>({
-        ...q, parts: q.parts || [], answerTable: normalizeAnswerTable(q.answerTable)
+        ...q, parts: q.parts || [], items: normalizeItems(q.items), answerTable: normalizeAnswerTable(q.answerTable)
       })),
       passages: JSON.parse(JSON.stringify(ex.passages||[])),
       examPdfUrl: ex.examPdfUrl||null,
@@ -2313,7 +2347,8 @@ async function renderStudentExam(){
           continue;
         }
         const q = item.data;
-        const partsTxt = (q.parts&&q.parts.length>0) ? '\n' + q.parts.map((pt,pi)=>`${String.fromCharCode(97+pi)}) ${pt.text}`).join('\n') : '';
+        const itemsTxt = (q.items&&q.items.length>0) ? '\n' + q.items.map((it,ii)=>`${ii+1}) ${stripMarks(it.text)}`).join('\n') : '';
+        const partsTxt = itemsTxt + ((q.parts&&q.parts.length>0) ? '\n' + q.parts.map((pt,pi)=>`${String.fromCharCode(97+pi)}) ${pt.text}`).join('\n') : '');
         let tableTxt = '';
         if(q.answerTable && q.answerTable.headers){
           const rows = q.answerTable.rows && q.answerTable.rows.length ? q.answerTable.rows : Array.from({length:q.answerTable.rowsCount||1}).map(()=>({cells:q.answerTable.headers.map(()=>'')}));
@@ -2463,6 +2498,11 @@ function buildPrintSheet(ex){
         }).join('')}</tr>`).join('')}</tbody>
       </table>`;
       return `<div class="sheet-q">${labelHtml}${introHtml}${tableHtml}</div>`;
+    }
+    const qItems = normalizeItems(q.items);
+    if(qItems.length>0){
+      const introHtml = q.text ? `<div class="sheet-qtext"${ltr}>${esc(q.text)}</div>` : '';
+      return `<div class="sheet-q">${labelHtml}${introHtml}${itemsHTML(qItems)}</div>`;
     }
     if(parts.length>0){
       const introHtml = q.text ? `<div class="sheet-qtext"${ltr}>${esc(q.text)}</div>` : '';
