@@ -2547,6 +2547,11 @@ function keywordScoreAr(user, keywords){
   return found / keywords.length;
 }
 function isMeaningMatchAr(user, item){
+  /* إجابات بديلة مقبولة (alts): تُقبل أي كلمة من القائمة، لأن بعض التمارين تقبل أكثر من جواب صحيح */
+  if(item && Array.isArray(item.alts) && item.alts.length){
+    const nu = normalizeArabic(user);
+    if(nu && item.alts.some(a=>normalizeArabic(a)===nu)) return true;
+  }
   if(item && Array.isArray(item.keywords) && item.keywords.length){
     const score = keywordScoreAr(user, item.keywords);
     return score !== null && score >= (item.keywordThreshold || 0.5);
