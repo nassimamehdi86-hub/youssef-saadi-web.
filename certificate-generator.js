@@ -117,7 +117,7 @@ function buildCertificateHTML(lesson, studentName, pct){
 
       <div class="cert-head">
         <img class="cert-logo" src="icon-512.png" alt="">
-        <div class="cert-platform">منصة الأستاذ يوسف سعدي</div>
+        <div class="cert-platform">منصة الأستاذ يوسف سعيدي</div>
         <div class="cert-subject">لتدريس اللغة العربية — التعليم المتوسط</div>
       </div>
 
@@ -147,7 +147,7 @@ function buildCertificateHTML(lesson, studentName, pct){
         <div class="cert-foot-col cert-foot-sign">
           <img class="cert-teacher-photo" src="teacher-avatar.jpg" alt="" onerror="this.style.display='none'">
           <div class="cert-foot-label">الأستاذ</div>
-          <div class="cert-foot-value">يوسف سعدي</div>
+          <div class="cert-foot-value">يوسف سعيدي</div>
         </div>
       </div>
     </div>

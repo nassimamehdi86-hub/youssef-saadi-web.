@@ -1,4 +1,4 @@
-# منصة الأستاذ يوسف سعدي — ملاحظات الإعداد
+# منصة الأستاذ يوسف سعيدي — ملاحظات الإعداد
 
 - مشروع Firebase: youssef-saadi-arabe (Firestore فقط).
 - firebase-config.js: الرقم السري للأستاذ مضبوط (ADMIN_PIN).

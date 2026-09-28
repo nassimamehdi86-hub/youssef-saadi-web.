@@ -326,12 +326,12 @@ async function generateExercisePDF(lesson, exerciseData){
     const pdf = new jsPDF('p', 'mm', 'a4');
     const headerHtml = epBuildHeader(
       'gold',
-      'منصة الأستاذ يوسف سعدي — تمارين الدرس',
+      'منصة الأستاذ يوسف سعيدي — تمارين الدرس',
       lesson,
       'اكتب إجابتك يدويًا في المسافات المتروكة أسفل كل سؤال — لا تتردد في الاستعانة بملفات الدرس والفيديوهات.'
     );
     const blocks = epBuildExerciseBlocks(exerciseData);
-    await epRenderBlocksToPdf(pdf, { headerHtml, blocks, footerNote: 'منصة الأستاذ يوسف سعدي' });
+    await epRenderBlocksToPdf(pdf, { headerHtml, blocks, footerNote: 'منصة الأستاذ يوسف سعيدي' });
     pdf.save(`${(lesson.title||'تمرين').replace(/\s+/g, '_')}_تمارين.pdf`);
     return { ok: true };
   }
@@ -351,12 +351,12 @@ async function generateAnswerKeyPDF(lesson, exerciseData){
     const pdf = new jsPDF('p', 'mm', 'a4');
     const headerHtml = epBuildHeader(
       'green',
-      'منصة الأستاذ يوسف سعدي — الحل النموذجي',
+      'منصة الأستاذ يوسف سعيدي — الحل النموذجي',
       lesson,
       'الحل النموذجي الصحيح — استخدمه بعد محاولة حل التمارين بنفسك.'
     );
     const blocks = epBuildAnswerKeyBlocks(exerciseData);
-    await epRenderBlocksToPdf(pdf, { headerHtml, blocks, footerNote: 'منصة الأستاذ يوسف سعدي' });
+    await epRenderBlocksToPdf(pdf, { headerHtml, blocks, footerNote: 'منصة الأستاذ يوسف سعيدي' });
     pdf.save(`${(lesson.title||'تمرين').replace(/\s+/g, '_')}_الحل_النموذجي.pdf`);
     return { ok: true };
   }

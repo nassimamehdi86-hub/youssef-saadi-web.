@@ -1,5 +1,5 @@
 /* =========================================================================================
-   منصة الأستاذ يوسف سعدي — المنطق الرئيسي (Firebase + التسجيل + القفل + الاختبارات)
+   منصة الأستاذ يوسف سعيدي — المنطق الرئيسي (Firebase + التسجيل + القفل + الاختبارات)
    ========================================================================================= */
 
 /* ---------- تهيئة Firebase (compat SDK، محمّل من CDN في index.html) ---------- */
@@ -2960,7 +2960,7 @@ function exportMindmapPDF(lesson, btnEl){
   area.innerHTML = `
     <div class="pp-page ${sizeClass}">
       <div class="pp-header">
-        <div class="pp-platform">منصة الأستاذ يوسف سعدي</div>
+        <div class="pp-platform">منصة الأستاذ يوسف سعيدي</div>
         <div class="pp-level">اللغة العربية — السنة الرابعة متوسط</div>
         <div class="pp-lesson-title">🗺️ الخريطة الذهنية: ${lesson.title}</div>
       </div>
@@ -2968,7 +2968,7 @@ function exportMindmapPDF(lesson, btnEl){
       <div class="pp-branches">
         ${lesson.tree.map(buildMindmapPrintBranchHTML).join('')}
       </div>
-      <div class="pp-footer">إعداد الأستاذ: يوسف سعدي</div>
+      <div class="pp-footer">إعداد الأستاذ: يوسف سعيدي</div>
     </div>`;
 
   const originalBtnHTML = btn.innerHTML;

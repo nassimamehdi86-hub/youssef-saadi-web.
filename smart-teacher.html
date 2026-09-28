@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>المعلّم الذكي — منصة الأستاذ يوسف سعدي</title>
-<meta name="description" content="المعلّم الذكي — وحدة الاختبارات والتصحيح الآلي ضمن منصة الأستاذ يوسف سعدي.">
+<title>المعلّم الذكي — منصة الأستاذ يوسف سعيدي</title>
+<meta name="description" content="المعلّم الذكي — وحدة الاختبارات والتصحيح الآلي ضمن منصة الأستاذ يوسف سعيدي.">
 <meta name="theme-color" content="#F7F2E4">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -387,7 +387,7 @@ const DEFAULT_FIREBASE_CONFIG = {
   messagingSenderId: "206814644545",
   appId: "1:206814644545:web:0165e4221c0cbd8718b9c0"
 };
-/* ملاحظة: هذا نفس مشروع Firebase المستعمَل في باقي منصة الأستاذ يوسف سعدي
+/* ملاحظة: هذا نفس مشروع Firebase المستعمَل في باقي منصة الأستاذ يوسف سعيدي
    (انظر firebase-config.js في الجذر) — دُمج "المعلّم الذكي" ليخزّن بياناته (الاختبارات
    والتسليمات) في نفس القاعدة، تحت مجموعتين منفصلتين (exams) لا تتعارضان مع بيانات
    التلاميذ والدروس الحالية (students, submissions, ...). */
@@ -532,16 +532,16 @@ function normalizeAnswerTable(at){
 // علامة مائية مدموجة فخلفية أي ورقة PDF مولّدة (اختبار أو تصحيح) + شريط تذييل بشعار التطبيق،
 // باش تبقى هاذ الملفات معروفة أنها صادرة من "المعلّم الذكي" ويصعب انتحالها أو التجارة بها.
 function sheetWatermarkHTML(){
-  return `<div class="sheet-watermark">${Array.from({length:32}).map(()=>'<span>منصة الأستاذ يوسف سعدي</span>').join('')}</div>`;
+  return `<div class="sheet-watermark">${Array.from({length:32}).map(()=>'<span>منصة الأستاذ يوسف سعيدي</span>').join('')}</div>`;
 }
 function sheetFooterBrandHTML(){
-  return `<div class="sheet-footer-brand"><img src="icon-192.png" alt=""> منصة الأستاذ يوسف سعدي — اللغة العربية</div>`;
+  return `<div class="sheet-footer-brand"><img src="icon-192.png" alt=""> منصة الأستاذ يوسف سعيدي — اللغة العربية</div>`;
 }
 function sheetHeaderBrandHTML(){
   return `<div class="sheet-brand-head">
     <img class="sheet-brand-logo" src="icon-512.png" alt="" onerror="this.style.display='none'">
     <div class="sheet-brand-text">
-      <div class="sheet-brand-name">منصة الأستاذ يوسف سعدي</div>
+      <div class="sheet-brand-name">منصة الأستاذ يوسف سعيدي</div>
       <div class="sheet-brand-sub">لتدريس اللغة العربية — التعليم المتوسط</div>
     </div>
   </div>`;
