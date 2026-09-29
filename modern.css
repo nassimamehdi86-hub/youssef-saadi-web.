@@ -155,3 +155,42 @@ body{ background:var(--m-bg); color:var(--ink); }
 /* نوافذ الدرس تظهر تحت بطاقتها مباشرة (داخل شريط التبويبات) */
 #ldTabs > .ld-tab-panel{ width:100%; margin:0 0 6px; box-sizing:border-box; }
 #ldTabs > .ld-tab-panel .zoom-groups-wrap{ margin:0; }
+
+
+/* ===== حصة الزوم: زر بسيط بلا بطاقة ذهبية ولا شروح ===== */
+.zoom-telegram-box{ background:none !important; border:0 !important; box-shadow:none !important; padding:6px 0 !important; text-align:center; }
+.zoom-telegram-box .zoom-telegram-icon{ display:none !important; }
+.zoom-telegram-btn{
+  display:inline-block; min-width:60%; padding:14px 24px; border-radius:14px; border:0;
+  background:var(--t1,#8A2830); color:#fff !important; font-weight:700; font-size:17px; text-decoration:none; text-align:center;
+  box-shadow:0 3px 10px rgba(0,0,0,.15);
+}
+.zoom-telegram-btn:active{ transform:scale(.98); }
+
+
+/* ===== زر «تحميل الدرس PDF» (أخضر) + ملفات PDF في لوحة الأستاذ ===== */
+.home-card.ld-tab-card.c5{ --t1:#3F6350; --t2:#27402F; --l1:#E8F1EA; --l2:#CFE2D5; --tx:#27402F; }
+.home-card.ld-tab-card.c5.active .hc-title{ color:#fff; }
+.ld-pdf-btn{
+  display:block; margin:10px 0; padding:14px 20px; border-radius:14px; text-align:center;
+  background:#3F6350; color:#fff !important; font-weight:700; font-size:16px; text-decoration:none;
+  box-shadow:0 3px 10px rgba(0,0,0,.15);
+}
+.ld-pdf-btn:active{ transform:scale(.98); }
+.lesson-pdf-admin{ margin:-4px 8px 10px; padding:0 4px; }
+.pdf-admin-toggle{ width:100%; padding:8px 12px; border:1.4px dashed #3F6350; border-radius:10px; background:#F3F8F4; color:#27402F; font-weight:700; font-size:13px; cursor:pointer; text-align:right; }
+.pdf-admin-editor{ margin-top:8px; padding:10px; border:1px solid #CFE2D5; border-radius:12px; background:#fff; }
+
+/* ===== أزرار رفع ملف PDF: بارزة وبعرض كامل (لا تظهر كنص عادي) ===== */
+[data-pdf-upload], [data-exam-upload]{
+  display:block !important; width:100% !important; box-sizing:border-box; margin:10px 0 6px !important;
+  padding:14px 16px !important; border:0 !important; border-radius:12px !important;
+  background:#3F6350 !important; color:#fff !important; font-weight:800 !important; font-size:16px !important;
+  text-align:center !important; text-decoration:none !important; box-shadow:0 3px 10px rgba(0,0,0,.15);
+}
+[data-pdf-upload]:active, [data-exam-upload]:active{ transform:scale(.98); }
+[data-pdf-add], [data-exam-add]{
+  display:block !important; width:100% !important; box-sizing:border-box; margin:8px 0 !important;
+  padding:11px 14px !important; border:1.5px dashed #A97F2A !important; border-radius:12px !important;
+  background:#FFFBF0 !important; color:#7A5A16 !important; font-weight:700 !important; text-align:center !important;
+}

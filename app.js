@@ -4469,19 +4469,17 @@ async function renderAdminPanel(){
       if(meta && meta.fileId){ row.dataset.fileId = meta.fileId; row.dataset.chunks = meta.chunks; row.dataset.name = meta.name||''; row.dataset.size = meta.size||0; }
       const uploaded = !!(meta && meta.fileId);
       row.innerHTML = `<input type="text" class="zoom-form-input pdf-title" placeholder="اسم الملف (اختياري)" value="${escZoomText(title||'')}">
-        <input type="text" class="zoom-form-input pdf-url" ${uploaded?'readonly':''} placeholder="https://… رابط الملف" value="${uploaded ? ('📎 ملف مرفوع' + (meta.size ? ' (' + (meta.size/1048576).toFixed(1) + ' MB)' : '')) : escZoomText(url||'')}">
+        <input type="text" class="zoom-form-input pdf-url" readonly placeholder="https://… رابط الملف" value="${uploaded ? ('📎 ملف مرفوع' + (meta.size ? ' (' + (meta.size/1048576).toFixed(1) + ' MB)' : '')) : escZoomText(url||'')}">
         <button type="button" class="zoom-link-remove-btn" title="حذف">✕</button>`;
       row.querySelector('.zoom-link-remove-btn').addEventListener('click', ()=> row.remove());
       ed.querySelector('.pdf-rows').appendChild(row);
     };
     ed.innerHTML = `<div class="pdf-rows"></div>
-      <button type="button" class="zoom-add-link-btn" data-pdf-add>+ إضافة رابط ملف</button>
       <button type="button" class="zoom-add-link-btn" data-pdf-upload>📎 رفع ملف PDF من الجهاز</button>
       <input type="file" accept="application/pdf" data-pdf-file-input style="display:none">
       <button type="button" class="zoom-save-btn" data-pdf-save>💾 حفظ</button>
       <div class="zoom-save-feedback" data-pdf-fb></div>`;
-    if(originalFiles.length) originalFiles.forEach(f=> addRow(f.title, f.url, f)); else addRow('', '');
-    ed.querySelector('[data-pdf-add]').addEventListener('click', ()=> addRow('', ''));
+    if(originalFiles.length) originalFiles.forEach(f=> addRow(f.title, f.url, f));
     const fileInput = ed.querySelector('[data-pdf-file-input]');
     ed.querySelector('[data-pdf-upload]').addEventListener('click', ()=> fileInput.click());
     fileInput.addEventListener('change', async ()=>{
@@ -4812,7 +4810,7 @@ function addExamLinkRow(container, title, link, meta){
   if(uploaded){ row.dataset.fileId = meta.fileId; row.dataset.chunks = meta.chunks; row.dataset.name = meta.name||''; row.dataset.size = meta.size||0; }
   row.innerHTML = `
     <input type="text" class="zoom-form-input exam-link-title" placeholder="عنوان الفرض/الاختبار (مثال: الفرض الأول)" value="${escZoomText(title||'')}">
-    <input type="text" class="zoom-form-input exam-link-url" ${uploaded?'readonly':''} placeholder="https://…" value="${uploaded ? ('📎 ملف مرفوع' + (meta.size ? ' (' + (meta.size/1048576).toFixed(1) + ' MB)' : '')) : escZoomText(link||'')}">
+    <input type="text" class="zoom-form-input exam-link-url" readonly placeholder="https://…" value="${uploaded ? ('📎 ملف مرفوع' + (meta.size ? ' (' + (meta.size/1048576).toFixed(1) + ' MB)' : '')) : escZoomText(link||'')}">
     <button type="button" class="zoom-link-remove-btn" title="حذف هذا العنصر">✕</button>`;
   row.querySelector('.zoom-link-remove-btn').addEventListener('click', ()=>{
     if(window.SoundFX) SoundFX.click();
@@ -4855,14 +4853,12 @@ async function renderExamLinksManagerForm(overlay){
     <div class="zoom-form-divider"><span>${t.label}</span></div>
     <div class="zoom-form-group">
       <div class="zoom-link-rows" id="examRows-${t.key}"></div>
-      <button type="button" class="zoom-add-link-btn" data-exam-add="${t.key}">+ إضافة رابط فرض/اختبار</button>
       <button type="button" class="zoom-add-link-btn" data-exam-upload="${t.key}">📎 رفع ملف PDF من الجهاز</button>
       <input type="file" accept="application/pdf" data-exam-file="${t.key}" style="display:none">
     </div>`).join('');
 
   body.innerHTML = `
-    <div class="zoom-form-note">أضف عنوانًا ورابطًا لكل فرض أو اختبار جديد (رابط تيليجرام، PDF، أو أي رابط آخر) — بلا تكرار لكل فوج، فالرابط نفسه يظهر لكل التلاميذ فور فتح الفصل.
-      <br>📨 روابط تيليجرام (مثل <bdi style="direction:ltr;display:inline-block">t.me/c/…</bdi>) تفتح للتلميذ في تطبيق تيليجرام مباشرة.
+    <div class="zoom-form-note">ارفع ملف PDF لكل فرض أو اختبار من جهازك (بحد أقصى 5 ميغابايت) واكتب عنوانه — بلا تكرار لكل فوج، فالملف نفسه يظهر لكل التلاميذ فور فتح الفصل.
       <br>🔔 عند الضغط على "حفظ الروابط"، يصل إشعار فوري تلقائيًا لكل التلاميذ بكل فرض/اختبار جديد أضفته — دون أي خطوة إضافية.
       <br>💡 لا تنسَ فتح الفصل من قسم "فتح/إغلاق الفروض والاختبارات" حتى تصبح الروابط قابلة للفتح فعليًا عند التلميذ.</div>
     ${sectionsHtml}
@@ -4877,17 +4873,7 @@ async function renderExamLinksManagerForm(overlay){
     originalItemsByTrimester[t.key] = items; /* نسخة أصلية قبل أي تعديل، لمقارنتها لاحقًا واكتشاف العناصر الجديدة فقط */
     if(items.length){
       items.forEach(it=> addExamLinkRow(container, it.title, it.link, it));
-    } else {
-      addExamLinkRow(container, '', '');
     }
-  });
-
-  body.querySelectorAll('[data-exam-add]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      if(window.SoundFX) SoundFX.click();
-      const containerId = 'examRows-' + btn.getAttribute('data-exam-add');
-      addExamLinkRow(body.querySelector('#'+containerId), '', '');
-    });
   });
 
   body.querySelectorAll('[data-exam-upload]').forEach(btn=>{
