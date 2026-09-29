@@ -1604,6 +1604,10 @@ function openLessonDetail(id){
   const isMuktasabat = lesson.category === 'muktasabat';
 
   Screens.show('lessonDetail');
+  { const _sb=document.getElementById('ldSubBar'); if(_sb){ _sb.style.display='none'; _sb.innerHTML=''; }
+    const _tb=document.querySelector('#screen-lessonDetail .lesson-topbar'); if(_tb) _tb.style.display='';
+    const _lw=document.querySelector('#screen-lessonDetail .listen-wrap'); if(_lw){ _lw.dataset.hadVideo=''; }
+    const _vf=document.getElementById('ldVideo'); if(_vf) _vf.dataset.savedSrc=''; }
   document.getElementById('ldTitle').textContent = lesson.title;
   document.getElementById('ldSubtitle').textContent = lesson.subtitle||'';
 
@@ -1724,41 +1728,70 @@ function setupLdTabs(panels, defaultKey){
     </div>`
   ).join('');
 
-  /* كل نافذة تُوضع مباشرة بعد بطاقتها: عند الضغط يظهر المحتوى تحت البطاقة المضغوطة لا أسفل كل البطاقات */
-  panels.forEach(p=>{
-    const card = tabsBar.querySelector(`.ld-tab-card[data-ld-tab="${p.key}"]`);
-    const el = document.getElementById(p.el);
-    if(card && el) card.insertAdjacentElement('afterend', el);
-  });
+  /* كل بطاقة تفتح واجهة مستقلة (شاشة فرعية): يُخفى باقي صفحة الدرس (الفيديو والبطاقات) ويظهر
+     محتوى النافذة المختارة وحدها مع زر رجوع لصفحة الدرس — لا اختلاط بين الأقسام. */
+  const screenEl = document.getElementById('screen-lessonDetail');
+  const topbar = screenEl.querySelector('.lesson-topbar');
+  const listenWrap = document.querySelector('#screen-lessonDetail .listen-wrap');
+  const leaderSec = document.getElementById('ldLeaderboardSection');
+  const videoFrame = document.getElementById('ldVideo');
 
-  let currentKey = null;
-  function activate(key, scroll){
-    currentKey = key;
-    panels.forEach(p=>{
-      const el = document.getElementById(p.el);
-      if(el) el.style.display = (p.key===key) ? '' : 'none';
-    });
-    tabsBar.querySelectorAll('.ld-tab-card').forEach(btn=>{
-      btn.classList.toggle('active', btn.getAttribute('data-ld-tab')===key);
-    });
-    if(scroll && key){
-      const card = tabsBar.querySelector(`.ld-tab-card[data-ld-tab="${key}"]`);
-      if(card) setTimeout(()=>card.scrollIntoView({behavior:'smooth', block:'start'}), 30);
+  /* شريط الرجوع الخاص بالواجهة الفرعية */
+  let subBar = document.getElementById('ldSubBar');
+  if(!subBar){
+    subBar = document.createElement('div');
+    subBar.id = 'ldSubBar';
+    subBar.className = 'lesson-topbar';
+    subBar.style.display = 'none';
+    topbar.insertAdjacentElement('afterend', subBar);
+  }
+
+  function showMain(){
+    /* العودة لصفحة الدرس الرئيسية: الفيديو + البطاقات + الترتيب */
+    panels.forEach(p=>{ const el=document.getElementById(p.el); if(el) el.style.display='none'; });
+    subBar.style.display = 'none'; subBar.innerHTML = '';
+    if(topbar) topbar.style.display = '';
+    tabsBar.style.display = '';
+    if(listenWrap && listenWrap.dataset.hadVideo === '1'){
+      listenWrap.style.display = '';
+      if(videoFrame && videoFrame.dataset.savedSrc){ videoFrame.src = videoFrame.dataset.savedSrc; videoFrame.dataset.savedSrc=''; }
     }
+    if(leaderSec && leaderSec.dataset.hidden !== '1') leaderSec.style.display = '';
+    tabsBar.querySelectorAll('.ld-tab-card').forEach(b=>b.classList.remove('active'));
+    window.scrollTo({top:0, behavior:'auto'});
+  }
+
+  function openSub(key){
+    const p = panels.find(x=>x.key===key); if(!p) return;
+    /* إيقاف الفيديو (إخفاؤه وحده لا يوقف الصوت) وحفظ رابطه لاستعادته عند الرجوع */
+    if(listenWrap){
+      listenWrap.dataset.hadVideo = (listenWrap.style.display !== 'none') ? '1' : (listenWrap.dataset.hadVideo||'0');
+      if(videoFrame && videoFrame.getAttribute('src')){ videoFrame.dataset.savedSrc = videoFrame.getAttribute('src'); videoFrame.src=''; }
+      listenWrap.style.display = 'none';
+    }
+    if(leaderSec){ leaderSec.dataset.hidden = (leaderSec.style.display==='none') ? '1' : '0'; leaderSec.style.display='none'; }
+    if(topbar) topbar.style.display = 'none';
+    tabsBar.style.display = 'none';
+    panels.forEach(x=>{ const el=document.getElementById(x.el); if(el) el.style.display = (x.key===key) ? '' : 'none'; });
+    subBar.innerHTML = `<button class="back-btn" type="button" id="ldSubBack">→ رجوع لصفحة الدرس</button>`;
+    subBar.style.display = '';
+    document.getElementById('ldSubBack').onclick = ()=>{ if(window.SoundFX) SoundFX.click(); showMain(); };
+    window.scrollTo({top:0, behavior:'auto'});
   }
 
   tabsBar.querySelectorAll('.ld-tab-card').forEach(btn=>{
     const handler = ()=>{
       if(window.SoundFX) SoundFX.click();
-      const key = btn.getAttribute('data-ld-tab');
-      /* الضغط مجددًا على البطاقة المفتوحة يطويها */
-      activate(key===currentKey ? null : key, key!==currentKey);
+      openSub(btn.getAttribute('data-ld-tab'));
     };
     btn.addEventListener('click', handler);
     btn.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); handler(); } });
   });
 
-  activate(activeKey, false);
+  /* عند فتح الدرس: الصفحة الرئيسية للدرس (فيديو + بطاقات) وكل النوافذ مطوية */
+  if(listenWrap) listenWrap.dataset.hadVideo = (listenWrap.style.display !== 'none') ? '1' : '0';
+  if(leaderSec) leaderSec.dataset.hidden = (leaderSec.style.display==='none') ? '1' : '0';
+  showMain();
 }
 
 /* =========================================================================================
