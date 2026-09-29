@@ -571,8 +571,9 @@ const LessonPdfs = {
   async deleteFile(fileId, chunks){
     try{ for(let i=0;i<chunks;i++) await db.collection('state').doc(`pdf_${fileId}_${i}`).delete(); }catch(e){ console.error(e); }
   },
-  async downloadBlob(fileId, chunks){
-    const docs = await Promise.all(Array.from({length:chunks}, (_,i)=> db.collection('state').doc(`pdf_${fileId}_${i}`).get()));
+  async downloadBlob(fileId, chunks, onProgress){
+    let done = 0;
+    const docs = await Promise.all(Array.from({length:chunks}, (_,i)=> db.collection('state').doc(`pdf_${fileId}_${i}`).get().then(d=>{ done++; if(onProgress) onProgress(done, chunks); return d; })));
     const parts = docs.map(d=>{
       if(!d.exists) throw new Error('missing-chunk');
       const bin = atob(d.data().data); const u8 = new Uint8Array(bin.length);
@@ -615,20 +616,36 @@ function renderLessonPdfBox(lesson){
   wirePdfDownloadButtons(box);
 }
 
-/* يربط أزرار التحميل (data-pdf-file) بتجميع أجزاء الملف من Firestore وتنزيله على جهاز التلميذ */
+/* يربط أزرار التحميل (data-pdf-file): شريط تقدّم ← رسالة "اكتمل التحميل" ← أزرار فتح الملف داخل التطبيق أو حفظه في الهاتف */
+/* pdfFmtSize / pdfSaveBlob / openPdfViewer معرَّفة في download-ux.js (نظام التحميل الموحّد) */
 function wirePdfDownloadButtons(scope){
   scope.querySelectorAll('[data-pdf-file]').forEach(btn=> btn.addEventListener('click', async ()=>{
     if(btn.disabled) return;
     const original = btn.innerHTML;
-    btn.disabled = true; btn.textContent = '⏳ جاري التحميل…';
+    const name = btn.getAttribute('data-name') || 'lesson.pdf';
+    const oldPanel = btn.nextElementSibling;
+    if(oldPanel && oldPanel.classList && oldPanel.classList.contains('pdf-done-panel')) oldPanel.remove();
+    btn.disabled = true;
+    btn.innerHTML = '<span class="pdf-prog-txt">⏳ جاري التحميل… 0%</span><span class="pdf-prog"><i></i></span>';
+    const txt = btn.querySelector('.pdf-prog-txt'), bar = btn.querySelector('.pdf-prog i');
     try{
-      const blob = await LessonPdfs.downloadBlob(btn.getAttribute('data-pdf-file'), parseInt(btn.getAttribute('data-chunks'),10));
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = btn.getAttribute('data-name') || 'lesson.pdf';
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=> URL.revokeObjectURL(url), 60000);
+      const blob = await LessonPdfs.downloadBlob(btn.getAttribute('data-pdf-file'), parseInt(btn.getAttribute('data-chunks'),10), (d,n)=>{
+        const pct = Math.round(d*100/n);
+        if(txt) txt.textContent = '⏳ جاري التحميل… ' + pct + '%';
+        if(bar) bar.style.width = pct + '%';
+      });
       btn.innerHTML = original;
+      const panel = document.createElement('div');
+      panel.className = 'pdf-done-panel';
+      panel.innerHTML = `<div class="pdf-done-msg">✅ اكتمل التحميل <small>(${pdfFmtSize(blob.size)})</small></div>
+        <div class="pdf-done-actions"><button type="button" class="pdf-open">📂 فتح الملف</button><button type="button" class="pdf-save">💾 حفظ في الهاتف</button></div>
+        <div class="pdf-done-note"></div>`;
+      btn.after(panel);
+      panel.querySelector('.pdf-open').addEventListener('click', ()=> openPdfViewer(blob, name));
+      panel.querySelector('.pdf-save').addEventListener('click', ()=>{
+        pdfSaveBlob(blob, name);
+        panel.querySelector('.pdf-done-note').textContent = '💾 بدأ الحفظ — ستجد الملف في إشعارات التنزيل أو مجلد «التنزيلات/Downloads».';
+      });
     }catch(e){
       console.error('فشل تحميل ملف PDF:', e);
       btn.textContent = '⚠️ تعذّر التحميل — حاول مجددًا';
