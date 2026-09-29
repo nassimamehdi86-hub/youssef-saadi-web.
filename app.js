@@ -580,7 +580,7 @@ const Admin = {
   authed:false,
 
   checkPin(pin){
-    if(pin === (window.ADMIN_PIN || '')){ this.authed = true; return true; }
+    if(pin === (window.ADMIN_PIN || '')){ this.authed = true; try{ if(window.flushFbNotices) window.flushFbNotices(); }catch(_){} return true; }
     return false;
   },
 
@@ -3837,9 +3837,10 @@ const ChatAdmin = {
     if(this._listening || !auxFbReady()) return;
     this._listening = true;
     auxDb().collection('chatMessages').where('isQuestion','==',true).where('answered','==',false)
-      .orderBy('createdAt','asc')
       .onSnapshot(snap=>{
-        const list = snap.docs.map(d=>({ id:d.id, ...d.data() })).filter(q=>!q.hidden);
+        /* الفرز في المتصفح بدل orderBy في Firestore: يتفادى الحاجة إلى فهرس مركّب (Composite Index) يدوي */
+        const ts = q=> (q.createdAt && typeof q.createdAt.toMillis==='function') ? q.createdAt.toMillis() : (Number(q.createdAt)||0);
+        const list = snap.docs.map(d=>({ id:d.id, ...d.data() })).filter(q=>!q.hidden).sort((x,y)=>ts(x)-ts(y));
         this.renderInto(list);
       }, err=>{
         console.error('خطأ في تحميل أسئلة التلاميذ (قد تحتاج فهرسًا مركّبًا في Firestore — الرابط لإنشائه يظهر عادة في رسالة الخطأ هذه في وحدة تحكم المتصفح):', err);
@@ -4837,7 +4838,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   setupAdminLoginModal();
 
   if(!fbReady){
-    document.getElementById('fbNotice').innerHTML = fbUnavailableNotice();
+    /* تنبيه تقني: لا يُعرض للتلاميذ */ console.warn('Firebase غير مفعّل في هذه النسخة');
   }
 
   Locks.listen(()=>{

@@ -11,7 +11,37 @@
    لأن السبب الشائع لهذا الخطأ هو أن قواعد Firestore لا تسمح بالقراءة العامة (بدون Firebase Auth)
    لمجموعات مثل notifications أو state، بينما هذا التطبيق يعتمد نظام PIN وليس Firebase Auth حقيقي. */
 const _fbNoticeShown = new Set();
+/* نلتقط آخر خطأ Firestore حقيقي (له code) ليظهر في التنبيه: السبب الفعلي بدل التخمين */
+window.__lastFbError = null;
+(function(){
+  const _ce = console.error.bind(console);
+  console.error = function(...args){
+    try{ args.forEach(x=>{ if(x && typeof x==='object' && typeof x.code==='string') window.__lastFbError = x; }); }catch(_){}
+    _ce(...args);
+  };
+})();
+function _fbErrorHint(err){
+  const code = (err && err.code) || '';
+  const map = {
+    'permission-denied': 'القواعد لا تسمح: تأكد أن القواعد المنشورة (Published) تحتوي على هذه المجموعة، وأنك عدّلتها في قاعدة البيانات (default) من المشروع youssef-saadi-arabe، ثم اضغط Publish وانتظر دقيقة.',
+    'unavailable': 'تعذّر الوصول للخادم: الإنترنت ضعيف، أو شبكة/حاجب إعلانات يمنع firestore.googleapis.com. جرّب شبكة أخرى أو عطّل الحاجب.',
+    'failed-precondition': 'قاعدة بيانات Firestore غير مُنشأة أو غير مفعّلة في المشروع: افتح Firebase Console ← Firestore Database وأنشئ قاعدة البيانات (Create database).',
+    'not-found': 'قاعدة بيانات Firestore غير موجودة في هذا المشروع: أنشئها من Firebase Console ← Firestore Database.',
+    'unauthenticated': 'مفتاح API (apiKey) مقيَّد أو غير صحيح: راجع Google Cloud Console ← Credentials وأزل قيود المواقع أو أضف نطاق موقعك.',
+    'resource-exhausted': 'تم تجاوز حصة الاستعمال المجانية اليومية في Firebase (Quota). تتجدد يوميًا أو رقِّ الخطة.'
+  };
+  return code ? `<div style="margin-top:6px;font-size:12px"><b>رمز الخطأ الفعلي:</b> <code dir="ltr">${code}</code><br>${map[code]||'راجع رمز الخطأ أعلاه.'}</div>` : '';
+}
+/* التنبيه تقني ويخص الأستاذ فقط: لا يُعرض للتلاميذ إطلاقًا. يُخزَّن ويظهر فقط بعد دخول الأستاذ بالرقم السري. */
+const _fbNoticePending = new Map();
+function flushFbNotices(){
+  const items = Array.from(_fbNoticePending.entries());
+  _fbNoticePending.clear();
+  items.forEach(([ctx])=> showFbPermissionNotice(ctx));
+}
+window.flushFbNotices = flushFbNotices;
 function showFbPermissionNotice(context){
+  if (typeof Admin === 'undefined' || !Admin.authed){ _fbNoticePending.set(context, true); return; }
   if (_fbNoticeShown.has(context)) return;
   _fbNoticeShown.add(context);
   const el = document.getElementById('fbNotice');
@@ -30,6 +60,7 @@ function showFbPermissionNotice(context){
     <pre style="white-space:pre-wrap;font-size:11px;background:#fff;padding:8px;border-radius:8px;margin-top:6px">match /notifications/{id} { allow read, write: if true; }
 match /state/{id} { allow read, write: if true; }</pre>
     ثم اضغط "نشر" (Publish).
+    ${_fbErrorHint(window.__lastFbError)}
   </div>`;
 }
 
