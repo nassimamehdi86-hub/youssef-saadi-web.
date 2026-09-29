@@ -194,3 +194,22 @@ body{ background:var(--m-bg); color:var(--ink); }
   padding:11px 14px !important; border:1.5px dashed #A97F2A !important; border-radius:12px !important;
   background:#FFFBF0 !important; color:#7A5A16 !important; font-weight:700 !important; text-align:center !important;
 }
+
+/* =========================================================================================
+   تمارين الدرس — خط واضح مقروء لكل الكتابات (بدل خط الرقعة/الزخرفي) لتسهيل القراءة على التلاميذ
+   ========================================================================================= */
+.quiz-card, .quiz-card *:not(svg):not(svg *),
+.book-header-card, .book-header-card *,
+.quiz-progress, .quiz-term-label, .quiz-q, .quiz-fill-sentence,
+.book-exercise-title, .book-exercise-instr, .book-sub-instr, .book-item-sentence, .book-item-feedback,
+.passage-block, .inline-blank-input, .quiz-text-input, .quiz-textarea, .quiz-check-btn, .quiz-next-btn{
+  font-family:'IBM Plex Sans Arabic','Cairo',system-ui,sans-serif !important;
+  font-style:normal !important;
+  letter-spacing:0 !important;
+}
+.quiz-term-label{ font-size:16px; font-weight:700; line-height:1.7; padding:5px 16px; }
+.book-exercise-title{ font-size:18px; font-weight:800; }
+.book-exercise-instr, .book-sub-instr{ font-size:14px; font-weight:600; line-height:1.9; }
+.book-item-sentence, .passage-block, .quiz-fill-sentence, .quiz-q{ font-size:16px; font-weight:600; }
+.quiz-text-input, .quiz-textarea, .inline-blank-input{ font-size:15px; font-weight:500; }
+.quiz-text-input::placeholder, .quiz-textarea::placeholder{ font-family:inherit; font-weight:400; }
