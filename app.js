@@ -9,8 +9,8 @@ try{
     fbApp = firebase.initializeApp(window.FIREBASE_CONFIG);
     db = firebase.firestore();
     /* حل خطأ "unavailable": بعض الشبكات/المتصفحات (بيانات الجوال، الحواجب، شبكات المدارس) تمنع القناة الافتراضية
-       فيُعاد الاتصال تلقائيًا عبر Long Polling الأكثر توافقًا */
-    try{ db.settings({ experimentalAutoDetectLongPolling: true, merge: true }); }catch(e){ console.warn('Firestore settings', e); }
+       فنفرض Long Polling (الأكثر توافقًا) من البداية بدل الاكتشاف التلقائي الذي قد يفشل */
+    try{ db.settings({ experimentalForceLongPolling: true, useFetchStreams: false, merge: true }); }catch(e){ console.warn('Firestore settings', e); }
     fbReady = true;
   }
 }catch(e){ console.warn('Firebase init failed', e); }
@@ -3967,7 +3967,7 @@ const Chat = {
     }catch(error){
       console.error('فشل إرسال رسالة الدردشة (تحقق من قواعد Firestore لمجموعة chatMessages):', error);
       if(typeof showFbPermissionNotice === 'function') showFbPermissionNotice('chatMessages');
-      alert('تعذّر إرسال الرسالة. راجع التنبيه الظاهر أعلى الصفحة.');
+      alert('تعذّر إرسال الرسالة.');
     }
   }
 };
@@ -4470,7 +4470,7 @@ async function renderAdminPanel(){
       }catch(error){
         console.error('فشل إغلاق الدرس (تحقق من قواعد Firestore لمجموعة state):', error);
         if(typeof showFbPermissionNotice === 'function') showFbPermissionNotice('locks');
-        alert('تعذّر حفظ حالة الدرس في قاعدة البيانات. راجع التنبيه الظاهر أعلى الصفحة.');
+        alert('تعذّر حفظ حالة الدرس في قاعدة البيانات.');
       }
     }
     
@@ -4554,7 +4554,7 @@ async function renderAdminPanel(){
       }catch(error){
         console.error('فشل تحديث حالة الفصل (تحقق من قواعد Firestore لمجموعة state):', error);
         if(typeof showFbPermissionNotice === 'function') showFbPermissionNotice('locks');
-        alert('تعذّر حفظ حالة الفصل في قاعدة البيانات. راجع التنبيه الظاهر أعلى الصفحة.');
+        alert('تعذّر حفظ حالة الفصل في قاعدة البيانات.');
       }
     }
     renderAdminPanel();
@@ -4584,7 +4584,7 @@ async function renderAdminPanel(){
     }catch(error){
       console.error('فشل تحديث حالة قفل إعراب الجمل (تحقق من قواعد Firestore لمجموعة state):', error);
       if(typeof showFbPermissionNotice === 'function') showFbPermissionNotice('locks');
-      alert('تعذّر حفظ حالة إعراب الجمل في قاعدة البيانات. راجع التنبيه الظاهر أعلى الصفحة.');
+      alert('تعذّر حفظ حالة إعراب الجمل في قاعدة البيانات.');
     }
     updateIrabHomeCardLock();
     renderAdminPanel();
@@ -4803,7 +4803,7 @@ function renderZoomManagerForm(overlay, lesson){
     }catch(error){
       console.error('فشل حفظ روابط حصص الزوم (تحقق من قواعد Firestore لمجموعة state):', error);
       if(typeof showFbPermissionNotice === 'function') showFbPermissionNotice('zoomLinks');
-      feedback.textContent = '⚠️ تعذّر حفظ الروابط. راجع التنبيه الظاهر أعلى الصفحة.';
+      feedback.textContent = '⚠️ تعذّر حفظ الروابط.';
       feedback.style.color = '#b5432a';
     }
     saveBtn.disabled = false; saveBtn.textContent = '💾 حفظ الروابط';
@@ -4974,7 +4974,7 @@ async function renderExamLinksManagerForm(overlay){
     }catch(error){
       console.error('فشل حفظ روابط الفروض والاختبارات (تحقق من قواعد Firestore لمجموعة state):', error);
       if(typeof showFbPermissionNotice === 'function') showFbPermissionNotice('examLinks');
-      feedback.textContent = '⚠️ تعذّر حفظ الروابط. راجع التنبيه الظاهر أعلى الصفحة.';
+      feedback.textContent = '⚠️ تعذّر حفظ الروابط.';
       feedback.style.color = '#b5432a';
     }
     saveBtn.disabled = false; saveBtn.textContent = '💾 حفظ الروابط';

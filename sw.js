@@ -7,7 +7,7 @@
    يُستخدم التخزين المؤقت فقط كخطة بديلة عند انقطاع الإنترنت تمامًا (وضع عدم الاتصال).
    ========================================================================================= */
 
-const CACHE_NAME = 'youssef-saadi-v50'; /* رُفع الرقم لتظهر ألوان الشعار الجديدة في theme.css */
+const CACHE_NAME = 'youssef-saadi-v51'; /* رُفع الرقم لتظهر ألوان الشعار الجديدة في theme.css */
 const CORE_ASSETS = [
   './index.html', './style.css', './theme.css', './modern.css', './app.js', './lessons-data.js', './irab-data.js',
   './firebase-config.js', './manifest.json', './icon-192.png', './icon-512.png',

@@ -41,6 +41,9 @@ function flushFbNotices(){
 }
 window.flushFbNotices = flushFbNotices;
 function showFbPermissionNotice(context){
+  /* التنبيه التقني مُخفى بطلب الأستاذ: يُسجَّل في console فقط ولا يظهر في الصفحة */
+  try{ console.warn('[Firebase notice hidden]', context, window.__lastFbError && window.__lastFbError.code); }catch(_){}
+  return;
   if (typeof Admin === 'undefined' || !Admin.authed){ _fbNoticePending.set(context, true); return; }
   if (_fbNoticeShown.has(context)) return;
   _fbNoticeShown.add(context);
@@ -86,7 +89,7 @@ const LocksEnhanced = {
       if (Locks.data.openedAt) Locks.data.openedAt[id] = previousOpenedAt;
       console.error('فشل فتح/إغلاق الدرس (تحقق من قواعد Firestore لمجموعة state):', error);
       if (typeof showFbPermissionNotice === 'function') showFbPermissionNotice('locks');
-      alert('تعذّر حفظ حالة الدرس في قاعدة البيانات. راجع التنبيه الظاهر أعلى الصفحة لمعرفة السبب.');
+      alert('تعذّر حفظ حالة الدرس في قاعدة البيانات.');
       return false;
     }
 
@@ -94,7 +97,7 @@ const LocksEnhanced = {
     if (open && NotificationsSystem) {
       const sent = await NotificationsSystem.addNewContentAlert('lesson', lessonTitle, 'متاح الآن للتلاميذ');
       if (!sent) {
-        alert('تم فتح الدرس بنجاح، لكن تعذّر إرسال إشعار به للتلاميذ. راجع التنبيه أعلى الصفحة.');
+        alert('تم فتح الدرس بنجاح، لكن تعذّر إرسال إشعار به للتلاميذ.');
       }
     }
     return true;
@@ -114,7 +117,7 @@ const LocksEnhanced = {
       Locks.data.trimesters[t] = previousValue;
       console.error('فشل فتح/إغلاق فصل الفروض والاختبارات (تحقق من قواعد Firestore لمجموعة state):', error);
       if (typeof showFbPermissionNotice === 'function') showFbPermissionNotice('locks');
-      alert('تعذّر حفظ حالة الفصل في قاعدة البيانات. راجع التنبيه الظاهر أعلى الصفحة لمعرفة السبب.');
+      alert('تعذّر حفظ حالة الفصل في قاعدة البيانات.');
       return false;
     }
 
@@ -126,7 +129,7 @@ const LocksEnhanced = {
         'الفروض والاختبارات صارت متاحة الآن'
       );
       if (!sent) {
-        alert('تم فتح الفصل بنجاح، لكن تعذّر إرسال إشعار به للتلاميذ. راجع التنبيه أعلى الصفحة.');
+        alert('تم فتح الفصل بنجاح، لكن تعذّر إرسال إشعار به للتلاميذ.');
       }
     }
     return true;
@@ -379,7 +382,7 @@ async function renderStudentManagementPanel() {
         document.getElementById('notificationMessage').value = '';
       } else {
         if (typeof showFbPermissionNotice === 'function') showFbPermissionNotice('notifications');
-        alert('تعذّر إرسال الإشعار. راجع التنبيه الظاهر أعلى الصفحة لمعرفة السبب (على الأرجح قواعد Firestore).');
+        alert('تعذّر إرسال الإشعار.');
       }
     } catch (e) {
       alert('حدث خطأ في إرسال الإشعار');
