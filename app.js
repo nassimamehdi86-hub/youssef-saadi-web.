@@ -521,6 +521,121 @@ const ZoomLinks = {
 };
 
 /* =========================================================================================
+   ملفات PDF للدروس (تحميل الدرس) — وثيقة واحدة: state/lessonPdfs
+   => { lessons: { lessonId: [ {title, url}, ... ] } } — كل درس قد يملك أكثر من ملف.
+   يضع الأستاذ رابط كل ملف (تيليجرام / Google Drive / أي رابط مباشر) من لوحة التحكم.
+   ========================================================================================= */
+const LessonPdfs = {
+  data:{ lessons:{} }, ready:false,
+  async load(){
+    if(!fbReady){ this.ready = true; return; }
+    try{
+      const snap = await db.collection('state').doc('lessonPdfs').get();
+      if(snap.exists) this.data = Object.assign({lessons:{}}, snap.data());
+    }catch(e){
+      console.error('تعذّرت قراءة ملفات PDF للدروس (state/lessonPdfs) — تحقق من قواعد Firestore:', e);
+    }
+    this.ready = true;
+  },
+  getFiles(lessonId){
+    const arr = (this.data.lessons && this.data.lessons[lessonId]) || [];
+    return (Array.isArray(arr) ? arr : []).map(f=>({
+      title:String(f&&f.title||'').trim(), url:String(f&&f.url||'').trim(),
+      fileId:String(f&&f.fileId||''), chunks:Number(f&&f.chunks)||0, name:String(f&&f.name||''), size:Number(f&&f.size)||0
+    })).filter(f=> f.url || (f.fileId && f.chunks));
+  },
+  /* ملف PDF مرفوع: يُقسَّم (base64) إلى أجزاء ≤ 600 ألف حرف، كل جزء وثيقة state/pdf_<id>_<n>
+     (حد وثيقة Firestore 1MB) — يعمل بالخطة المجانية وضمن قواعدك الحالية دون Firebase Storage. */
+  CHUNK: 600000,
+  MAX_BYTES: 5 * 1024 * 1024,
+  async uploadFile(lessonId, file, onProgress){
+    if(!fbReady || !Admin.authed) throw new Error('no-firebase');
+    if(file.size > this.MAX_BYTES) throw new Error('too-big');
+    const b64 = await new Promise((res, rej)=>{
+      const r = new FileReader();
+      r.onload = ()=> res(String(r.result).split(',')[1] || '');
+      r.onerror = ()=> rej(new Error('read-failed'));
+      r.readAsDataURL(file);
+    });
+    const fileId = lessonId + '_' + Date.now().toString(36);
+    const n = Math.ceil(b64.length / this.CHUNK);
+    for(let i=0;i<n;i++){
+      await db.collection('state').doc(`pdf_${fileId}_${i}`).set({ i, data: b64.slice(i*this.CHUNK, (i+1)*this.CHUNK) });
+      if(onProgress) onProgress(i+1, n);
+    }
+    return { fileId, chunks:n, name:file.name, size:file.size };
+  },
+  async deleteFile(fileId, chunks){
+    try{ for(let i=0;i<chunks;i++) await db.collection('state').doc(`pdf_${fileId}_${i}`).delete(); }catch(e){ console.error(e); }
+  },
+  async downloadBlob(fileId, chunks){
+    const docs = await Promise.all(Array.from({length:chunks}, (_,i)=> db.collection('state').doc(`pdf_${fileId}_${i}`).get()));
+    const parts = docs.map(d=>{
+      if(!d.exists) throw new Error('missing-chunk');
+      const bin = atob(d.data().data); const u8 = new Uint8Array(bin.length);
+      for(let k=0;k<bin.length;k++) u8[k] = bin.charCodeAt(k);
+      return u8;
+    });
+    return new Blob(parts, {type:'application/pdf'});
+  },
+  async setFiles(lessonId, files){
+    if(!fbReady || !Admin.authed) return { ok:false, reason:'no-firebase' };
+    this.data.lessons = this.data.lessons || {};
+    this.data.lessons[lessonId] = files.map(f=>({
+      title:(f.title||'').trim(), url:(f.url||'').trim(),
+      fileId:f.fileId||'', chunks:f.chunks||0, name:f.name||'', size:f.size||0
+    })).filter(f=> f.url || (f.fileId && f.chunks));
+    await db.collection('state').doc('lessonPdfs').set(this.data, {merge:true});
+    return { ok:true };
+  },
+  listen(onChange){
+    if(!fbReady) return;
+    const refresh = ()=> db.collection('state').doc('lessonPdfs').get().then(snap=>{
+      if(snap.exists) this.data = Object.assign({lessons:{}}, snap.data());
+      if(onChange) onChange();
+    }).catch(err=> console.error('تعذّرت قراءة ملفات PDF للدروس:', err));
+    startVisibilityAwarePolling(refresh, 3 * 60 * 1000);
+  }
+};
+
+/* يعرض قائمة ملفات PDF الدرس داخل نافذته (زر لكل ملف) */
+function renderLessonPdfBox(lesson){
+  const box = document.getElementById('ldPdfBox');
+  if(!box || !lesson) return;
+  const files = LessonPdfs.getFiles(lesson.id);
+  if(!files.length){ box.innerHTML = '<div class="zoom-empty-msg">⏳ لا يوجد ملف بعد</div>'; return; }
+  box.innerHTML = files.map((f,i)=>{
+    const label = '📄 ' + escZoomText(f.title || (files.length>1 ? ('الجزء ' + (i+1)) : 'تحميل الدرس PDF'));
+    if(f.fileId && f.chunks) return `<button type="button" class="ld-pdf-btn" data-pdf-file="${escZoomText(f.fileId)}" data-chunks="${f.chunks}" data-name="${escZoomText(f.name || (lesson.id + '.pdf'))}">${label}</button>`;
+    return `<a class="ld-pdf-btn" ${buildZoomDocLinkAttrs(f.url)}>${label}</a>`;
+  }).join('');
+  wirePdfDownloadButtons(box);
+}
+
+/* يربط أزرار التحميل (data-pdf-file) بتجميع أجزاء الملف من Firestore وتنزيله على جهاز التلميذ */
+function wirePdfDownloadButtons(scope){
+  scope.querySelectorAll('[data-pdf-file]').forEach(btn=> btn.addEventListener('click', async ()=>{
+    if(btn.disabled) return;
+    const original = btn.innerHTML;
+    btn.disabled = true; btn.textContent = '⏳ جاري التحميل…';
+    try{
+      const blob = await LessonPdfs.downloadBlob(btn.getAttribute('data-pdf-file'), parseInt(btn.getAttribute('data-chunks'),10));
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = btn.getAttribute('data-name') || 'lesson.pdf';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=> URL.revokeObjectURL(url), 60000);
+      btn.innerHTML = original;
+    }catch(e){
+      console.error('فشل تحميل ملف PDF:', e);
+      btn.textContent = '⚠️ تعذّر التحميل — حاول مجددًا';
+      setTimeout(()=>{ btn.innerHTML = original; }, 2500);
+    }
+    btn.disabled = false;
+  }));
+}
+
+/* =========================================================================================
    روابط الفروض والاختبارات لكل فصل — موحّدة لجميع الأفواج (بخلاف روابط حصص الزوم)
    وثيقة واحدة: state/examLinks => { t1:[{title,link}], t2:[...], t3:[...] }
    نفس فكرة رفع الدروس/التمارين عبر رابط (تيليجرام أو أي رابط آخر)، لكن دون تكرار لكل فوج،
@@ -545,15 +660,17 @@ const ExamLinks = {
   getItems(t){
     const arr = Array.isArray(this.data[t]) ? this.data[t] : [];
     return arr
-      .map(x=> ({ title:String((x && x.title) || '').trim(), link:String((x && x.link) || '').trim() }))
-      .filter(x=> x.link);
+      .map(x=> ({ title:String((x && x.title) || '').trim(), link:String((x && x.link) || '').trim(),
+                  fileId:String((x && x.fileId) || ''), chunks:Number(x && x.chunks)||0, name:String((x && x.name) || ''), size:Number(x && x.size)||0 }))
+      .filter(x=> x.link || (x.fileId && x.chunks));
   },
 
   async setItems(t, items){
     if(!fbReady || !Admin.authed) return { ok:false, reason:'no-firebase' }; // ✅ تحقق من PIN أولاً
     const clean = (items||[])
-      .map(x=> ({ title:String(x.title||'').trim(), link:String(x.link||'').trim() }))
-      .filter(x=> x.link);
+      .map(x=> ({ title:String(x.title||'').trim(), link:String(x.link||'').trim(),
+                  fileId:String(x.fileId||''), chunks:Number(x.chunks)||0, name:String(x.name||''), size:Number(x.size)||0 }))
+      .filter(x=> x.link || (x.fileId && x.chunks));
     this.data[t] = clean;
     await db.collection('state').doc('examLinks').set(this.data, {merge:true});
     return { ok:true };
@@ -1677,8 +1794,21 @@ function openLessonDetail(id){
   /* نوافذ (تبويبات) صفحة الدرس: تُبنى فقط من الأقسام الفعلية لهذا الدرس — درس zoomOnly
      يعرض تسجيلات الزوم فقط بلا تبويبات (قسم وحيد)، ودروس المكتسبات القبلية بلا تبويب زوم.
      التبويب الافتراضي المفتوح هو "تمارين الدرس" لأنه الأولوية (أكبر عدد من التلاميذ لا يُنجزونه). */
+  /* نافذة "تحميل الدرس PDF": تُنشأ مرة واحدة وتُملأ من روابط الأستاذ */
+  if(!zoomOnly){
+    let pdfSec = document.getElementById('ldPdfSection');
+    if(!pdfSec){
+      pdfSec = document.createElement('div');
+      pdfSec.id = 'ldPdfSection'; pdfSec.className = 'ld-tab-panel'; pdfSec.style.display = 'none';
+      pdfSec.innerHTML = '<div class="section-title"><span>📄 تحميل الدرس PDF</span><div class="line"></div></div><div id="ldPdfBox"></div>';
+      const anchor = document.getElementById('ldLeaderboardSection');
+      anchor.parentNode.insertBefore(pdfSec, anchor);
+    }
+    renderLessonPdfBox(lesson);
+  }
   const allTabs = [
     { key:'zoom',      icon:'🎥', title:'حصص الزوم',      sub:'تسجيلات الحصص',  cls:'c2', el:'ldZoomSection',      show: showZoom },
+    { key:'pdf',       icon:'📄', title:'تحميل الدرس PDF', sub:'ملف الدرس',       cls:'c5', el:'ldPdfSection',       show: !zoomOnly },
     { key:'mindmap',   icon:'🗺️', title:'الخريطة الذهنية', sub:'لخّص الدرس',       cls:'c4', el:'ldMindmapSection',   show: !zoomOnly },
     { key:'quiz',      icon:'🧠', title:'اختبار الفهم',   sub:'اختبر نفسك',       cls:'c3', el:'ldQuizSection',      show: !zoomOnly },
     { key:'exercises', icon:'📝', title:'تمارين الدرس',   sub:'الواجب المنزلي',   cls:'c1', el:'ldExercisesSection', show: !zoomOnly }
@@ -1691,7 +1821,7 @@ function openLessonDetail(id){
    تُعرض نافذته مباشرة). defaultKey: مفتاح التبويب المفتوح افتراضيًا عند دخول الدرس. */
 /* نوافذ الدرس تُعاد إلى مكانها الأصلي (قبل ldLeaderboardSection) قبل كل إعادة بناء للتبويبات،
    لأنها تُنقل أثناء العرض لتصبح تحت البطاقة المضغوطة مباشرة */
-const LD_PANEL_IDS = ['ldExercisesSection','ldZoomSection','ldQuizSection','ldMindmapSection'];
+const LD_PANEL_IDS = ['ldExercisesSection','ldZoomSection','ldQuizSection','ldMindmapSection','ldPdfSection'];
 function restoreLdPanels(){
   const anchor = document.getElementById('ldLeaderboardSection');
   if(!anchor || !anchor.parentNode) return;
@@ -1843,10 +1973,9 @@ function buildZoomEmbedHTML(url){
      بصيغة https:// لمن ليس لديه التطبيق مثبّتًا أو رفض المتصفح فتحه. */
   if(/(?:^|\/\/)(?:www\.)?(?:t|telegram)\.me\//i.test(clean)){
     const appLink = toTelegramAppLink(clean);
+    /* زر واحد فقط: يجرّب التطبيق (tg://) وإن لم يُفتح خلال لحظات يفتح الرابط العادي تلقائيًا */
     return `<div class="zoom-telegram-box">
-      <div class="zoom-telegram-icon"><span class="icon-glyph">📨</span></div>
-      <a class="zoom-telegram-btn" href="${escZoomText(appLink)}">▶️ فتح الحصة في تطبيق تيليجرام</a>
-      <a class="zoom-fallback-link" href="${escZoomText(clean)}" target="_blank" rel="noopener">لا يعمل الزر؟ افتح عبر المتصفح ⬈</a>
+      <a class="zoom-telegram-btn" href="${escZoomText(appLink)}" data-web="${escZoomText(clean)}">▶ فتح الحصة</a>
     </div>`;
   }
 
@@ -1880,7 +2009,7 @@ function renderZoomGroupsBox(lesson){
 
   let videoHtml;
   if(!g.video.length){
-    videoHtml = `<div class="zoom-empty-msg">⏳ لم يُضِف الأستاذ بعد تسجيل هذه الحصة — حاول لاحقًا.</div>`;
+    videoHtml = `<div class="zoom-empty-msg">⏳ لا توجد حصة بعد</div>`;
   } else if(g.video.length === 1){
     videoHtml = buildZoomEmbedHTML(g.video[0]);
   } else {
@@ -1891,9 +2020,17 @@ function renderZoomGroupsBox(lesson){
   }
 
   box.innerHTML = `
-    <div class="zoom-groups-title">🎥 تسجيلات حصص الزوم</div>
-    <div class="zoom-player-box" id="zoomPlayerBox">${videoHtml}</div>
-    <div class="zoom-note">ملاحظة: لن تتمكن من مشاهدة الحصة إلا إذا كنت منضماً ومقبولاً مسبقاً في المخزن من طرف الأستاذ.</div>`;
+    <div class="zoom-groups-title">🎥 حصة الزوم</div>
+    <div class="zoom-player-box" id="zoomPlayerBox">${videoHtml}</div>`;
+  box.querySelectorAll('.zoom-telegram-btn[data-web]').forEach(a=>{
+    a.addEventListener('click', ()=>{
+      const web = a.getAttribute('data-web');
+      let left = false;
+      const onHide = ()=>{ if(document.hidden) left = true; };
+      document.addEventListener('visibilitychange', onHide);
+      setTimeout(()=>{ document.removeEventListener('visibilitychange', onHide); if(!left && web) window.open(web, '_blank', 'noopener'); }, 1500);
+    });
+  });
 
   if(g.video.length > 1){
     const playerBox = box.querySelector('#zoomPlayerBox');
@@ -3190,9 +3327,12 @@ function renderExamsScreen(){
       const trimesterLabel = trimesters.find(x=> x.key===t).label;
       panel.innerHTML = `<div class="zoom-docs-row" style="flex-direction:column;align-items:stretch;gap:10px">${
         items.map(it=>
-          `<a class="zoom-doc-btn" href="${escZoomText(it.link)}" target="_blank" rel="noopener">📝 ${escZoomText(it.title || 'فتح الفرض/الاختبار')}</a>`
+          (it.fileId && it.chunks)
+            ? `<button type="button" class="zoom-doc-btn" data-pdf-file="${escZoomText(it.fileId)}" data-chunks="${it.chunks}" data-name="${escZoomText(it.name || 'exam.pdf')}">📝 ${escZoomText(it.title || 'تحميل الفرض/الاختبار')}</button>`
+            : `<a class="zoom-doc-btn" href="${escZoomText(it.link)}" target="_blank" rel="noopener">📝 ${escZoomText(it.title || 'فتح الفرض/الاختبار')}</a>`
         ).join('')
       }</div>` + buildExamSolutionInlineHtml(items.length > 0);
+      wirePdfDownloadButtons(panel);
       wireExamSolutionInline(panel, t, trimesterLabel);
     }
     tabsWrap.querySelectorAll('.exam-tab').forEach(tab=>{
@@ -4081,6 +4221,13 @@ async function renderAdminPanel(){
         ? `<div class="lr-status">⏳ بلا محتوى بعد</div>`
         : `<button class="al-key" style="width:auto;padding:6px 14px" data-toggle-lesson="${l.id}">${open?'🔓 مفتوح — اضغط للإغلاق':'🔒 مغلق — اضغط للفتح'}</button>`}
     </div>`;
+    if(!pendingLesson){
+      const n = LessonPdfs.getFiles(l.id).length;
+      lessonsBody += `<div class="lesson-pdf-admin">
+        <button type="button" class="pdf-admin-toggle" data-pdf-toggle="${l.id}">📄 ملفات PDF للدرس (${n}) ▾</button>
+        <div class="pdf-admin-editor" id="pdfEditor-${l.id}" style="display:none"></div>
+      </div>`;
+    }
   });
   lessonsBody += `</div>`;
 
@@ -4308,6 +4455,71 @@ async function renderAdminPanel(){
     }
     
     renderAdminPanel();
+  }));
+  wrap.querySelectorAll('[data-pdf-toggle]').forEach(btn=> btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-pdf-toggle');
+    const ed = document.getElementById('pdfEditor-' + id);
+    if(!ed) return;
+    if(ed.style.display !== 'none'){ ed.style.display = 'none'; return; }
+    ed.style.display = 'block';
+    let originalFiles = LessonPdfs.getFiles(id);
+    const addRow = (title, url, meta)=>{
+      const row = document.createElement('div');
+      row.className = 'zoom-link-row exam-link-row';
+      if(meta && meta.fileId){ row.dataset.fileId = meta.fileId; row.dataset.chunks = meta.chunks; row.dataset.name = meta.name||''; row.dataset.size = meta.size||0; }
+      const uploaded = !!(meta && meta.fileId);
+      row.innerHTML = `<input type="text" class="zoom-form-input pdf-title" placeholder="اسم الملف (اختياري)" value="${escZoomText(title||'')}">
+        <input type="text" class="zoom-form-input pdf-url" ${uploaded?'readonly':''} placeholder="https://… رابط الملف" value="${uploaded ? ('📎 ملف مرفوع' + (meta.size ? ' (' + (meta.size/1048576).toFixed(1) + ' MB)' : '')) : escZoomText(url||'')}">
+        <button type="button" class="zoom-link-remove-btn" title="حذف">✕</button>`;
+      row.querySelector('.zoom-link-remove-btn').addEventListener('click', ()=> row.remove());
+      ed.querySelector('.pdf-rows').appendChild(row);
+    };
+    ed.innerHTML = `<div class="pdf-rows"></div>
+      <button type="button" class="zoom-add-link-btn" data-pdf-add>+ إضافة رابط ملف</button>
+      <button type="button" class="zoom-add-link-btn" data-pdf-upload>📎 رفع ملف PDF من الجهاز</button>
+      <input type="file" accept="application/pdf" data-pdf-file-input style="display:none">
+      <button type="button" class="zoom-save-btn" data-pdf-save>💾 حفظ</button>
+      <div class="zoom-save-feedback" data-pdf-fb></div>`;
+    if(originalFiles.length) originalFiles.forEach(f=> addRow(f.title, f.url, f)); else addRow('', '');
+    ed.querySelector('[data-pdf-add]').addEventListener('click', ()=> addRow('', ''));
+    const fileInput = ed.querySelector('[data-pdf-file-input]');
+    ed.querySelector('[data-pdf-upload]').addEventListener('click', ()=> fileInput.click());
+    fileInput.addEventListener('change', async ()=>{
+      const file = fileInput.files && fileInput.files[0];
+      fileInput.value = '';
+      if(!file) return;
+      const fb = ed.querySelector('[data-pdf-fb]');
+      if(file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)){ fb.textContent = '⚠️ اختر ملف PDF فقط.'; fb.style.color = '#b5432a'; return; }
+      if(file.size > LessonPdfs.MAX_BYTES){ fb.textContent = '⚠️ الملف أكبر من 5 ميغابايت — ضغّطه أو ضع رابطه بدل رفعه.'; fb.style.color = '#b5432a'; return; }
+      fb.style.color = '#5B6E62'; fb.textContent = '⏳ جاري الرفع…';
+      try{
+        const info = await LessonPdfs.uploadFile(id, file, (i,n)=>{ fb.textContent = `⏳ جاري الرفع… ${i}/${n}`; });
+        addRow(file.name.replace(/\.pdf$/i,''), '', info);
+        fb.textContent = '✅ تم الرفع — اضغط «حفظ» لإظهاره للتلاميذ.'; fb.style.color = 'var(--sage-deep,#3F6350)';
+      }catch(e){
+        console.error('فشل رفع الملف:', e);
+        fb.textContent = '⚠️ تعذّر الرفع. تحقق من الاتصال وقواعد Firestore.'; fb.style.color = '#b5432a';
+      }
+    });
+    ed.querySelector('[data-pdf-save]').addEventListener('click', async ()=>{
+      const fb = ed.querySelector('[data-pdf-fb]');
+      const list = Array.from(ed.querySelectorAll('.pdf-rows .zoom-link-row')).map(r=> r.dataset.fileId
+        ? { title:r.querySelector('.pdf-title').value, url:'', fileId:r.dataset.fileId, chunks:parseInt(r.dataset.chunks,10)||0, name:r.dataset.name, size:parseInt(r.dataset.size,10)||0 }
+        : { title:r.querySelector('.pdf-title').value, url:r.querySelector('.pdf-url').value });
+      try{
+        const res = await LessonPdfs.setFiles(id, list);
+        if(!res.ok) throw new Error(res.reason);
+        /* حذف أجزاء الملفات المرفوعة التي أُزيلت من القائمة */
+        const keep = new Set(list.map(f=>f.fileId).filter(Boolean));
+        originalFiles.filter(f=> f.fileId && !keep.has(f.fileId)).forEach(f=> LessonPdfs.deleteFile(f.fileId, f.chunks));
+        originalFiles = LessonPdfs.getFiles(id);
+        fb.textContent = '✅ تم الحفظ — أصبح متاحًا للتلاميذ.'; fb.style.color = 'var(--sage-deep,#3F6350)';
+        btn.textContent = `📄 ملفات PDF للدرس (${LessonPdfs.getFiles(id).length}) ▾`;
+      }catch(e){
+        console.error('فشل حفظ ملفات PDF (تحقق من قواعد Firestore لمجموعة state):', e);
+        fb.textContent = '⚠️ تعذّر الحفظ.'; fb.style.color = '#b5432a';
+      }
+    });
   }));
   wrap.querySelectorAll('[data-toggle-trimester]').forEach(b=> b.addEventListener('click', async ()=>{
     const k = b.getAttribute('data-toggle-trimester');
@@ -4593,12 +4805,14 @@ const EXAM_LINK_TRIMESTERS = [
 ];
 
 /* يضيف صفًّا جديدًا (عنوان + رابط + زر حذف) داخل حاوية عناصر فصل معيّن */
-function addExamLinkRow(container, title, link){
+function addExamLinkRow(container, title, link, meta){
   const row = document.createElement('div');
   row.className = 'zoom-link-row exam-link-row';
+  const uploaded = !!(meta && meta.fileId);
+  if(uploaded){ row.dataset.fileId = meta.fileId; row.dataset.chunks = meta.chunks; row.dataset.name = meta.name||''; row.dataset.size = meta.size||0; }
   row.innerHTML = `
     <input type="text" class="zoom-form-input exam-link-title" placeholder="عنوان الفرض/الاختبار (مثال: الفرض الأول)" value="${escZoomText(title||'')}">
-    <input type="text" class="zoom-form-input exam-link-url" placeholder="https://…" value="${escZoomText(link||'')}">
+    <input type="text" class="zoom-form-input exam-link-url" ${uploaded?'readonly':''} placeholder="https://…" value="${uploaded ? ('📎 ملف مرفوع' + (meta.size ? ' (' + (meta.size/1048576).toFixed(1) + ' MB)' : '')) : escZoomText(link||'')}">
     <button type="button" class="zoom-link-remove-btn" title="حذف هذا العنصر">✕</button>`;
   row.querySelector('.zoom-link-remove-btn').addEventListener('click', ()=>{
     if(window.SoundFX) SoundFX.click();
@@ -4641,7 +4855,9 @@ async function renderExamLinksManagerForm(overlay){
     <div class="zoom-form-divider"><span>${t.label}</span></div>
     <div class="zoom-form-group">
       <div class="zoom-link-rows" id="examRows-${t.key}"></div>
-      <button type="button" class="zoom-add-link-btn" data-exam-add="${t.key}">+ إضافة فرض/اختبار آخر</button>
+      <button type="button" class="zoom-add-link-btn" data-exam-add="${t.key}">+ إضافة رابط فرض/اختبار</button>
+      <button type="button" class="zoom-add-link-btn" data-exam-upload="${t.key}">📎 رفع ملف PDF من الجهاز</button>
+      <input type="file" accept="application/pdf" data-exam-file="${t.key}" style="display:none">
     </div>`).join('');
 
   body.innerHTML = `
@@ -4660,7 +4876,7 @@ async function renderExamLinksManagerForm(overlay){
     const items = ExamLinks.getItems(t.key);
     originalItemsByTrimester[t.key] = items; /* نسخة أصلية قبل أي تعديل، لمقارنتها لاحقًا واكتشاف العناصر الجديدة فقط */
     if(items.length){
-      items.forEach(it=> addExamLinkRow(container, it.title, it.link));
+      items.forEach(it=> addExamLinkRow(container, it.title, it.link, it));
     } else {
       addExamLinkRow(container, '', '');
     }
@@ -4671,6 +4887,29 @@ async function renderExamLinksManagerForm(overlay){
       if(window.SoundFX) SoundFX.click();
       const containerId = 'examRows-' + btn.getAttribute('data-exam-add');
       addExamLinkRow(body.querySelector('#'+containerId), '', '');
+    });
+  });
+
+  body.querySelectorAll('[data-exam-upload]').forEach(btn=>{
+    const tk = btn.getAttribute('data-exam-upload');
+    const input = body.querySelector(`[data-exam-file="${tk}"]`);
+    btn.addEventListener('click', ()=> input.click());
+    input.addEventListener('change', async ()=>{
+      const file = input.files && input.files[0];
+      input.value = '';
+      if(!file) return;
+      const fb = body.querySelector('#examLinksSaveFeedback');
+      if(file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)){ fb.textContent = '⚠️ اختر ملف PDF فقط.'; fb.style.color = '#b5432a'; return; }
+      if(file.size > LessonPdfs.MAX_BYTES){ fb.textContent = '⚠️ الملف أكبر من 5 ميغابايت — ضغّطه أو ضع رابطه بدل رفعه.'; fb.style.color = '#b5432a'; return; }
+      fb.style.color = '#5B6E62'; fb.textContent = '⏳ جاري الرفع…';
+      try{
+        const info = await LessonPdfs.uploadFile('exam_' + tk, file, (i,n)=>{ fb.textContent = `⏳ جاري الرفع… ${i}/${n}`; });
+        addExamLinkRow(body.querySelector('#examRows-' + tk), file.name.replace(/\.pdf$/i,''), '', info);
+        fb.textContent = '✅ تم الرفع — اضغط «حفظ الروابط» ليظهر للتلاميذ.'; fb.style.color = 'var(--sage-deep,#3F6350)';
+      }catch(e){
+        console.error('فشل رفع الملف:', e);
+        fb.textContent = '⚠️ تعذّر الرفع. تحقق من الاتصال وقواعد Firestore.'; fb.style.color = '#b5432a';
+      }
     });
   });
 
@@ -4686,20 +4925,24 @@ async function renderExamLinksManagerForm(overlay){
       for(const t of EXAM_LINK_TRIMESTERS){
         const container = body.querySelector(`#examRows-${t.key}`);
         const rows = Array.from(container.querySelectorAll('.exam-link-row'));
-        const items = rows.map(row=> ({
-          title: row.querySelector('.exam-link-title').value.trim(),
-          link:  row.querySelector('.exam-link-url').value.trim()
-        })).filter(it=> it.link);
+        const items = rows.map(row=> row.dataset.fileId
+          ? { title: row.querySelector('.exam-link-title').value.trim(), link:'', fileId:row.dataset.fileId, chunks:parseInt(row.dataset.chunks,10)||0, name:row.dataset.name||'', size:parseInt(row.dataset.size,10)||0 }
+          : { title: row.querySelector('.exam-link-title').value.trim(), link: row.querySelector('.exam-link-url').value.trim() }
+        ).filter(it=> it.link || it.fileId);
 
         const before = originalItemsByTrimester[t.key] || [];
         items.forEach(it=>{
-          if(!before.some(b=> b.link === it.link)){
+          if(!before.some(b=> (b.link || b.fileId) === (it.link || it.fileId))){
             newlyAddedItems.push({ title: it.title || 'فرض/اختبار جديد', trimesterKey: t.key, trimesterLabel: t.label.replace(/^\S+\s/, '') });
           }
         });
 
         const res = await ExamLinks.setItems(t.key, items);
         if(!res || !res.ok) throw new Error((res && res.reason) || 'unknown');
+        /* حذف أجزاء الملفات المرفوعة التي أُزيلت من القائمة، وتحديث النسخة الأصلية */
+        const keepIds = new Set(items.map(it=>it.fileId).filter(Boolean));
+        before.filter(b=> b.fileId && !keepIds.has(b.fileId)).forEach(b=> LessonPdfs.deleteFile(b.fileId, b.chunks));
+        originalItemsByTrimester[t.key] = ExamLinks.getItems(t.key);
       }
 
       /* إرسال إشعار فوري ومباشر لكل تلميذ عن كل فرض/اختبار جديد أُضيف الآن — دون أي خطوة يدوية إضافية.
@@ -4894,6 +5137,12 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       const lesson = window.LESSONS.find(l=>l.id===window.currentOpenLessonId);
       if(lesson && lesson.category!=='muktasabat') renderZoomGroupsBox(lesson);
     }
+  });
+  LessonPdfs.load().then(()=>{
+    if(window.currentOpenLessonId){ const l = window.LESSONS.find(x=>x.id===window.currentOpenLessonId); if(l) renderLessonPdfBox(l); }
+  });
+  LessonPdfs.listen(()=>{
+    if(window.currentOpenLessonId){ const l = window.LESSONS.find(x=>x.id===window.currentOpenLessonId); if(l) renderLessonPdfBox(l); }
   });
   ZoomLinks.listen(()=>{
     if(window.currentOpenLessonId && document.getElementById('screen-lessonDetail').style.display !== 'none'){
