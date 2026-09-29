@@ -46,7 +46,7 @@
     const ov = document.createElement('div');
     ov.className = 'pdf-viewer-ov';
     ov.innerHTML = `<div class="pdf-viewer-bar"><button type="button" class="pv-close">✕ إغلاق</button><span class="pv-name"></span><button type="button" class="pv-save">💾 حفظ</button></div><div class="pdf-viewer-body"><div class="pv-msg">⏳ جاري فتح الملف…</div></div>`;
-    ov.querySelector('.pv-name').textContent = name || '';
+    const nm = ov.querySelector('.pv-name'); nm.textContent = name || ''; nm.setAttribute('dir','auto'); nm.style.unicodeBidi = 'plaintext';
     document.body.appendChild(ov);
     const prev = document.body.style.overflow; document.body.style.overflow = 'hidden';
     let imgUrl = null;
@@ -62,7 +62,7 @@
         body.appendChild(im); return;
       }
       const lib = await loadPdfJs();
-      const pdf = await lib.getDocument({ data: await blob.arrayBuffer() }).promise;
+      const pdf = await lib.getDocument({ data: await blob.arrayBuffer(), disableFontFace: true, useSystemFonts: false }).promise;
       body.innerHTML = '';
       const w = Math.min(body.clientWidth - 16, 900);
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
