@@ -8,6 +8,9 @@ try{
   if(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.apiKey && window.FIREBASE_CONFIG.apiKey.indexOf('ضع_') === -1){
     fbApp = firebase.initializeApp(window.FIREBASE_CONFIG);
     db = firebase.firestore();
+    /* حل خطأ "unavailable": بعض الشبكات/المتصفحات (بيانات الجوال، الحواجب، شبكات المدارس) تمنع القناة الافتراضية
+       فيُعاد الاتصال تلقائيًا عبر Long Polling الأكثر توافقًا */
+    try{ db.settings({ experimentalAutoDetectLongPolling: true, merge: true }); }catch(e){ console.warn('Firestore settings', e); }
     fbReady = true;
   }
 }catch(e){ console.warn('Firebase init failed', e); }

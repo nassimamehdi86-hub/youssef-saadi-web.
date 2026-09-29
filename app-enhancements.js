@@ -54,12 +54,12 @@ function showFbPermissionNotice(context){
   };
   el.innerHTML += `<div class="note" style="margin:10px 0;border-color:#c0392b">
     <b>⚠️ تعذّر الاتصال بقاعدة البيانات لتحديث: ${labels[context] || context}.</b><br>
-    السبب الأكثر شيوعًا: قواعد الأمان (Rules) في Firebase Console لا تسمح بالقراءة/الكتابة العامة
+    ${(window.__lastFbError && window.__lastFbError.code==='unavailable') ? 'المشكلة في الاتصال بالإنترنت أو بالشبكة (وليست في القواعد): الجهاز لم يستطع الوصول لخادم Firebase. جرّب شبكة أخرى (Wi-Fi/بيانات الجوال) وعطّل حاجب الإعلانات أو الـ VPN ثم أعد فتح الموقع.' : `السبب الأكثر شيوعًا: قواعد الأمان (Rules) في Firebase Console لا تسمح بالقراءة/الكتابة العامة
     لهذه المجموعة (لأن التطبيق لا يستخدم Firebase Authentication، بل نظام رقم سري PIN).
     افتح Firebase Console ← Firestore Database ← Rules، وتأكد من وجود:
     <pre style="white-space:pre-wrap;font-size:11px;background:#fff;padding:8px;border-radius:8px;margin-top:6px">match /notifications/{id} { allow read, write: if true; }
 match /state/{id} { allow read, write: if true; }</pre>
-    ثم اضغط "نشر" (Publish).
+    ثم اضغط "نشر" (Publish).`}
     ${_fbErrorHint(window.__lastFbError)}
   </div>`;
 }

@@ -1226,7 +1226,7 @@
 .quiz-fill-sentence{ font-weight:700; font-size:15px; color:var(--ink); line-height:2; margin-bottom:14px; }
 .quiz-fill-sentence .blank{ display:inline-block; min-width:64px; border-bottom:2px dotted var(--gold-3); margin:0 4px; }
 .quiz-term-label{
-  font-family:'Aref Ruqaa', serif; font-size:17px; background:var(--gold-2); color:#fff;
+  font-family:'Cairo', sans-serif; font-weight:700; font-size:16px; background:var(--gold-2); color:#fff;
   display:inline-block; padding:3px 16px; border-radius:8px; margin-bottom:10px;
 }
 .quiz-text-input, .quiz-textarea{
@@ -1261,7 +1261,7 @@
 
 /* تمارين الكتاب — تمرين كامل في صفحة واحدة (كما في ورقة التمرين الأصلية) */
 .book-header-card{ background:var(--paper); border:1.6px solid var(--gold-3); border-radius:16px; padding:16px 16px 12px; margin-bottom:14px; }
-.book-exercise-title{ font-family:'Aref Ruqaa', serif; font-size:18px; font-weight:800; color:var(--gold-3); text-align:center; margin-bottom:4px; }
+.book-exercise-title{ font-family:'Cairo', sans-serif; font-size:18px; font-weight:800; color:var(--gold-3); text-align:center; margin-bottom:4px; }
 .book-exercise-instr{ font-size:12.5px; font-weight:700; color:var(--ink-soft); text-align:center; margin-bottom:0; }
 .book-sub-instr{ font-size:12.5px; font-weight:800; color:var(--ink-soft); margin:14px 0 8px; border-top:1.4px dashed rgba(169,127,42,0.3); padding-top:10px; }
 .passage-block{
@@ -2443,3 +2443,10 @@
 .chat-q-actions button.recording{ background:#B8382C !important; color:#fff !important; }
 .chat-q-actions .chat-q-delete{ color:#B8382C !important; border-color:rgba(184,56,44,0.4) !important; }
 .chat-q-actions .chat-q-delete:hover{ background:rgba(184,56,44,0.08) !important; }
+
+
+/* تمارين الدرس — خط واضح (نسخة احتياطية مستقلة عن modern.css) */
+.quiz-card, .quiz-card *, .book-header-card, .book-header-card *, .quiz-progress, .quiz-term-label{
+  font-family:'IBM Plex Sans Arabic','Cairo',system-ui,sans-serif !important; font-style:normal !important; letter-spacing:0 !important;
+}
+.book-item-sentence, .passage-block, .quiz-fill-sentence, .quiz-q{ font-size:16px; font-weight:600; }
