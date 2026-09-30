@@ -3712,6 +3712,14 @@ function aaIcon(svgInner, bg){
   return `<span class="aa-icon-wrap" style="background:${bg || AA_BG_GOLD}"><svg class="aa-svg-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">${svgInner}</svg></span>`;
 }
 const AA_ICONS = {
+  /* 🕌 دروس التربية الإسلامية — مسجد بقبّة ذهبية */
+  islamic: aaIcon(`
+    <path d="M12 56 V34 H52 V56 Z" fill="url(#hcCream)" stroke="#2E4A34" stroke-width="1.3"/>
+    <path d="M18 34 C18 20 46 20 46 34 Z" fill="url(#hcGoldMetal)" stroke="#7A5216" stroke-width="1.3"/>
+    <path d="M32 9 V19" stroke="#7A5216" stroke-width="2" stroke-linecap="round"/>
+    <path d="M28 44 C28 37 36 37 36 44 V56 H28 Z" fill="#2E4A34"/>
+    <rect x="6" y="24" width="6" height="32" rx="2" fill="url(#hcGoldMetal)" stroke="#7A5216" stroke-width="1"/>
+    <rect x="52" y="24" width="6" height="32" rx="2" fill="url(#hcGoldMetal)" stroke="#7A5216" stroke-width="1"/>`, AA_BG_GREEN),
   /* ⏳ طلبات الانتظار — ساعة رملية ذهبية */
   pending: aaIcon(`
     <path d="M16 8 H48 V16 C48 24 40 28 32 32 C40 36 48 40 48 48 V56 H16 V48 C16 40 24 36 32 32 C24 28 16 24 16 16 Z" fill="url(#hcGoldMetal)" stroke="#7A5216" stroke-width="1.4" stroke-linejoin="round"/>
@@ -4248,13 +4256,14 @@ async function renderAdminPanel(){
     <button class="al-key" id="toggleApprovedBtn" style="width:100%">👥 عدد التلاميذ المقبولين: ${totalStudents} — اضغط لعرض الأسماء والمستوى</button>
     <div id="approvedListContainer" style="display:none;margin-top:12px"></div>`;
 
+  const buildLessonsBody = (subject)=>{
   let lessonsBody = `<div class="lesson-list">`;
-  window.LESSONS.forEach(l=>{
+  window.LESSONS.filter(l=> lessonSubject(l)===subject).forEach(l=>{
     const pendingLesson = l.locked === 'pending';
     const open = !pendingLesson && !Locks.isLessonLocked(l.id);
     lessonsBody += `<div class="lesson-row ${pendingLesson?'placeholder':''}">
       <div class="lr-num"><span class="lr-num-text">${String(l.order).padStart(2,'0')}</span></div>
-      <div class="lr-text"><div class="lr-title">${lessonAdminTitle(l)}</div></div>
+      <div class="lr-text"><div class="lr-title">${l.title}</div></div>
       ${pendingLesson
         ? `<div class="lr-status">⏳ بلا محتوى بعد</div>`
         : `<button class="al-key" style="width:auto;padding:6px 14px" data-toggle-lesson="${l.id}">${open?'🔓 مفتوح — اضغط للإغلاق':'🔒 مغلق — اضغط للفتح'}</button>`}
@@ -4268,6 +4277,10 @@ async function renderAdminPanel(){
     }
   });
   lessonsBody += `</div>`;
+  return lessonsBody;
+  };
+  const lessonsBody = buildLessonsBody('arabic');
+  const islamicLessonsBody = buildLessonsBody('islamic');
 
   let trimestersBody = `<div class="lesson-list">`;
   [{k:'t1',l:'الفصل الأول'},{k:'t2',l:'الفصل الثاني'},{k:'t3',l:'الفصل الثالث'}].forEach(t=>{
@@ -4387,6 +4400,7 @@ async function renderAdminPanel(){
     examLinksManageCard +
     examSolutionsCard +
     adminAccordionHTML('lessons', `${AA_ICONS.lessons} فتح/إغلاق الدروس`, lessonsBody) +
+    adminAccordionHTML('islamicLessons', `${AA_ICONS.islamic} فتح/إغلاق دروس التربية الإسلامية`, islamicLessonsBody) +
     adminAccordionHTML('trimesters', `${AA_ICONS.exams} فتح/إغلاق الفروض والاختبارات`, trimestersBody) +
     adminAccordionHTML('aiTeacher', `${AA_ICONS.aiTeacher} المعلّم الذكي — اختبارات وتصحيح آلي`, aiTeacherBody) +
     adminAccordionHTML('dailyExercises', `${AA_ICONS.dailyExercises} تمارين يومية`, dailyExercisesBody) +
