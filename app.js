@@ -560,7 +560,7 @@ const LessonPdfs = {
       r.onerror = ()=> rej(new Error('read-failed'));
       r.readAsDataURL(file);
     });
-    const fileId = lessonId + '_' + Date.now().toString(36);
+    const fileId = lessonId + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
     const n = Math.ceil(b64.length / this.CHUNK);
     for(let i=0;i<n;i++){
       await db.collection('state').doc(`pdf_${fileId}_${i}`).set({ i, data: b64.slice(i*this.CHUNK, (i+1)*this.CHUNK) });
@@ -4523,34 +4523,49 @@ async function renderAdminPanel(){
       if(meta && meta.fileId){ row.dataset.fileId = meta.fileId; row.dataset.chunks = meta.chunks; row.dataset.name = meta.name||''; row.dataset.size = meta.size||0; }
       const uploaded = !!(meta && meta.fileId);
       row.innerHTML = `<input type="text" class="zoom-form-input pdf-title" placeholder="اسم الملف (اختياري)" value="${escZoomText(title||'')}">
-        <input type="text" class="zoom-form-input pdf-url" readonly placeholder="https://… رابط الملف" value="${uploaded ? ('📎 ملف مرفوع' + (meta.size ? ' (' + (meta.size/1048576).toFixed(1) + ' MB)' : '')) : escZoomText(url||'')}">
+        <input type="text" class="zoom-form-input pdf-url" readonly placeholder="https://… رابط الملف" value="${uploaded ? ('📎 ' + (meta.name || 'ملف مرفوع') + (meta.size ? ' (' + (meta.size/1048576).toFixed(1) + ' MB)' : '')) : escZoomText(url||'')}">
         <button type="button" class="zoom-link-remove-btn" title="حذف">✕</button>`;
       row.querySelector('.zoom-link-remove-btn').addEventListener('click', ()=> row.remove());
       ed.querySelector('.pdf-rows').appendChild(row);
     };
     ed.innerHTML = `<div class="pdf-rows"></div>
-      <button type="button" class="zoom-add-link-btn" data-pdf-upload>📎 رفع ملف PDF من الجهاز</button>
-      <input type="file" accept="application/pdf" data-pdf-file-input style="display:none">
+      <button type="button" class="zoom-add-link-btn" data-pdf-upload>📎 رفع ملف PDF أو أكثر من الجهاز</button>
+      <input type="file" accept="application/pdf" multiple data-pdf-file-input style="display:none">
       <button type="button" class="zoom-save-btn" data-pdf-save>💾 حفظ</button>
       <div class="zoom-save-feedback" data-pdf-fb></div>`;
     if(originalFiles.length) originalFiles.forEach(f=> addRow(f.title, f.url, f));
     const fileInput = ed.querySelector('[data-pdf-file-input]');
     ed.querySelector('[data-pdf-upload]').addEventListener('click', ()=> fileInput.click());
     fileInput.addEventListener('change', async ()=>{
-      const file = fileInput.files && fileInput.files[0];
+      const files = Array.from(fileInput.files || []);
       fileInput.value = '';
-      if(!file) return;
+      if(!files.length) return;
       const fb = ed.querySelector('[data-pdf-fb]');
-      if(file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)){ fb.textContent = '⚠️ اختر ملف PDF فقط.'; fb.style.color = '#b5432a'; return; }
-      if(file.size > LessonPdfs.MAX_BYTES){ fb.textContent = '⚠️ الملف أكبر من 5 ميغابايت — ضغّطه أو ضع رابطه بدل رفعه.'; fb.style.color = '#b5432a'; return; }
-      fb.style.color = '#5B6E62'; fb.textContent = '⏳ جاري الرفع…';
-      try{
-        const info = await LessonPdfs.uploadFile(id, file, (i,n)=>{ fb.textContent = `⏳ جاري الرفع… ${i}/${n}`; });
-        addRow(file.name.replace(/\.pdf$/i,''), '', info);
-        fb.textContent = '✅ تم الرفع — اضغط «حفظ» لإظهاره للتلاميذ.'; fb.style.color = 'var(--sage-deep,#3F6350)';
-      }catch(e){
-        console.error('فشل رفع الملف:', e);
-        fb.textContent = '⚠️ تعذّر الرفع. تحقق من الاتصال وقواعد Firestore.'; fb.style.color = '#b5432a';
+      const upBtn = ed.querySelector('[data-pdf-upload]');
+      upBtn.disabled = true;
+      let ok = 0; const problems = [];
+      for(let k = 0; k < files.length; k++){
+        const file = files[k];
+        const tag = files.length > 1 ? `(${k+1}/${files.length}) ` : '';
+        if(file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)){ problems.push(`«${file.name}» ليس PDF`); continue; }
+        if(file.size > LessonPdfs.MAX_BYTES){ problems.push(`«${file.name}» أكبر من 5 ميغابايت`); continue; }
+        fb.style.color = '#5B6E62'; fb.textContent = `⏳ ${tag}جاري رفع «${file.name}»…`;
+        try{
+          const info = await LessonPdfs.uploadFile(id, file, (i,n)=>{ fb.textContent = `⏳ ${tag}جاري الرفع… ${i}/${n}`; });
+          addRow(file.name.replace(/\.pdf$/i,''), '', info);
+          ok++;
+        }catch(e){
+          console.error('فشل رفع الملف:', e);
+          problems.push(`تعذّر رفع «${file.name}»`);
+        }
+      }
+      upBtn.disabled = false;
+      if(ok && !problems.length){
+        fb.textContent = ok > 1 ? `✅ تم رفع ${ok} ملفات — اضغط «حفظ» لإظهارها للتلاميذ.` : '✅ تم الرفع — اضغط «حفظ» لإظهاره للتلاميذ.';
+        fb.style.color = 'var(--sage-deep,#3F6350)';
+      } else {
+        fb.textContent = (ok ? `✅ رُفع ${ok} — ` : '') + '⚠️ ' + problems.join('، ') + '.';
+        fb.style.color = '#b5432a';
       }
     });
     ed.querySelector('[data-pdf-save]').addEventListener('click', async ()=>{
@@ -4864,7 +4879,7 @@ function addExamLinkRow(container, title, link, meta){
   if(uploaded){ row.dataset.fileId = meta.fileId; row.dataset.chunks = meta.chunks; row.dataset.name = meta.name||''; row.dataset.size = meta.size||0; }
   row.innerHTML = `
     <input type="text" class="zoom-form-input exam-link-title" placeholder="عنوان الفرض/الاختبار (مثال: الفرض الأول)" value="${escZoomText(title||'')}">
-    <input type="text" class="zoom-form-input exam-link-url" readonly placeholder="https://…" value="${uploaded ? ('📎 ملف مرفوع' + (meta.size ? ' (' + (meta.size/1048576).toFixed(1) + ' MB)' : '')) : escZoomText(link||'')}">
+    <input type="text" class="zoom-form-input exam-link-url" readonly placeholder="https://…" value="${uploaded ? ('📎 ' + (meta.name || 'ملف مرفوع') + (meta.size ? ' (' + (meta.size/1048576).toFixed(1) + ' MB)' : '')) : escZoomText(link||'')}">
     <button type="button" class="zoom-link-remove-btn" title="حذف هذا العنصر">✕</button>`;
   row.querySelector('.zoom-link-remove-btn').addEventListener('click', ()=>{
     if(window.SoundFX) SoundFX.click();
@@ -4907,8 +4922,8 @@ async function renderExamLinksManagerForm(overlay){
     <div class="zoom-form-divider"><span>${t.label}</span></div>
     <div class="zoom-form-group">
       <div class="zoom-link-rows" id="examRows-${t.key}"></div>
-      <button type="button" class="zoom-add-link-btn" data-exam-upload="${t.key}">📎 رفع ملف PDF من الجهاز</button>
-      <input type="file" accept="application/pdf" data-exam-file="${t.key}" style="display:none">
+      <button type="button" class="zoom-add-link-btn" data-exam-upload="${t.key}">📎 رفع ملف PDF أو أكثر من الجهاز</button>
+      <input type="file" accept="application/pdf" multiple data-exam-file="${t.key}" style="display:none">
     </div>`).join('');
 
   body.innerHTML = `
@@ -4935,20 +4950,35 @@ async function renderExamLinksManagerForm(overlay){
     const input = body.querySelector(`[data-exam-file="${tk}"]`);
     btn.addEventListener('click', ()=> input.click());
     input.addEventListener('change', async ()=>{
-      const file = input.files && input.files[0];
+      const files = Array.from(input.files || []);
       input.value = '';
-      if(!file) return;
+      if(!files.length) return;
       const fb = body.querySelector('#examLinksSaveFeedback');
-      if(file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)){ fb.textContent = '⚠️ اختر ملف PDF فقط.'; fb.style.color = '#b5432a'; return; }
-      if(file.size > LessonPdfs.MAX_BYTES){ fb.textContent = '⚠️ الملف أكبر من 5 ميغابايت — ضغّطه أو ضع رابطه بدل رفعه.'; fb.style.color = '#b5432a'; return; }
-      fb.style.color = '#5B6E62'; fb.textContent = '⏳ جاري الرفع…';
-      try{
-        const info = await LessonPdfs.uploadFile('exam_' + tk, file, (i,n)=>{ fb.textContent = `⏳ جاري الرفع… ${i}/${n}`; });
-        addExamLinkRow(body.querySelector('#examRows-' + tk), file.name.replace(/\.pdf$/i,''), '', info);
-        fb.textContent = '✅ تم الرفع — اضغط «حفظ الروابط» ليظهر للتلاميذ.'; fb.style.color = 'var(--sage-deep,#3F6350)';
-      }catch(e){
-        console.error('فشل رفع الملف:', e);
-        fb.textContent = '⚠️ تعذّر الرفع. تحقق من الاتصال وقواعد Firestore.'; fb.style.color = '#b5432a';
+      const container = body.querySelector('#examRows-' + tk);
+      btn.disabled = true;
+      let ok = 0; const problems = [];
+      for(let k = 0; k < files.length; k++){
+        const file = files[k];
+        const tag = files.length > 1 ? `(${k+1}/${files.length}) ` : '';
+        if(file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)){ problems.push(`«${file.name}» ليس PDF`); continue; }
+        if(file.size > LessonPdfs.MAX_BYTES){ problems.push(`«${file.name}» أكبر من 5 ميغابايت`); continue; }
+        fb.style.color = '#5B6E62'; fb.textContent = `⏳ ${tag}جاري رفع «${file.name}»…`;
+        try{
+          const info = await LessonPdfs.uploadFile('exam_' + tk, file, (i,n)=>{ fb.textContent = `⏳ ${tag}جاري الرفع… ${i}/${n}`; });
+          addExamLinkRow(container, file.name.replace(/\.pdf$/i,''), '', info);
+          ok++;
+        }catch(e){
+          console.error('فشل رفع الملف:', e);
+          problems.push(`تعذّر رفع «${file.name}»`);
+        }
+      }
+      btn.disabled = false;
+      if(ok && !problems.length){
+        fb.textContent = ok > 1 ? `✅ تم رفع ${ok} ملفات — اضغط «حفظ الروابط» ليظهر للتلاميذ.` : '✅ تم الرفع — اضغط «حفظ الروابط» ليظهر للتلاميذ.';
+        fb.style.color = 'var(--sage-deep,#3F6350)';
+      } else {
+        fb.textContent = (ok ? `✅ رُفع ${ok} — ` : '') + '⚠️ ' + problems.join('، ') + '.';
+        fb.style.color = '#b5432a';
       }
     });
   });
