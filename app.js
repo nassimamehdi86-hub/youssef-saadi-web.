@@ -4476,14 +4476,16 @@ async function renderAdminPanel(){
     });
   });
 
-  document.getElementById('adminLogoutBtn').addEventListener('click', ()=>{
+  /* الزر ثابت في index.html بينما تُعاد رسم اللوحة مرارًا: نستعمل onclick (يستبدل المعالج السابق)
+     بدل addEventListener الذي كان يُراكم معالجًا جديدًا مع كل رسم فيظهر تأكيد الخروج مرات متعددة */
+  document.getElementById('adminLogoutBtn').onclick = ()=>{
     if(!confirm('هل تريد تسجيل الخروج من لوحة التحكم؟')) return;
     if(window.SoundFX) SoundFX.logout();
     Admin.authed = false;
     try{ sessionStorage.removeItem('admin_session'); }catch(_){}
     Admin.stopListenPending();
     Screens.show('home');
-  });
+  };
 
   wrap.querySelectorAll('[data-approve]').forEach(b=> b.addEventListener('click', async ()=>{ await Admin.approve(b.getAttribute('data-approve')); renderAdminPanel(); }));
   wrap.querySelectorAll('[data-reject]').forEach(b=> b.addEventListener('click', async ()=>{ await Admin.reject(b.getAttribute('data-reject')); renderAdminPanel(); }));
