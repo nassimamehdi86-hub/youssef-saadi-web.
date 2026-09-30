@@ -1562,17 +1562,33 @@ const Screens = {
 };
 
 /* ---------- الشاشة الرئيسية: رسالة الترحيب ---------- */
+/* تحية حسب وقت اليوم + جملة ترحيبية تتغيّر يوميًا */
+const WELCOME_PHRASES = [
+  'نورُ العلمِ يزداد بكلّ خطوةٍ تخطوها، فواصل بثقة',
+  'اجتهادك اليوم هو نجاحك غدًا بإذن الله',
+  'يسعدنا أن نراك، فلنكمل رحلة التميّز معًا',
+  'كلّ درسٍ تتقنه لبنةٌ في صرح مستقبلك',
+  'بالصبر والمثابرة تُقطف ثمار التفوّق',
+  'أنت أهلٌ لأن تكون من المتفوّقين، فابدأ بهمّة'
+];
+function welcomeGreeting(){
+  const h = new Date().getHours();
+  if(h >= 4 && h < 12) return 'صباحُ الخير';
+  if(h >= 12 && h < 18) return 'طابَ يومُك';
+  return 'مساءُ النور';
+}
 function renderWelcome(){
   const box = document.getElementById('welcomeBox');
   if(!box) return;
   if(Student.status === 'approved' && Student.fullName){
+    const dayIdx = Math.floor(Date.now() / 86400000) % WELCOME_PHRASES.length;
     box.innerHTML = `
-      <div class="wb-mascot-wrap">${MASCOT_SVG}</div>
       <div class="wb-text">
-        <div class="wb-greet">مرحبًا بعودتك</div>
-        <div class="wb-name">أهلًا، <b>${Student.fullName}</b> ✨</div>
+        <div class="wb-greet"><span class="wb-orn">✦</span> ${welcomeGreeting()} — مرحبًا بعودتك <span class="wb-orn">✦</span></div>
+        <div class="wb-name">أهلًا، <b>${Student.fullName}</b></div>
+        <div class="wb-phrase">${WELCOME_PHRASES[dayIdx]}</div>
       </div>
-      <button class="back-btn" id="studentLogoutBtn" style="flex-shrink:0">🚪 خروج</button>`;
+      <button class="back-btn wb-exit" id="studentLogoutBtn">🚪 خروج</button>`;
     box.style.display = 'flex';
     document.getElementById('studentLogoutBtn').addEventListener('click', ()=>{
       if(!confirm('هل تريد تسجيل الخروج من المنصة؟')) return;

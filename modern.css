@@ -301,3 +301,36 @@ body{ background:var(--m-bg); color:var(--ink); }
 @media (prefers-reduced-motion:reduce){
   .hero-rise, .hero-glow{ animation:none; opacity:0; }
 }
+
+
+/* =========================================================================================
+   بطاقة الترحيب — بألوان الشعار (ماروني داكن + ذهبي) بدون صورة الشخصية
+   ========================================================================================= */
+.welcome-bar{
+  position:relative; overflow:hidden; align-items:center; gap:12px; padding:16px 18px;
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(232,206,133,.20), transparent 55%),
+    linear-gradient(135deg, #7A2229 0%, #5A1A20 55%, #2A1114 100%);
+  border:1.5px solid #C9A24B;
+  box-shadow:0 10px 22px rgba(78,18,24,.28), inset 0 1px 0 rgba(255,235,180,.25), inset 0 0 0 3px rgba(201,162,75,.10);
+}
+.welcome-bar::before{ /* خط ذهبي رفيع في الأعلى */
+  content:''; position:absolute; left:14%; right:14%; top:0; height:2px;
+  background:linear-gradient(90deg, transparent, #E8CE85, transparent); opacity:.9;
+}
+.welcome-bar .wb-text{ position:relative; flex:1; min-width:0; text-align:right; }
+.welcome-bar .wb-greet{ font-size:11.5px; font-weight:800; color:#E8CE85; letter-spacing:.2px; }
+.welcome-bar .wb-orn{ color:#C9A24B; font-size:9px; margin:0 2px; }
+.welcome-bar .wb-name{
+  font-family:'Aref Ruqaa', serif; font-weight:700; font-size:23px; line-height:1.35;
+  color:#FFF6DC; margin-top:3px; text-shadow:0 2px 6px rgba(0,0,0,.35);
+}
+.welcome-bar .wb-name b{ color:#F1D48A; }
+.welcome-bar .wb-phrase{
+  margin-top:5px; font-size:12.5px; line-height:1.7; color:rgba(255,240,210,.82); font-weight:600;
+}
+.welcome-bar .wb-exit{
+  flex-shrink:0; align-self:center; background:rgba(255,246,220,.08); color:#F1D48A;
+  border:1.3px solid rgba(232,206,133,.7); border-radius:999px; padding:8px 14px; font-weight:800;
+  box-shadow:none;
+}
