@@ -186,6 +186,17 @@
           </svg>
         </div><div class="hc-title">الدروس</div>
       </div>
+      <div class="home-card c3" data-nav="islamic" style="grid-column:1 / -1">
+        <div class="hc-icon-wrap">
+          <svg class="hc-svg-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 50 L12 26 Q12 12 32 10 Q52 12 52 26 L52 50 Z" fill="url(#hcCream)" stroke="#2E4A34" stroke-width="1.3"/>
+            <path d="M32 6 L32 12" stroke="#7A5216" stroke-width="2" stroke-linecap="round"/>
+            <path d="M32 14 Q22 16 22 26 L22 50 L42 50 L42 26 Q42 16 32 14 Z" fill="#2E4A34" opacity="0.9"/>
+            <path d="M40 22 A7 7 0 1 1 33 17 A5.5 5.5 0 0 0 40 22 Z" fill="url(#hcGoldMedallion)" stroke="#7A5216" stroke-width="0.8" transform="translate(-1 6)"/>
+            <path d="M8 50 L56 50" stroke="#7A5216" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </div><div class="hc-title">التربية الإسلامية</div>
+      </div>
       <div class="home-card c2" data-nav="exams">
         <div class="hc-icon-wrap">
           <svg class="hc-svg-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -239,9 +250,16 @@
     <div id="lessonsListWrap"></div>
   </div>
 
+  <!-- ============ شاشة قائمة دروس التربية الإسلامية ============ -->
+  <div id="screen-islamic" style="display:none">
+    <div class="lesson-topbar"><button class="back-btn" data-nav="home">→ رجوع للرئيسية</button></div>
+    <div class="section-title"><span>التربية الإسلامية</span><div class="line"></div></div>
+    <div id="islamicListWrap"></div>
+  </div>
+
   <!-- ============ شاشة تفاصيل الدرس ============ -->
   <div id="screen-lessonDetail" style="display:none">
-    <div class="lesson-topbar"><button class="back-btn" data-nav="lessons">→ رجوع لقائمة الدروس</button></div>
+    <div class="lesson-topbar"><button class="back-btn" id="ldBackBtn" data-nav="lessons">→ رجوع لقائمة الدروس</button></div>
     <div class="hub"><div class="badge" id="ldBadge"><b id="ldTitle"></b><span id="ldSubtitle"></span></div></div>
     <p class="hub-def" id="ldDef"></p>
 

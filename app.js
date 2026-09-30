@@ -1513,7 +1513,7 @@ const Screens = {
   el: {}, // يُملأ عند التحميل بعناصر id لكل شاشة
 
   init(){
-    ['home','lessons','lessonDetail','exams','dailyExercises','irab','leaderboard','chat','admin'].forEach(s=>{
+    ['home','lessons','islamic','lessonDetail','exams','dailyExercises','irab','leaderboard','chat','admin'].forEach(s=>{
       this.el[s] = document.getElementById('screen-'+s);
     });
     document.querySelectorAll('[data-nav]').forEach(btn=>{
@@ -1548,6 +1548,7 @@ const Screens = {
     }
     
     if(name === 'lessons') renderLessonsScreen();
+    if(name === 'islamic') renderIslamicScreen();
     if(name === 'exams') renderExamsScreen();
     if(name === 'chat') renderChatScreen();
     if(name === 'irab') renderIrabScreen();
@@ -1638,15 +1639,24 @@ const CATEGORY_META = {
   jumal:  { icon:'📙', title:'الجمل التي لها محلّ من الإعراب' },
   balagha:{ icon:'📕', title:'الظواهر البلاغية' },
   anmat:  { icon:'📓', title:'أنماط النصوص' },
-  itisaq: { icon:'📔', title:'الاتساق والانسجام' }
+  itisaq: { icon:'📔', title:'الاتساق والانسجام' },
+  islamic:{ icon:'🕌', title:'التربية الإسلامية' }
 };
 
-function renderLessonsScreen(){
-  const wrap = document.getElementById('lessonsListWrap');
+/* مادة الدرس: 'arabic' (الافتراضي) أو 'islamic' (التربية الإسلامية) */
+function lessonSubject(l){ return (l && l.subject) || 'arabic'; }
+function lessonAdminTitle(l){ return (lessonSubject(l)==='islamic' ? '🕌 ' : '') + l.title; }
+
+function renderLessonsScreen(){ renderSubjectLessons('lessonsListWrap','arabic'); }
+function renderIslamicScreen(){ renderSubjectLessons('islamicListWrap','islamic'); }
+
+function renderSubjectLessons(wrapId, subject){
+  const wrap = document.getElementById(wrapId);
+  if(!wrap) return;
   wrap.innerHTML = '<div class="sf-label">جاري التحميل…</div>';
   Locks.load().then(()=>{
     /* الدروس المغلقة تُخفى بالكامل؛ يظهر فقط المفتوح أو ما بانتظار المحتوى (قريبًا) */
-    const visible = window.LESSONS.filter(l=> l.locked==='pending' || !Locks.isLessonLocked(l.id));
+    const visible = window.LESSONS.filter(l=> lessonSubject(l)===subject && (l.locked==='pending' || !Locks.isLessonLocked(l.id)));
     const openedAt = (Locks.data && Locks.data.openedAt) || {};
 
     /* قائمة واحدة مسطّحة بلا مجموعات: آخر درس فتحه الأستاذ في الأعلى.
@@ -1681,6 +1691,10 @@ function renderLessonsScreen(){
         </div>`;
     };
 
+    if(!flat.length && !muk.length){
+      wrap.innerHTML = '<div class="sf-label" style="text-align:center;padding:24px 8px">لا توجد دروس مفتوحة حاليًا — سيفتح الأستاذ الدروس تباعًا إن شاء الله.</div>';
+      return;
+    }
     let html = '<div class="lesson-list">' + flat.map(l=> rowHtml(l, (CATEGORY_META[l.category]||{}).icon || '📘')).join('') + '</div>';
 
     /* المجموعة الوحيدة المتبقية: المكتسبات القبلية */
@@ -1745,6 +1759,10 @@ function openLessonDetail(id){
     const _tb=document.querySelector('#screen-lessonDetail .lesson-topbar'); if(_tb) _tb.style.display='';
     const _lw=document.querySelector('#screen-lessonDetail .listen-wrap'); if(_lw){ _lw.dataset.hadVideo=''; }
     const _vf=document.getElementById('ldVideo'); if(_vf) _vf.dataset.savedSrc=''; }
+  { const _bb=document.getElementById('ldBackBtn');
+    if(_bb){ const isl = lessonSubject(lesson)==='islamic';
+      _bb.setAttribute('data-nav', isl ? 'islamic' : 'lessons');
+      _bb.textContent = isl ? '→ رجوع لقائمة التربية الإسلامية' : '→ رجوع لقائمة الدروس'; } }
   document.getElementById('ldTitle').textContent = lesson.title;
   document.getElementById('ldSubtitle').textContent = lesson.subtitle||'';
 
@@ -3482,7 +3500,7 @@ function renderLeaderboardScreen(){
     card.innerHTML = `
       <div class="lb-card-num">د${String(l.order).padStart(2,'0')}</div>
       <div class="lb-card-icon"><span class="icon-glyph">🏆</span></div>
-      <div class="lb-card-title">${l.title}</div>`;
+      <div class="lb-card-title">${lessonAdminTitle(l)}</div>`;
     card.addEventListener('click', ()=> showLeaderboardPopup(l));
     grid.appendChild(card);
   });
@@ -4236,7 +4254,7 @@ async function renderAdminPanel(){
     const open = !pendingLesson && !Locks.isLessonLocked(l.id);
     lessonsBody += `<div class="lesson-row ${pendingLesson?'placeholder':''}">
       <div class="lr-num"><span class="lr-num-text">${String(l.order).padStart(2,'0')}</span></div>
-      <div class="lr-text"><div class="lr-title">${l.title}</div></div>
+      <div class="lr-text"><div class="lr-title">${lessonAdminTitle(l)}</div></div>
       ${pendingLesson
         ? `<div class="lr-status">⏳ بلا محتوى بعد</div>`
         : `<button class="al-key" style="width:auto;padding:6px 14px" data-toggle-lesson="${l.id}">${open?'🔓 مفتوح — اضغط للإغلاق':'🔒 مغلق — اضغط للفتح'}</button>`}
@@ -4598,7 +4616,7 @@ async function renderAdminPanel(){
     card.innerHTML = `
       <div class="sc-head" style="cursor:pointer;" data-stats-toggle>
         <div class="sc-num">${String(l.order).padStart(2,'0')}</div>
-        <div class="sc-title">${l.title}</div>
+        <div class="sc-title">${lessonAdminTitle(l)}</div>
       </div>
       <div class="stat-card-body" style="display:none;">
         <div class="sf-label" style="padding:10px 0;">اضغط لعرض إحصائيات هذا الدرس…</div>
@@ -4690,7 +4708,7 @@ async function renderZoomManagerList(overlay){
     const has = ZoomLinks.hasAnyLink(l.id);
     return `<div class="lesson-row zoom-lesson-row" data-zoom-lesson="${l.id}">
       <div class="lr-num"><span class="lr-num-text">${String(l.order).padStart(2,'0')}</span></div>
-      <div class="lr-text"><div class="lr-title">${escZoomText(l.title)}</div></div>
+      <div class="lr-text"><div class="lr-title">${escZoomText(lessonAdminTitle(l))}</div></div>
       <div class="lr-status" title="${has?'توجد روابط محفوظة':'لا توجد روابط بعد'}">${has?'🎬':'➕'}</div>
     </div>`;
   }).join('');
@@ -5125,6 +5143,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 
   Locks.listen(()=>{
     if(document.getElementById('screen-lessons').style.display !== 'none') renderLessonsScreen();
+    { const _si=document.getElementById('screen-islamic'); if(_si && _si.style.display !== 'none') renderIslamicScreen(); }
     if(document.getElementById('screen-irab').style.display !== 'none') renderIrabScreen();
     if(document.getElementById('screen-exams').style.display !== 'none') renderExamsScreen();
     if(document.getElementById('screen-leaderboard').style.display !== 'none') renderLeaderboardScreen();

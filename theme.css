@@ -243,3 +243,9 @@ body{
 .auth-back{ margin-top:14px; }
 .auth-back a{ color:rgba(232,206,133,0.9); font-size:12.5px; font-weight:700; text-decoration:none; }
 .auth-back a:hover{ text-decoration:underline; }
+
+
+/* ===== التربية الإسلامية ===== */
+.hub .badge.cat-islamic   { border-color:#2E4A34; box-shadow:6px 6px 0 rgba(46,74,52,0.20); }
+.hub .badge.cat-islamic b { color:#1F3324; }
+.home-card.c3 .hc-icon-wrap{ background:linear-gradient(150deg,#E4EFE6,#C9DFCE); }
