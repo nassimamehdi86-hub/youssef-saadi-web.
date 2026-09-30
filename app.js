@@ -3819,6 +3819,7 @@ function setupAdminLoginModal(){
   const input = document.getElementById('adminPinInput');
   document.getElementById('adminPinSubmit').addEventListener('click', ()=>{
     if(Admin.checkPin(input.value.trim())){
+      try{ sessionStorage.setItem('admin_session','1'); }catch(_){}
       modal.classList.remove('show'); input.value='';
       /* إخفاء نافذة تسجيل دخول التلميذ إن كانت ظاهرة، فهي تحجب لوحة تحكم الأستاذ/المشرف */
       document.getElementById('loginModal').classList.remove('show');
@@ -4479,6 +4480,7 @@ async function renderAdminPanel(){
     if(!confirm('هل تريد تسجيل الخروج من لوحة التحكم؟')) return;
     if(window.SoundFX) SoundFX.logout();
     Admin.authed = false;
+    try{ sessionStorage.removeItem('admin_session'); }catch(_){}
     Admin.stopListenPending();
     Screens.show('home');
   });
@@ -5222,6 +5224,26 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   if(resumed){ renderWelcome(); }
 
   setupLoginModal();
+
+  /* استعادة جلسة الأستاذ بعد إعادة تحميل الصفحة (تبقى صالحة ما دامت علامة التبويب مفتوحة،
+     وتُمسح عند الضغط على «تسجيل الخروج» أو عند إغلاق التبويب/التطبيق) */
+  let adminRestored = false;
+  try{ adminRestored = sessionStorage.getItem('admin_session') === '1'; }catch(_){}
+  if(adminRestored){
+    Admin.authed = true;
+    try{ if(window.flushFbNotices) window.flushFbNotices(); }catch(_){}
+    document.getElementById('loginModal').classList.remove('show');
+    Admin.listenPending(()=>{
+      if(Admin.authed && document.getElementById('screen-admin').style.display !== 'none') renderAdminPanel();
+    });
+    Screens.show('admin');
+    renderAdminPanel();
+    /* أعد الرسم بعد اكتمال تحميل حالة القفل وملفات PDF حتى تظهر بياناتها الصحيحة */
+    const _rerender = ()=>{ if(Admin.authed && document.getElementById('screen-admin').style.display !== 'none') renderAdminPanel(); };
+    Locks.load().then(_rerender);
+    LessonPdfs.load().then(_rerender);
+    return;
+  }
 
   if(Student.status !== 'approved'){
     document.getElementById('loginModal').classList.add('show');
