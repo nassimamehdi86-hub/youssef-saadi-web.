@@ -259,7 +259,7 @@ body{ background:var(--m-bg); color:var(--ink); }
 @supports ((-webkit-mask-image:url(x)) or (mask-image:url(x))){
   .hero-rise{
     display:block; position:absolute; left:0; right:0; bottom:0; height:70%; z-index:2; pointer-events:none;
-    background:radial-gradient(70% 90% at 50% 100%, rgba(255,205,90,.55), rgba(255,190,70,.18) 45%, transparent 75%);
+    background:radial-gradient(60% 70% at 50% 100%, rgba(255,205,90,.22), rgba(255,190,70,.07) 45%, transparent 75%);
     mix-blend-mode:screen; opacity:0;
     animation:heroRise 6s ease-in-out infinite;
   }
@@ -267,10 +267,10 @@ body{ background:var(--m-bg); color:var(--ink); }
     display:block; position:absolute; z-index:2; pointer-events:none;
     left:50%; top:50%; width:min(118%, 520px); aspect-ratio:1/1; transform:translate(-50%,-50%);
     background:linear-gradient(to top,
-      rgba(255,200,80,0) 0%, rgba(255,200,80,0) 32%,
-      rgba(255,214,110,.75) 44%, rgba(255,246,200,1) 50%, rgba(255,214,110,.75) 56%,
-      rgba(255,200,80,0) 68%, rgba(255,200,80,0) 100%);
-    background-size:100% 300%; background-repeat:no-repeat; background-position:0 0;
+      rgba(255,200,80,0) 0%, rgba(255,200,80,0) 44%,
+      rgba(255,214,110,.28) 47.5%, rgba(255,236,170,.5) 50%, rgba(255,214,110,.28) 52.5%,
+      rgba(255,200,80,0) 56%, rgba(255,200,80,0) 100%);
+    background-size:100% 400%; background-repeat:no-repeat; background-position:0 0;
     mix-blend-mode:screen;
     -webkit-mask-image:url('logo-circle.webp'), radial-gradient(circle closest-side at 50% 50%, transparent 44%, #000 54%, #000 72%, transparent 80%);
     -webkit-mask-size:100% 100%, 100% 100%; -webkit-mask-repeat:no-repeat; -webkit-mask-position:center;
@@ -278,7 +278,7 @@ body{ background:var(--m-bg); color:var(--ink); }
             mask-image:url('logo-circle.webp'), radial-gradient(circle closest-side at 50% 50%, transparent 44%, #000 54%, #000 72%, transparent 80%);
             mask-size:100% 100%, 100% 100%; mask-repeat:no-repeat; mask-position:center;
             mask-composite:intersect;
-    filter:drop-shadow(0 0 8px rgba(255,200,80,.55));
+    filter:drop-shadow(0 0 3px rgba(255,200,80,.25));
     animation:heroSweep 6s ease-in-out infinite;
   }
 }
@@ -287,15 +287,15 @@ body{ background:var(--m-bg); color:var(--ink); }
 /* الشريط يبدأ أسفل الشعار ويصعد حتى يخرج من أعلاه، ثم استراحة قصيرة قبل التكرار */
 @keyframes heroSweep{
   0%   { background-position:0 0;    opacity:0; }
-  8%   { opacity:1; }
-  62%  { background-position:0 100%; opacity:1; }
+  8%   { opacity:.7; }
+  62%  { background-position:0 100%; opacity:.7; }
   72%  { background-position:0 100%; opacity:0; }
   100% { background-position:0 100%; opacity:0; }
 }
 @keyframes heroRise{
   0%   { opacity:0; transform:translateY(18%); }
-  30%  { opacity:.9; transform:translateY(0); }
-  62%  { opacity:.35; transform:translateY(-6%); }
+  30%  { opacity:.6; transform:translateY(0); }
+  62%  { opacity:.25; transform:translateY(-6%); }
   80%,100%{ opacity:0; transform:translateY(-10%); }
 }
 @media (prefers-reduced-motion:reduce){
